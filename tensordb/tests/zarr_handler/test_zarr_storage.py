@@ -3,9 +3,9 @@ import numpy as np
 import os
 import shutil
 
-from tensor_db.file_handlers import ZarrStorage
-from tensor_db.core.utils import compare_dataset
-from tensor_db.config.config_root_dir import TEST_DIR_ZARR
+from tensordb.file_handlers import ZarrStorage
+from tensordb.core.utils import compare_dataset
+from tensordb.config.config_root_dir import TEST_DIR_ZARR
 
 
 # TODO: Improve the tests and add the backup test

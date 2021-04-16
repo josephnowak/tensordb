@@ -7,14 +7,14 @@ from numpy import nan
 from pandas import Timestamp
 from loguru import logger
 
-from tensor_db.file_handlers import (
+from tensordb.file_handlers import (
     ZarrStorage,
     BaseStorage
 )
-from tensor_db.backup_handlers import S3Handler
+from tensordb.backup_handlers import S3Handler
 
 
-class TensorDB:
+class TensorClient:
     """
         TensorDB
         ----------
@@ -34,36 +34,37 @@ class TensorDB:
         TODO
         ----
         1) Add methods to validate the data, for example should be useful to check the proportion of missing data
-            before save the data
+            before save the data.
+
         2) Add more methods to modify the data like bfill or other xarray methods that can be improved when
             appending data.
-        3) Add other backup methods, currently the class only work with S3Handler
+
+        3) Add others backups systems, currently the class only work with S3Handler.
+
         4) Enable the max_files_on_disk option, this will allow to establish a maximum number of files that can be
-            save in memory
-        5) The tensors settings must be saved on disk and after that a backup is necessary, probably one solution
+            on disk.
+
+        5) The tensors definition must be saved on disk and after that a backup is necessary, probably one solution
             for this is create a ZarrStorage for saving all the files settings (this has a lot of limitation due to
             the zarr way to save strings which is basically an array of fixed size) or simple use a json and make a
             manual backup and allow check the last modified date from S3 (create an extra class for this would be ideal)
-            or simple use the attrs of Zarr and ZarrStorage
+            or simple use the attrs of Zarr and ZarrStorage.
+
+        6) Add the option to use s3fs for the paths and read directly from the backup.
     """
 
     def __init__(self,
                  tensors_definition: Dict[str, Dict[str, Any]],
                  base_path: str,
-                 s3_settings: Union[Dict[str, str], S3Handler] = None,
+                 backup_handler: S3Handler = None,
                  max_files_on_disk: int = 0,
                  **kwargs):
 
-        self.env_mode = os.getenv("ENV_MODE", "")
-        self.base_path = os.path.join(base_path, 'tensors_files_storage', self.env_mode)
+        self.base_path = os.path.join(base_path, 'tensors_files_storage')
         self._tensors_definition = tensors_definition
         self.open_base_store: Dict[str, Dict[str, Any]] = {}
         self.max_files_on_disk = max_files_on_disk
-
-        self.s3_handler = s3_settings
-        if s3_settings is not None:
-            if isinstance(s3_settings, dict):
-                self.s3_handler = S3Handler(**s3_settings)
+        self.backup_hander = backup_handler
 
         self.__dict__.update(**kwargs)
 
@@ -83,7 +84,7 @@ class TensorDB:
                 'data_handler': handler_settings.get('data_handler', ZarrStorage)(
                     base_path=self.base_path,
                     path=self._complete_path(tensor_definition=handler_settings, path=path, omit_base_path=True),
-                    s3_handler=self.s3_handler,
+                    backup_hander=self.backup_hander,
                     **handler_settings
                 ),
                 'first_read_date': Timestamp.now(),
@@ -136,15 +137,8 @@ class TensorDB:
     def delete(self, path: str, **kwargs) -> xarray.DataArray:
         return self._personalize_handler_action(path=path, **{**kwargs, **{'action_type': 'delete'}})
 
-    def exist(self,
-              path: str,
-              **kwargs):
-        return self._get_handler(
-            path,
-            **kwargs
-        ).exist(
-            **kwargs
-        )
+    def exist(self, path: str, **kwargs):
+        return self._get_handler(path, **kwargs).exist(**kwargs)
 
     def _complete_path(self,
                        tensor_definition: Dict,

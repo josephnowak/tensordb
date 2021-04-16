@@ -1,8 +1,8 @@
 import os
 import json
 
-from tensor_db.backup_handlers import S3Handler
-from tensor_db.config.config_root_dir import TEST_DIR_S3
+from tensordb.backup_handlers import S3Handler
+from tensordb.config.config_root_dir import TEST_DIR_S3
 
 
 # TODO: Create an account in AWS and try to receive support from amazon

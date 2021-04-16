@@ -9,8 +9,10 @@ from boto3.s3.transfer import TransferConfig
 from botocore.exceptions import ClientError
 from multiprocessing.pool import ThreadPool
 
+from tensordb.backup_handlers.base_handler import BaseHandler
 
-class S3Handler:
+
+class S3Handler(BaseHandler):
 
     botoclient_error = ClientError
 
@@ -37,6 +39,12 @@ class S3Handler:
         for future in futures:
             future.get()
 
+    def download_files(self, files_settings: List[Dict[str, str]]):
+        self._multi_process_function(self.download_file, files_settings)
+
+    def upload_files(self, files_settings: List[Dict[str, str]]):
+        self._multi_process_function(self.upload_file, files_settings)
+
     def download_file(self,
                       bucket_name: str,
                       local_path: str,
@@ -55,12 +63,6 @@ class S3Handler:
             local_path,
             Config=TransferConfig(max_concurrency=max_concurrency),
         )
-
-    def download_files(self, files_settings: List[Dict[str, str]]):
-        self._multi_process_function(self.download_file, files_settings)
-
-    def upload_files(self, files_settings: List[Dict[str, str]]):
-        self._multi_process_function(self.upload_file, files_settings)
 
     def upload_file(self,
                     bucket_name: str,

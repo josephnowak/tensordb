@@ -1,13 +1,13 @@
 import xarray
 import numpy as np
 
-from tensor_db import TensorDB
-from tensor_db.core.utils import create_dummy_array
-from tensor_db.file_handlers import ZarrStorage
-from tensor_db.config.config_root_dir import TEST_DIR_TENSOR_DB
+from tensordb import TensorClient
+from tensordb.core.utils import create_dummy_array
+from tensordb.file_handlers import ZarrStorage
+from tensordb.config.config_root_dir import TEST_DIR_TENSOR_CLIENT
 
 
-def get_default_tensor_db():
+def get_default_tensor_client():
     default_settings = {
         'handler': {
             'dims': ['index', 'columns'],
@@ -94,14 +94,13 @@ def get_default_tensor_db():
         }
     }
 
-    return TensorDB(
-        base_path=TEST_DIR_TENSOR_DB,
-        tensors_definition=tensors_definition,
-        use_env=False
+    return TensorClient(
+        base_path=TEST_DIR_TENSOR_CLIENT,
+        tensors_definition=tensors_definition
     )
 
 
-class TestTensorDB:
+class TestTensorClient:
     """
     TODO: All the tests has dependencies with others, so probably should be good idea use pytest-order to establish
         an order between the tests, using this we can avoid calling some test from another tests
@@ -144,31 +143,31 @@ class TestTensorDB:
     )
 
     def test_store(self):
-        tensor_db = get_default_tensor_db()
-        tensor_db.store(new_data=TestTensorDB.arr, path='data_one')
-        assert tensor_db.read(path='data_one').equals(TestTensorDB.arr)
+        tensor_client = get_default_tensor_client()
+        tensor_client.store(new_data=TestTensorClient.arr, path='data_one')
+        assert tensor_client.read(path='data_one').equals(TestTensorClient.arr)
 
-        tensor_db.store(new_data=TestTensorDB.arr2, path='data_two')
-        assert tensor_db.read(path='data_two').equals(TestTensorDB.arr2)
+        tensor_client.store(new_data=TestTensorClient.arr2, path='data_two')
+        assert tensor_client.read(path='data_two').equals(TestTensorClient.arr2)
 
-        tensor_db.store(new_data=TestTensorDB.arr3, path='data_three')
-        assert tensor_db.read(path='data_three').equals(TestTensorDB.arr3)
+        tensor_client.store(new_data=TestTensorClient.arr3, path='data_three')
+        assert tensor_client.read(path='data_three').equals(TestTensorClient.arr3)
 
     def test_update(self):
         self.test_store()
-        tensor_db = get_default_tensor_db()
-        tensor_db.update(new_data=TestTensorDB.arr2, path='data_one')
-        assert tensor_db.read(path='data_one').equals(TestTensorDB.arr2)
+        tensor_client = get_default_tensor_client()
+        tensor_client.update(new_data=TestTensorClient.arr2, path='data_one')
+        assert tensor_client.read(path='data_one').equals(TestTensorClient.arr2)
 
     def test_append(self):
         self.test_store()
-        tensor_db = get_default_tensor_db()
+        tensor_client = get_default_tensor_client()
 
         arr = create_dummy_array(10, 5, dtype=int)
         arr = arr.sel(
             index=(
                 ~arr.coords['index'].isin(
-                    tensor_db.read(
+                    tensor_client.read(
                         path='data_one'
                     ).coords['index']
                 )
@@ -176,16 +175,16 @@ class TestTensorDB:
         )
 
         for i in range(arr.sizes['index']):
-            tensor_db.append(new_data=arr.isel(index=[i]), path='data_one')
+            tensor_client.append(new_data=arr.isel(index=[i]), path='data_one')
 
-        assert tensor_db.read(path='data_one').sel(arr.coords).equals(arr)
-        assert tensor_db.read(path='data_one').sizes['index'] > arr.sizes['index']
+        assert tensor_client.read(path='data_one').sel(arr.coords).equals(arr)
+        assert tensor_client.read(path='data_one').sizes['index'] > arr.sizes['index']
 
     # def test_backup(self):
-    #     tensor_db = get_default_tensor_db()
-    #     tensor_db.store(new_data=TestTensorDB.arr, path='data_one')
+    #     tensor_client = get_default_tensor_client()
+    #     tensor_client.store(new_data=TestTensorClient.arr, path='data_one')
     #
-    #     handler = tensor_db._get_handler(path='data_one')
+    #     handler = tensor_client._get_handler(path='data_one')
     #     assert handler.s3_handler is not None
     #     assert handler.check_modification
     #
@@ -193,52 +192,52 @@ class TestTensorDB:
     #     assert not handler.update_from_backup()
     #     assert handler.update_from_backup(force_update_from_backup=True)
     #
-    #     assert tensor_db.read(path='data_one').sel(TestTensorDB.arr.coords).equals(TestTensorDB.arr)
+    #     assert tensor_client.read(path='data_one').sel(TestTensorClient.arr.coords).equals(TestTensorClient.arr)
 
     def test_read_from_formula(self):
         self.test_store()
-        tensor_db = get_default_tensor_db()
-        data_four = tensor_db.read(path='data_four')
-        data_one = tensor_db.read(path='data_one')
-        data_two = tensor_db.read(path='data_two')
+        tensor_client = get_default_tensor_client()
+        data_four = tensor_client.read(path='data_four')
+        data_one = tensor_client.read(path='data_one')
+        data_two = tensor_client.read(path='data_two')
         assert data_four.equals((data_one * data_two).rolling({'index': 3}).sum())
 
     def test_ffill(self):
         self.test_store()
-        tensor_db = get_default_tensor_db()
-        tensor_db.store(path='data_ffill')
-        assert tensor_db.read(path='data_ffill').equals(tensor_db.read(path='data_one').ffill('index'))
+        tensor_client = get_default_tensor_client()
+        tensor_client.store(path='data_ffill')
+        assert tensor_client.read(path='data_ffill').equals(tensor_client.read(path='data_one').ffill('index'))
 
     def test_last_valid_index(self):
         self.test_store()
-        tensor_db = get_default_tensor_db()
-        tensor_db.store(path='last_valid_index')
-        assert np.array_equal(tensor_db.read(path='last_valid_index').values, [2, 4, 4, 4, 4])
+        tensor_client = get_default_tensor_client()
+        tensor_client.store(path='last_valid_index')
+        assert np.array_equal(tensor_client.read(path='last_valid_index').values, [2, 4, 4, 4, 4])
 
     def test_replace_last_valid_dim(self):
         self.test_last_valid_index()
-        tensor_db = get_default_tensor_db()
-        tensor_db.store(path='data_replace_last_valid_dim')
+        tensor_client = get_default_tensor_client()
+        tensor_client.store(path='data_replace_last_valid_dim')
 
-        data_ffill = tensor_db.read(path='data_ffill')
+        data_ffill = tensor_client.read(path='data_ffill')
         data_ffill.loc[[3, 4], 0] = np.nan
-        assert tensor_db.read(path='data_replace_last_valid_dim').equals(data_ffill)
+        assert tensor_client.read(path='data_replace_last_valid_dim').equals(data_ffill)
 
     def test_reindex(self):
         self.test_store()
-        tensor_db = get_default_tensor_db()
-        tensor_db.store(path='data_reindex')
-        data_reindex = tensor_db.read(path='data_reindex')
+        tensor_client = get_default_tensor_client()
+        tensor_client.store(path='data_reindex')
+        data_reindex = tensor_client.read(path='data_reindex')
         assert data_reindex.sel(index=5, drop=True).equals(data_reindex.sel(index=4, drop=True))
 
     def test_overwrite_append_data(self):
         self.test_store()
-        tensor_db = get_default_tensor_db()
-        tensor_db.append(path='overwrite_append_data')
+        tensor_client = get_default_tensor_client()
+        tensor_client.append(path='overwrite_append_data')
 
 
 if __name__ == "__main__":
-    test = TestTensorDB()
+    test = TestTensorClient()
     # test.test_store()
     # test.test_update()
     # test.test_append()

@@ -8,8 +8,8 @@ import json
 from typing import Dict, List, Union
 from datetime import datetime
 
-from tensor_db.file_handlers import BaseStorage
-from tensor_db.backup_handlers import S3Handler
+from tensordb.file_handlers import BaseStorage
+from tensordb.backup_handlers import S3Handler
 
 
 class ZarrStorage(BaseStorage):
@@ -24,7 +24,7 @@ class ZarrStorage(BaseStorage):
                  name: str = "data",
                  chunks: Dict[str, int] = None,
                  group: str = None,
-                 s3_handler: Union[S3Handler, Dict] = None,
+                 backup_handler: S3Handler = None,
                  bucket_name: str = None,
                  synchronizer: str = None,
                  **kwargs):
@@ -34,7 +34,7 @@ class ZarrStorage(BaseStorage):
         self.chunks = chunks
         self.group = group
         self.bucket_name = bucket_name
-        self.s3_handler = s3_handler
+        self.backup_handler = backup_handler
         self.synchronizer = None
         if synchronizer is not None:
             if synchronizer == 'process':
@@ -43,9 +43,6 @@ class ZarrStorage(BaseStorage):
                 self.synchronizer = zarr.sync.ThreadSynchronizer()
             else:
                 raise ValueError(f"{synchronizer} is not a valid option for the synchronizer")
-
-        if isinstance(s3_handler, Dict):
-            self.s3_handler = S3Handler(**s3_handler) if isinstance(s3_handler, dict) else s3_handler
 
         self.chunks_modified_dates = self.get_chunks_modified_dates()
         self.check_modification = False
@@ -134,10 +131,7 @@ class ZarrStorage(BaseStorage):
         self.update(new_data, **kwargs)
         self.append(new_data, **kwargs)
 
-    def read_as_dataset(self,
-                        consolidated: bool = False,
-                        chunks: Dict = None,
-                        **kwargs) -> xarray.Dataset:
+    def read(self, consolidated: bool = False, chunks: Dict = None, **kwargs) -> xarray.DataArray:
         self.exist(raise_error_missing_backup=True, **kwargs)
         return xarray.open_zarr(
             self.local_path,
@@ -145,11 +139,7 @@ class ZarrStorage(BaseStorage):
             consolidated=consolidated,
             chunks=chunks,
             synchronizer=self.synchronizer
-        )
-
-    def read(self, **kwargs) -> xarray.DataArray:
-        dataset = self.read_as_dataset(**kwargs)
-        return dataset[self.name]
+        )[self.name]
 
     def get_chunks_modified_dates(self):
         if not self.exist():
@@ -174,12 +164,12 @@ class ZarrStorage(BaseStorage):
 
     def backup(self, overwrite_backup: bool = False, **kwargs) -> bool:
         """
-            TODO:
-                1) Add the synchronizer option for this method, this will prevent from uploading a file that
-                    is being wrote by another process or thread
+        TODO:
+            1) Add the synchronizer option for this method, this will prevent from uploading a file that
+                is being wrote by another process or thread
         """
 
-        if self.s3_handler is None:
+        if self.backup_handler is None:
             return False
 
         if not overwrite_backup and not self.check_modification:
@@ -225,7 +215,7 @@ class ZarrStorage(BaseStorage):
                 ))
 
             # uploading all the files in parallel
-            self.s3_handler.upload_files(files_modified)
+            self.backup_handler.upload_files(files_modified)
 
             # update the chunks modified dates
             self.chunks_modified_dates = self.get_chunks_modified_dates()
@@ -242,7 +232,7 @@ class ZarrStorage(BaseStorage):
                 backup_date = json.load(json_file)['backup_date']
 
         try:
-            self.s3_handler.download_file(
+            self.backup_handler.download_file(
                 bucket_name=self.bucket_name,
                 local_path=os.path.join(self.local_path, 'zbackup_date.json'),
                 s3_path=os.path.join(self.path, 'zbackup_date.json').replace('\\', '/'),
@@ -266,11 +256,11 @@ class ZarrStorage(BaseStorage):
                            force_update_from_backup: bool = False,
                            **kwargs) -> bool:
         """
-            TODO:
-                1) Add the synchronizer option for this method, this will prevent from overwriting a file that
-                    is being used by another process or thread
+        TODO:
+            1) Add the synchronizer option for this method, this will prevent from overwriting a file that
+                is being used by another process or thread
         """
-        if self.s3_handler is None:
+        if self.backup_handler is None:
             return False
 
         force_update_from_backup = force_update_from_backup | (not os.path.exists(self.local_path))
@@ -286,7 +276,7 @@ class ZarrStorage(BaseStorage):
             with open(os.path.join(self.local_path, '.zattrs'), mode='r') as json_file:
                 last_backup_dates = json.load(json_file)['zchunks_backup_metadata']
 
-        self.s3_handler.download_file(
+        self.backup_handler.download_file(
             bucket_name=self.bucket_name,
             local_path=os.path.join(self.local_path, '.zattrs'),
             s3_path=os.path.join(self.path, '.zattrs').replace('\\', '/'),
@@ -311,7 +301,7 @@ class ZarrStorage(BaseStorage):
         if len(files_to_download) == 0:
             return False
 
-        self.s3_handler.download_files(files_to_download)
+        self.backup_handler.download_files(files_to_download)
 
         return True
 
