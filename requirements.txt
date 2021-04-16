@@ -1,0 +1,10 @@
+pandas
+xarray
+numpy
+loguru
+dask[complete]
+boto3
+zarr
+fasteners
+botocore
+bottleneck
