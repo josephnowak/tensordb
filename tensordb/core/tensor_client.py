@@ -246,7 +246,6 @@ class TensorClient:
                                value: Any = nan,
                                calculate_last_valid: bool = True,
                                **kwargs) -> Union[xarray.DataArray, None]:
-        logger.info(new_data)
         if new_data is None:
             return new_data
 
