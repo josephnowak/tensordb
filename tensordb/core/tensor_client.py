@@ -244,10 +244,14 @@ class TensorClient:
                                replace_path: str,
                                dim: str,
                                value: Any = nan,
+                               calculate_last_valid: bool = True,
                                **kwargs) -> Union[xarray.DataArray, None]:
+        logger.info(new_data)
         if new_data is None:
             return new_data
 
         last_valid = self.read(path=replace_path, **kwargs)
+        if calculate_last_valid:
+            last_valid = self.last_valid_dim(new_data, dim)
         last_valid = new_data.coords[dim] <= last_valid.fillna(new_data.coords[dim][-1])
         return new_data.where(last_valid.sel(new_data.coords), value)

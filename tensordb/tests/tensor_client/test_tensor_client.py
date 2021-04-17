@@ -54,7 +54,8 @@ def get_default_tensor_client():
             'replace_last_valid_dim': {
                 'replace_path': 'last_valid_index',
                 'value': np.nan,
-                'dim': 'index'
+                'dim': 'index',
+                'calculate_last_valid': False
             }
         },
         'last_valid_index': {
@@ -244,9 +245,9 @@ if __name__ == "__main__":
     # test.test_backup()
     # test.test_read_from_formula()
     # test.test_ffill()
-    # test.test_replace_last_valid_dim()
+    test.test_replace_last_valid_dim()
     # test.test_last_valid_index()
     # test.test_reindex()
-    test.test_overwrite_append_data()
+    # test.test_overwrite_append_data()
 
 
