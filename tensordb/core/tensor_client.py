@@ -177,18 +177,21 @@ class TensorClient:
                 reindex_path: str,
                 coords_to_reindex: List[str],
                 action_type: str,
+                handler: BaseStorage,
                 method_fill_value: str = None,
                 **kwargs) -> Union[xarray.DataArray, None]:
         if new_data is None:
             return None
+
         data_reindex = self.read(path=reindex_path, **kwargs)
-        if action_type == 'store' or any(size == 0 for size in new_data.sizes.values()):
-            coords_to_reindex = {coord: data_reindex.coords[coord] for coord in coords_to_reindex}
-        else:
+        if action_type != 'store':
+            data = handler.read()
             coords_to_reindex = {
-                coord: data_reindex.coords[coord][data_reindex.coords[coord] >= new_data.coords[coord]]
+                coord: data_reindex.coords[coord][data_reindex.coords[coord] >= data.coords[coord][-1].values]
                 for coord in coords_to_reindex
             }
+        else:
+            coords_to_reindex = {coord: data_reindex.coords[coord] for coord in coords_to_reindex}
         return new_data.reindex(coords_to_reindex, method=method_fill_value)
 
     def last_valid_dim(self,
