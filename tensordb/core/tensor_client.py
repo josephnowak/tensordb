@@ -16,7 +16,7 @@ from tensordb.backup_handlers import S3Handler
 
 class TensorClient:
     """
-        TensorDB
+        TensorClient
         ----------
         It's a kind of SGBD based on files (not necessary the same type of file). It provide a set of basic methods
         that include append, update, store and retrieve data, all these methods are combined with a backup using S3.
@@ -64,7 +64,7 @@ class TensorClient:
         self._tensors_definition = tensors_definition
         self.open_base_store: Dict[str, Dict[str, Any]] = {}
         self.max_files_on_disk = max_files_on_disk
-        self.backup_hander = backup_handler
+        self.backup_handler = backup_handler
 
         self.__dict__.update(**kwargs)
 
@@ -84,7 +84,7 @@ class TensorClient:
                 'data_handler': handler_settings.get('data_handler', ZarrStorage)(
                     base_path=self.base_path,
                     path=self._complete_path(tensor_definition=handler_settings, path=path, omit_base_path=True),
-                    backup_hander=self.backup_hander,
+                    backup_handler=self.backup_handler,
                     **handler_settings
                 ),
                 'first_read_date': Timestamp.now(),

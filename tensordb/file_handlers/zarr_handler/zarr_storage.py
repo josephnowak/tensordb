@@ -7,6 +7,7 @@ import json
 
 from typing import Dict, List, Union
 from datetime import datetime
+from dask.delayed import Delayed
 
 from tensordb.file_handlers import BaseStorage
 from tensordb.backup_handlers import S3Handler
@@ -52,7 +53,7 @@ class ZarrStorage(BaseStorage):
               encoding: Dict = None,
               compute: bool = True,
               consolidated: bool = False,
-              **kwargs):
+              **kwargs) -> Union[None, Delayed]:
 
         new_data = self._transform_to_dataset(new_data)
         self.check_modification = True
@@ -68,18 +69,18 @@ class ZarrStorage(BaseStorage):
 
     def append(self,
                new_data: Union[xarray.DataArray, xarray.Dataset],
-               **kwargs):
+               compute: bool = True,
+               **kwargs) -> List[Union[None, Delayed]]:
 
         exist = self.exist(raise_error_missing_backup=False, **kwargs)
         if not exist:
             return self.store(new_data=new_data, **kwargs)
 
-        new_data = self._transform_to_dataset(new_data)
         act_coords = {k: coord.values for k, coord in self.read().coords.items()}
+        delayed_appends = []
 
         for dim, new_coord in new_data.coords.items():
-            new_coord = new_coord.values
-            coord_to_append = new_coord[~np.isin(new_coord, act_coords[dim])]
+            coord_to_append = new_coord[~np.isin(new_coord, act_coords[dim])].values
             if len(coord_to_append) == 0:
                 continue
 
@@ -89,15 +90,19 @@ class ZarrStorage(BaseStorage):
             }
             data_to_append = new_data.reindex(reindex_coords)
             act_coords[dim] = np.concatenate([act_coords[dim], coord_to_append])
-            data_to_append.to_zarr(
-                self.local_path,
-                append_dim=dim,
-                compute=True,
-                group=self.group,
-                synchronizer=self.synchronizer
+            delayed_appends.append(
+                self._transform_to_dataset(data_to_append).to_zarr(
+                    self.local_path,
+                    append_dim=dim,
+                    compute=compute,
+                    group=self.group,
+                    synchronizer=self.synchronizer
+                )
             )
 
             self.check_modification = True
+
+        return delayed_appends
 
     def update(self,
                new_data: Union[xarray.DataArray, xarray.Dataset],
