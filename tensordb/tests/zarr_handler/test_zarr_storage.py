@@ -2,6 +2,11 @@ import xarray
 import numpy as np
 import os
 import shutil
+import fsspec
+import json
+
+from loguru import logger
+from time import time
 
 from tensordb.file_handlers import ZarrStorage
 from tensordb.core.utils import compare_dataset
@@ -13,11 +18,10 @@ from tensordb.config.config_root_dir import TEST_DIR_ZARR
 
 def get_default_zarr_storage():
     return ZarrStorage(
-        base_path=TEST_DIR_ZARR,
+        local_base_map=fsspec.get_mapper(TEST_DIR_ZARR),
         path='first_test',
         name='data_test',
         chunks={'index': 3, 'columns': 2},
-        dims=['index', 'columns'],
     )
 
 
@@ -52,9 +56,8 @@ class TestZarrStore:
 
     def test_append_data(self):
         a = get_default_zarr_storage()
-        a.s3_handler = None
-        if os.path.exists(a.local_path):
-            shutil.rmtree(a.local_path)
+        if a.local_map.fs.exists(a.local_map.root):
+            a.local_map.fs.rm(a.local_map.root, recursive=True)
 
         arr = TestZarrStore.arr.to_dataset(name='data_test')
         for i in range(5):
@@ -90,7 +93,7 @@ class TestZarrStore:
 
 if __name__ == "__main__":
     test = TestZarrStore()
-    test.test_store_data()
-    # test.test_append_data()
+    # test.test_store_data()
+    test.test_append_data()
     # test.test_update_data()
     # test.test_backup()

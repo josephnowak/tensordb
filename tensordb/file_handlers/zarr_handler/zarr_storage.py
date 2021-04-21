@@ -1,16 +1,25 @@
+import fsspec
 import xarray
 import numpy as np
 import zarr
 import os
 import pandas as pd
 import json
+import time
 
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Any
 from datetime import datetime
 from dask.delayed import Delayed
+from loguru import logger
 
 from tensordb.file_handlers import BaseStorage
 from tensordb.backup_handlers import S3Handler
+from tensordb.file_handlers.zarr_handler.utils import (
+    get_affected_chunks,
+    update_checksums_temp,
+    update_checksums,
+    merge_local_checksums
+)
 
 
 class ZarrStorage(BaseStorage):
@@ -21,62 +30,63 @@ class ZarrStorage(BaseStorage):
     """
 
     def __init__(self,
-                 dims: List[str] = None,
                  name: str = "data",
                  chunks: Dict[str, int] = None,
                  group: str = None,
-                 backup_handler: S3Handler = None,
-                 bucket_name: str = None,
                  synchronizer: str = None,
                  **kwargs):
         super().__init__(**kwargs)
-        self.dims = dims
         self.name = name
         self.chunks = chunks
         self.group = group
-        self.bucket_name = bucket_name
-        self.backup_handler = backup_handler
         self.synchronizer = None
         if synchronizer is not None:
             if synchronizer == 'process':
-                self.synchronizer = zarr.sync.ProcessSynchronizer(self.local_path)
+                self.synchronizer = zarr.sync.ProcessSynchronizer(self.local_map.root)
             elif synchronizer == 'thread':
                 self.synchronizer = zarr.sync.ThreadSynchronizer()
             else:
                 raise ValueError(f"{synchronizer} is not a valid option for the synchronizer")
-
-        self.chunks_modified_dates = self.get_chunks_modified_dates()
-        self.check_modification = False
 
     def store(self,
               new_data: Union[xarray.DataArray, xarray.Dataset],
               encoding: Dict = None,
               compute: bool = True,
               consolidated: bool = False,
-              **kwargs) -> Union[None, Delayed]:
+              remote: bool = False,
+              **kwargs) -> Any:
 
+        path_map = self.backup_path if remote else self.local_map
         new_data = self._transform_to_dataset(new_data)
-        self.check_modification = True
-        return new_data.to_zarr(
-            self.local_path,
+        delayed_write = new_data.to_zarr(
+            path_map,
             group=self.group,
             mode='w',
             encoding=encoding,
             compute=compute,
             consolidated=consolidated,
-            synchronizer=self.synchronizer
+            synchronizer=None if remote else self.synchronizer
         )
+        if remote:
+            update_checksums(path_map, get_affected_chunks(path_map, new_data.coords, self.name))
+        else:
+            update_checksums_temp(path_map, get_affected_chunks(path_map, new_data.coords, self.name))
+
+        return delayed_write
 
     def append(self,
                new_data: Union[xarray.DataArray, xarray.Dataset],
                compute: bool = True,
+               remote: bool = False,
                **kwargs) -> List[Union[None, Delayed]]:
 
         exist = self.exist(raise_error_missing_backup=False, **kwargs)
         if not exist:
-            return self.store(new_data=new_data, **kwargs)
+            return self.store(new_data=new_data, remote=remote, compute=compute, **kwargs)
 
-        act_coords = {k: coord.values for k, coord in self.read().coords.items()}
+        path_map = self.backup_path if remote else self.local_map
+
+        act_coords = {k: coord.values for k, coord in self.read(remote=remote).coords.items()}
         delayed_appends = []
 
         for dim, new_coord in new_data.coords.items():
@@ -88,24 +98,30 @@ class ZarrStorage(BaseStorage):
                 k: coord_to_append if k == dim else act_coord
                 for k, act_coord in act_coords.items()
             }
+
             data_to_append = new_data.reindex(reindex_coords)
+
             act_coords[dim] = np.concatenate([act_coords[dim], coord_to_append])
             delayed_appends.append(
                 self._transform_to_dataset(data_to_append).to_zarr(
-                    self.local_path,
+                    path_map,
                     append_dim=dim,
                     compute=compute,
                     group=self.group,
-                    synchronizer=self.synchronizer
+                    synchronizer=None if remote else self.synchronizer
                 )
             )
 
-            self.check_modification = True
+        if remote:
+            update_checksums(path_map, get_affected_chunks(path_map, new_data.coords, self.name))
+        else:
+            update_checksums_temp(path_map, get_affected_chunks(path_map, new_data.coords, self.name))
 
         return delayed_appends
 
     def update(self,
                new_data: Union[xarray.DataArray, xarray.Dataset],
+               remote: bool = False,
                **kwargs):
         """
         TODO: Avoid loading the entire new data in memory
@@ -117,7 +133,10 @@ class ZarrStorage(BaseStorage):
 
         if isinstance(new_data, xarray.Dataset):
             new_data = new_data.to_array()
-        act_coords = {k: coord.values for k, coord in self.read().coords.items()}
+
+        path_map = self.backup_path if remote else self.local_map
+
+        act_coords = {k: coord.values for k, coord in self.read(remote=remote).coords.items()}
 
         coords_names = list(act_coords.keys())
         bitmask = np.isin(act_coords[coords_names[0]], new_data.coords[coords_names[0]].values)
@@ -125,39 +144,36 @@ class ZarrStorage(BaseStorage):
             bitmask = bitmask & np.isin(act_coords[coord_name], new_data.coords[coord_name].values)[:, None]
 
         arr = zarr.open(
-            os.path.join(self.local_path, self.name),
+            fsspec.FSMap(f'{path_map.root}/{self.name}', path_map.fs),
             mode='a',
-            synchronizer=self.synchronizer
+            synchronizer=None if remote else self.synchronizer
         )
         arr.set_mask_selection(bitmask, new_data.values.ravel())
-        self.check_modification = True
+        if remote:
+            update_checksums(path_map, get_affected_chunks(path_map, new_data.coords, self.name))
+        else:
+            update_checksums_temp(path_map, get_affected_chunks(path_map, new_data.coords, self.name))
+
 
     def upsert(self, new_data: Union[xarray.DataArray, xarray.Dataset], **kwargs):
         self.update(new_data, **kwargs)
         self.append(new_data, **kwargs)
 
-    def read(self, consolidated: bool = False, chunks: Dict = None, **kwargs) -> xarray.DataArray:
+    def read(self,
+             consolidated: bool = False,
+             chunks: Dict = None,
+             remote: bool = False,
+             **kwargs) -> xarray.DataArray:
+
+        path_map = self.backup_path if remote else self.local_map
         self.exist(raise_error_missing_backup=True, **kwargs)
         return xarray.open_zarr(
-            self.local_path,
+            path_map,
             group=self.group,
             consolidated=consolidated,
             chunks=chunks,
-            synchronizer=self.synchronizer
+            synchronizer=None if remote else self.synchronizer
         )[self.name]
-
-    def get_chunks_modified_dates(self):
-        if not self.exist():
-            return {}
-
-        arr_store = zarr.open(self.local_path, mode='r')
-        chunks_dates = {
-            os.path.join(self.local_path, chunk_name): pd.to_datetime(
-                datetime.fromtimestamp(os.path.getmtime(os.path.join(self.local_path, chunk_name)))
-            )
-            for chunk_name in arr_store.chunk_store.keys()
-        }
-        return chunks_dates
 
     def _transform_to_dataset(self, new_data) -> xarray.Dataset:
 
@@ -174,88 +190,18 @@ class ZarrStorage(BaseStorage):
                 is being wrote by another process or thread
         """
 
-        if self.backup_handler is None:
+        if self.backup_map is None:
             return False
 
-        if not overwrite_backup and not self.check_modification:
-            return False
+        if overwrite_backup:
+            files_names = list(self.local_map.keys())
+        else:
+            files_names = list(json.loads(self.local_map['temp_checksums.json']).keys())
 
-        self.check_modification = False
-        arr_store = zarr.open(self.local_path, mode='a')
-        files_modified = []
-
-        for chunk_name in arr_store.chunk_store.keys():
-            total_path = os.path.join(self.local_path, chunk_name)
-            modified_date = pd.to_datetime(datetime.fromtimestamp(os.path.getmtime(total_path)))
-            if not overwrite_backup and self.chunks_modified_dates.get(total_path, '') == modified_date:
-                continue
-
-            files_modified.append(dict(
-                local_path=total_path,
-                s3_path=os.path.join(self.path, chunk_name).replace('\\', '/'),
-                bucket_name=self.bucket_name,
-                **kwargs
-            ))
-
-        if len(files_modified) > 0:
-            backup_date = str(pd.Timestamp.now())
-
-            # adding data about the backup, this is useful to avoid download all the information again and again
-            with open(os.path.join(self.local_path, 'zbackup_date.json'), 'w') as json_file:
-                json.dump({'backup_date': backup_date}, json_file)
-
-            zchunks_backup_metadata = arr_store.attrs.get('zchunks_backup_metadata', {})
-            zchunks_backup_metadata.update({
-                file_modified['s3_path']: backup_date
-                for file_modified in files_modified
-            })
-            arr_store.attrs['zchunks_backup_metadata'] = zchunks_backup_metadata
-
-            for name in ['zbackup_date.json', '.zattrs']:
-                files_modified.append(dict(
-                    local_path=os.path.join(self.local_path, name),
-                    s3_path=os.path.join(self.path, name).replace('\\', '/'),
-                    bucket_name=self.bucket_name,
-                    **kwargs
-                ))
-
-            # uploading all the files in parallel
-            self.backup_handler.upload_files(files_modified)
-
-            # update the chunks modified dates
-            self.chunks_modified_dates = self.get_chunks_modified_dates()
+        self.upload_files(files_names)
+        merge_local_checksums(self.local_map)
 
         return True
-
-    def equal_to_backup(self, **kwargs) -> str:
-        if self.bucket_name is None:
-            return "not backup"
-
-        backup_date = {}
-        if os.path.exists(os.path.join(self.local_path, 'zbackup_date.json')):
-            with open(os.path.join(self.local_path, 'zbackup_date.json'), 'r') as json_file:
-                backup_date = json.load(json_file)['backup_date']
-
-        try:
-            self.backup_handler.download_file(
-                bucket_name=self.bucket_name,
-                local_path=os.path.join(self.local_path, 'zbackup_date.json'),
-                s3_path=os.path.join(self.path, 'zbackup_date.json').replace('\\', '/'),
-                max_concurrency=1,
-                **kwargs
-            )
-        except (S3Handler.botoclient_error, KeyError):
-            return "not backup"
-
-        if not backup_date:
-            return "not equal"
-
-        with open(os.path.join(self.local_path, 'zbackup_date.json'), 'r') as json_file:
-            backup_date_s3 = json.load(json_file)['backup_date']
-
-        if backup_date == backup_date_s3:
-            return "equal"
-        return "not equal"
 
     def update_from_backup(self,
                            force_update_from_backup: bool = False,
@@ -265,53 +211,35 @@ class ZarrStorage(BaseStorage):
             1) Add the synchronizer option for this method, this will prevent from overwriting a file that
                 is being used by another process or thread
         """
-        if self.backup_handler is None:
+        if self.backup_map is None:
             return False
 
-        force_update_from_backup = force_update_from_backup | (not os.path.exists(self.local_path))
+        force_update_from_backup = force_update_from_backup | (not self.local_map.fs.exists(self.local_map.root))
 
-        is_equal = self.equal_to_backup()
-        if is_equal == 'not backup':
-            return False
-        if not force_update_from_backup and is_equal == 'equal':
-            return False
+        if force_update_from_backup:
+            self.download_files(list(self.backup_map.keys()) + [])
+        else:
+            if self.local_map['last_modification_date.json'] == self.backup_map['last_modification_date.json']:
+                return False
 
-        last_backup_dates = {}
-        if not force_update_from_backup and os.path.exists(os.path.join(self.local_path, '.zattrs')):
-            with open(os.path.join(self.local_path, '.zattrs'), mode='r') as json_file:
-                last_backup_dates = json.load(json_file)['zchunks_backup_metadata']
+            backup_checksums = json.loads(self.backup_map['checksums.json'])
+            local_checksums = json.loads(self.local_map['checksums.json'])
+            files_to_download = []
+            for name in backup_checksums.keys():
+                if name not in local_checksums or backup_checksums[name] != local_checksums[name]:
+                    files_to_download.append(name)
+            self.download_files(files_to_download + ['last_modification_date.json', 'checksums.json'])
 
-        self.backup_handler.download_file(
-            bucket_name=self.bucket_name,
-            local_path=os.path.join(self.local_path, '.zattrs'),
-            s3_path=os.path.join(self.path, '.zattrs').replace('\\', '/'),
-            **kwargs
-        )
+        if self.local_map.fs.exists(f'{self.local_map.root}/temp_last_modification_date.json'):
+            self.local_map.fs.rm(f'{self.local_map.root}/temp_last_modification_date.json')
 
-        with open(os.path.join(self.local_path, '.zattrs'), mode='r') as json_file:
-            last_backup_dates_s3 = json.load(json_file)['zchunks_backup_metadata']
-
-        files_to_download = [
-            dict(
-                bucket_name=self.bucket_name,
-                local_path=os.path.join(self.base_path, path),
-                s3_path=path,
-                **kwargs
-            )
-            for path, date in last_backup_dates_s3.items()
-            if path != os.path.join(self.path, '.zattrs') and (
-                    force_update_from_backup or date != last_backup_dates.get(path, '')
-            )
-        ]
-        if len(files_to_download) == 0:
-            return False
-
-        self.backup_handler.download_files(files_to_download)
+        if self.local_map.fs.exists(f'{self.local_map.root}/temp_checksums.json'):
+            self.local_map.fs.rm(f'{self.local_map.root}/temp_checksums.json')
 
         return True
 
     def exist(self, raise_error_missing_backup: bool = False, **kwargs):
-        if os.path.exists(os.path.join(self.local_path, '.zattrs')):
+        if self.local_map.fs.exists(f'{self.local_map.root}/.zattrs'):
             return True
         exist = self.update_from_backup(
             force_update_from_backup=True,

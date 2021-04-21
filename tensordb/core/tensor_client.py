@@ -1,6 +1,7 @@
 import xarray
 import os
 import json
+import fsspec
 
 from typing import Dict, List, Any, Union
 from numpy import nan
@@ -51,22 +52,22 @@ class TensorClient:
             or simple use the attrs of Zarr and ZarrStorage.
 
         6) Add the option to use s3fs for the paths and read directly from the backup.
+
+        7) Improve the performance avoiding the local_base_map for almost all the internal parts and use simple and str
     """
 
     def __init__(self,
                  tensors_definition: Dict[str, Dict[str, Any]],
-                 base_path: str,
-                 backup_handler: S3Handler = None,
+                 local_base_map: fsspec.FSMap,
+                 backup_base_map: fsspec.FSMap = None,
                  max_files_on_disk: int = 0,
                  **kwargs):
 
-        self.base_path = os.path.join(base_path, 'tensors_files_storage')
+        self.local_base_map = local_base_map
+        self.backup_base_map = backup_base_map
         self._tensors_definition = tensors_definition
         self.open_base_store: Dict[str, Dict[str, Any]] = {}
         self.max_files_on_disk = max_files_on_disk
-        self.backup_handler = backup_handler
-
-        self.__dict__.update(**kwargs)
 
     def add_tensor_definition(self, tensor_definition_id, tensor_definition):
         self._tensors_definition[tensor_definition_id] = tensor_definition
@@ -75,23 +76,22 @@ class TensorClient:
         tensor_definition_id = os.path.basename(os.path.normpath(path))
         return self._tensors_definition[tensor_definition_id]
 
-    def _get_handler(self, path: Union[str, List], tensor_definition: Dict = None) -> BaseStorage:
+    def _get_handler(self, path: str, tensor_definition: Dict = None) -> BaseStorage:
         handler_settings = self.get_tensor_definition(path) if tensor_definition is None else tensor_definition
         handler_settings = handler_settings.get('handler', {})
-        local_path = self._complete_path(tensor_definition=handler_settings, path=path)
-        if local_path not in self.open_base_store:
-            self.open_base_store[local_path] = {
+        if path not in self.open_base_store:
+            self.open_base_store[path] = {
                 'data_handler': handler_settings.get('data_handler', ZarrStorage)(
-                    base_path=self.base_path,
-                    path=self._complete_path(tensor_definition=handler_settings, path=path, omit_base_path=True),
-                    backup_handler=self.backup_handler,
+                    local_base_map=self.local_base_map,
+                    backup_base_map=self.backup_base_map,
+                    path=path,
                     **handler_settings
                 ),
                 'first_read_date': Timestamp.now(),
                 'num_use': 0
             }
-        self.open_base_store[local_path]['num_use'] += 1
-        return self.open_base_store[local_path]['data_handler']
+        self.open_base_store[path]['num_use'] += 1
+        return self.open_base_store[path]['data_handler']
 
     def _personalize_handler_action(self, path: str, action_type: str, **kwargs):
         tensor_definition = self.get_tensor_definition(path)
@@ -139,16 +139,6 @@ class TensorClient:
 
     def exist(self, path: str, **kwargs):
         return self._get_handler(path, **kwargs).exist(**kwargs)
-
-    def _complete_path(self,
-                       tensor_definition: Dict,
-                       path: Union[List[str], str],
-                       omit_base_path: bool = False):
-
-        path = path if isinstance(path, list) else [path]
-        if not omit_base_path:
-            return os.path.join(self.base_path, tensor_definition.get('extra_path', ''), *path)
-        return os.path.join(tensor_definition.get('extra_path', ''), *path)
 
     def _apply_data_methods(self, data_methods: List[str], tensor_definition: Dict, **kwargs):
         results = {**{'new_data': None}, **kwargs}

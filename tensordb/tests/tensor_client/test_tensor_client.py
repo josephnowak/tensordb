@@ -1,3 +1,4 @@
+import fsspec
 import xarray
 import numpy as np
 
@@ -96,7 +97,7 @@ def get_default_tensor_client():
     }
 
     return TensorClient(
-        base_path=TEST_DIR_TENSOR_CLIENT,
+        local_base_map=fsspec.get_mapper(TEST_DIR_TENSOR_CLIENT),
         tensors_definition=tensors_definition
     )
 
@@ -239,13 +240,13 @@ class TestTensorClient:
 
 if __name__ == "__main__":
     test = TestTensorClient()
-    # test.test_store()
+    test.test_store()
     # test.test_update()
     # test.test_append()
     # test.test_backup()
     # test.test_read_from_formula()
     # test.test_ffill()
-    test.test_replace_last_valid_dim()
+    # test.test_replace_last_valid_dim()
     # test.test_last_valid_index()
     # test.test_reindex()
     # test.test_overwrite_append_data()
