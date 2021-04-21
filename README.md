@@ -7,12 +7,13 @@ TensorDB born from the necessity of completly read big timeseries matrices to ma
 3. When you need to make fast reads.
 4. When you need to read the data in different ways not only reading by columns or by rows.
 5. When you need to make fast modifications of your data on disk.
-6. When you don't need to delete parts of the data frequently (the deletion require the overwrite of the entiere tensor).
-7. When you don't need to insert data in middle position frequently (overwrite problem).
+6. When you need to have a verification of the integrity of the data using a checksum.
+7. When you don't need to delete parts of the data frequently (the deletion require the overwrite of the entiere tensor).
+8. When you don't need to insert data in middle position frequently (overwrite problem).
 
 # Why use TensorDB
 1. Tensors' definitions are highly personalizable and simple.
 2. It use Xarray to read the tensors, so you have the same options that Xarray provide and It's a really well-supported library.
 3. Fast reads and writes due to the use of Zarr (more formats in the future).
-4. Simple, smart and efficient backup that avoid update not modified data using one of the most used cloud storage system S3 (more in the future)
+4. Simple, smart and efficient backup system that avoid update not modified data (supported by fsspec).
 5. It's simple create new tensors from a formula
