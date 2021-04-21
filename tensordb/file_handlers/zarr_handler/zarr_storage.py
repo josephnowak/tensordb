@@ -67,9 +67,9 @@ class ZarrStorage(BaseStorage):
             synchronizer=None if remote else self.synchronizer
         )
         if remote:
-            update_checksums(path_map, get_affected_chunks(path_map, new_data.coords, self.name))
+            update_checksums(path_map, list(path_map.keys()))
         else:
-            update_checksums_temp(path_map, get_affected_chunks(path_map, new_data.coords, self.name))
+            update_checksums_temp(path_map, list(path_map.keys()))
 
         return delayed_write
 
@@ -103,7 +103,7 @@ class ZarrStorage(BaseStorage):
             act_coords[dim] = np.concatenate([act_coords[dim], coord_to_append])
             delayed_appends.append(
                 self._transform_to_dataset(data_to_append).to_zarr(
-                    path_map,
+                    path_map if remote else path_map.root,
                     append_dim=dim,
                     compute=compute,
                     group=self.group,
@@ -167,7 +167,7 @@ class ZarrStorage(BaseStorage):
         path_map = self.backup_path if remote else self.local_map
         self.exist(raise_error_missing_backup=True, **kwargs)
         return xarray.open_zarr(
-            path_map,
+            path_map if remote else path_map.root,
             group=self.group,
             consolidated=consolidated,
             chunks=chunks,
@@ -193,12 +193,17 @@ class ZarrStorage(BaseStorage):
             return False
 
         if overwrite_backup:
-            files_names = list(self.local_map.keys())
+            files_names = list(self.local_map.keys()) + [
+                'last_modification_date.json',
+                'checksums.json'
+            ]
         else:
-            files_names = list(json.loads(self.local_map['temp_checksums.json']).keys())
-
-        self.upload_files(files_names)
+            files_names = list(json.loads(self.local_map['temp_checksums.json']).keys()) + [
+                'last_modification_date.json',
+                'checksums.json'
+            ]
         merge_local_checksums(self.local_map)
+        self.upload_files(files_names)
 
         return True
 
@@ -209,31 +214,32 @@ class ZarrStorage(BaseStorage):
         TODO:
             1) Add the synchronizer option for this method, this will prevent from overwriting a file that
                 is being used by another process or thread
+            2) Improve the logic for saving and handle the checksums and last modification date jsons
         """
         if self.backup_map is None:
             return False
 
-        force_update_from_backup = force_update_from_backup | (not self.local_map.fs.exists(self.local_map.root))
+        force_update_from_backup = force_update_from_backup | (
+            not self.local_map.fs.exists(f'{self.local_map.root}/last_modification_date.json')
+        )
 
         if force_update_from_backup:
-            self.download_files(list(self.backup_map.keys()) + [])
+            self.download_files(list(self.backup_map.keys()))
         else:
             if self.local_map['last_modification_date.json'] == self.backup_map['last_modification_date.json']:
                 return False
 
             backup_checksums = json.loads(self.backup_map['checksums.json'])
             local_checksums = json.loads(self.local_map['checksums.json'])
-            files_to_download = []
-            for name in backup_checksums.keys():
-                if name not in local_checksums or backup_checksums[name] != local_checksums[name]:
-                    files_to_download.append(name)
+            files_to_download = [
+                name
+                for name, checksum in backup_checksums.items()
+                if name not in local_checksums or checksum != local_checksums[name]
+            ]
             self.download_files(files_to_download + ['last_modification_date.json', 'checksums.json'])
 
-        if self.local_map.fs.exists(f'{self.local_map.root}/temp_last_modification_date.json'):
-            self.local_map.fs.rm(f'{self.local_map.root}/temp_last_modification_date.json')
-
-        if self.local_map.fs.exists(f'{self.local_map.root}/temp_checksums.json'):
-            self.local_map.fs.rm(f'{self.local_map.root}/temp_checksums.json')
+        self.remove_files(self.local_map, 'temp_last_modification_date.json')
+        self.remove_files(self.local_map, 'temp_checksums.json')
 
         return True
 
@@ -246,8 +252,8 @@ class ZarrStorage(BaseStorage):
         )
         if raise_error_missing_backup and not exist:
             raise FileNotFoundError(
-                f"The file with local path: {self.local_path} "
-                f"does not exist and there is not backup in the bucket {self.bucket_name}"
+                f"The file with local path: {self.local_map.root} "
+                f"does not exist and there is not backup in: {self.backup_map.root}"
             )
         return exist
 

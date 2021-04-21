@@ -98,6 +98,7 @@ def get_default_tensor_client():
 
     return TensorClient(
         local_base_map=fsspec.get_mapper(TEST_DIR_TENSOR_CLIENT),
+        backup_base_map=fsspec.get_mapper(TEST_DIR_TENSOR_CLIENT + '/backup'),
         tensors_definition=tensors_definition
     )
 
@@ -182,19 +183,17 @@ class TestTensorClient:
         assert tensor_client.read(path='data_one').sel(arr.coords).equals(arr)
         assert tensor_client.read(path='data_one').sizes['index'] > arr.sizes['index']
 
-    # def test_backup(self):
-    #     tensor_client = get_default_tensor_client()
-    #     tensor_client.store(new_data=TestTensorClient.arr, path='data_one')
-    #
-    #     handler = tensor_client._get_handler(path='data_one')
-    #     assert handler.s3_handler is not None
-    #     assert handler.check_modification
-    #
-    #     handler.backup()
-    #     assert not handler.update_from_backup()
-    #     assert handler.update_from_backup(force_update_from_backup=True)
-    #
-    #     assert tensor_client.read(path='data_one').sel(TestTensorClient.arr.coords).equals(TestTensorClient.arr)
+    def test_backup(self):
+        tensor_client = get_default_tensor_client()
+        tensor_client.store(new_data=TestTensorClient.arr, path='data_one')
+
+        handler = tensor_client._get_handler(path='data_one')
+
+        handler.backup()
+        assert not handler.update_from_backup()
+        assert handler.update_from_backup(force_update_from_backup=True)
+
+        assert tensor_client.read(path='data_one').sel(TestTensorClient.arr.coords).equals(TestTensorClient.arr)
 
     def test_read_from_formula(self):
         self.test_store()
@@ -240,10 +239,10 @@ class TestTensorClient:
 
 if __name__ == "__main__":
     test = TestTensorClient()
-    test.test_store()
+    # test.test_store()
     # test.test_update()
     # test.test_append()
-    # test.test_backup()
+    test.test_backup()
     # test.test_read_from_formula()
     # test.test_ffill()
     # test.test_replace_last_valid_dim()
