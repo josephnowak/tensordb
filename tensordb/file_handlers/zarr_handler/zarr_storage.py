@@ -13,7 +13,6 @@ from dask.delayed import Delayed
 from loguru import logger
 
 from tensordb.file_handlers import BaseStorage
-from tensordb.backup_handlers import S3Handler
 from tensordb.file_handlers.zarr_handler.utils import (
     get_affected_chunks,
     update_checksums_temp,

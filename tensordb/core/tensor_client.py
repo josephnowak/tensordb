@@ -12,7 +12,6 @@ from tensordb.file_handlers import (
     ZarrStorage,
     BaseStorage
 )
-from tensordb.backup_handlers import S3Handler
 
 
 class TensorClient:
