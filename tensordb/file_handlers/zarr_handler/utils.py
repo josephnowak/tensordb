@@ -6,6 +6,7 @@ import fsspec
 
 from typing import Dict
 from pandas import Timestamp
+from loguru import logger
 
 
 def get_dims(path_map: fsspec.FSMap, name: str):
@@ -21,28 +22,24 @@ def find_positions(x: np.array, y: np.array):
     return sorted_keys[np.searchsorted(x, y, sorter=sorted_keys)]
 
 
-def get_affected_chunks(path_map: fsspec.FSMap, coords, data_name):
+def get_affected_chunks(path_map: fsspec.FSMap, actual_coords, coords, data_name):
     dims = get_dims(path_map, data_name)
     chunks_positions_data = []
     chunks_names = []
     chunks_sizes_data = get_chunks_sizes(path_map, data_name)
     for i, dim in enumerate(dims):
-        if dim not in coords:
-            continue
-        # oppening the coord as a zarr array
-        arr = zarr.open(fsspec.FSMap(f'{path_map.root}/{dim}', path_map.fs), mode='r')
-
         # validate the dtype of the coord to modify
         coord = coords[dim].values if isinstance(coords[dim], xarray.DataArray) else coords[dim]
 
         # Find the positions that were affected
-        positions = find_positions(arr[:], coord)
+        positions = find_positions(actual_coords[dim].values, coord)
 
         # Apply the zarr logic to find the chunk names affected in the data
         chunks_positions_data.append(np.unique(positions // chunks_sizes_data[i]))
 
         #  Apply the zarr logic to find the chunk names affected in the coord
-        chunks_names += [f'{dim}/{chunk_name}' for chunk_name in np.unique(positions // arr.chunks[0])]
+        chunks_dim = get_chunks_sizes(path_map, dim)
+        chunks_names += [f'{dim}/{chunk_name}' for chunk_name in np.unique(positions // chunks_dim[0])]
 
         # By default add the zattrs and zarray of the coord
         chunks_names += [f'{dim}/.zattrs', f'{dim}/.zarray']
@@ -70,7 +67,7 @@ def update_checksums(path_map: fsspec.FSMap, chunks_name):
     checksums = {chunk_name: str(path_map.fs.checksum(f'{path_map.root}/{chunk_name}')) for chunk_name in chunks_name}
     total_checksums = json.loads(path_map['checksums.json'])
     total_checksums.update(checksums)
-    path_map['checksums.json'] = json.dumps(modified_chunks).encode('utf-8')
+    path_map['checksums.json'] = json.dumps(total_checksums).encode('utf-8')
     path_map['last_modification_date.json'] = json.dumps({'last_modification_date': date}).encode('utf-8')
 
 

@@ -55,7 +55,7 @@ class ZarrStorage(BaseStorage):
               remote: bool = False,
               **kwargs) -> Any:
 
-        path_map = self.backup_path if remote else self.local_map
+        path_map = self.backup_map if remote else self.local_map
         new_data = self._transform_to_dataset(new_data)
         delayed_write = new_data.to_zarr(
             path_map,
@@ -83,7 +83,7 @@ class ZarrStorage(BaseStorage):
         if not exist:
             return self.store(new_data=new_data, remote=remote, compute=compute, **kwargs)
 
-        path_map = self.backup_path if remote else self.local_map
+        path_map = self.backup_map if remote else self.local_map
 
         act_coords = {k: coord.values for k, coord in self.read(remote=remote).coords.items()}
         delayed_appends = []
@@ -111,10 +111,11 @@ class ZarrStorage(BaseStorage):
                 )
             )
 
+        affected_chunks = get_affected_chunks(path_map, self.read(remote=remote, **kwargs), new_data.coords, self.name)
         if remote:
-            update_checksums(path_map, get_affected_chunks(path_map, new_data.coords, self.name))
+            update_checksums(path_map, affected_chunks)
         else:
-            update_checksums_temp(path_map, get_affected_chunks(path_map, new_data.coords, self.name))
+            update_checksums_temp(path_map, affected_chunks)
 
         return delayed_appends
 
@@ -133,7 +134,7 @@ class ZarrStorage(BaseStorage):
         if isinstance(new_data, xarray.Dataset):
             new_data = new_data.to_array()
 
-        path_map = self.backup_path if remote else self.local_map
+        path_map = self.backup_map if remote else self.local_map
 
         act_coords = {k: coord.values for k, coord in self.read(remote=remote).coords.items()}
 
@@ -148,11 +149,11 @@ class ZarrStorage(BaseStorage):
             synchronizer=None if remote else self.synchronizer
         )
         arr.set_mask_selection(bitmask, new_data.values.ravel())
+        affected_chunks = get_affected_chunks(path_map, self.read(remote=remote, **kwargs), new_data.coords, self.name)
         if remote:
-            update_checksums(path_map, get_affected_chunks(path_map, new_data.coords, self.name))
+            update_checksums(path_map, affected_chunks)
         else:
-            update_checksums_temp(path_map, get_affected_chunks(path_map, new_data.coords, self.name))
-
+            update_checksums_temp(path_map, affected_chunks)
 
     def upsert(self, new_data: Union[xarray.DataArray, xarray.Dataset], **kwargs):
         self.update(new_data, **kwargs)
@@ -164,7 +165,7 @@ class ZarrStorage(BaseStorage):
              remote: bool = False,
              **kwargs) -> xarray.DataArray:
 
-        path_map = self.backup_path if remote else self.local_map
+        path_map = self.backup_map if remote else self.local_map
         self.exist(raise_error_missing_backup=True, **kwargs)
         return xarray.open_zarr(
             path_map if remote else path_map.root,
