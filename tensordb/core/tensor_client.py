@@ -39,8 +39,6 @@ class TensorClient:
         2) Add more methods to modify the data like bfill or other xarray methods that can be improved when
             appending data.
 
-        3) Add others backups systems, currently the class only work with S3Handler.
-
         4) Enable the max_files_on_disk option, this will allow to establish a maximum number of files that can be
             on disk.
 
@@ -50,9 +48,6 @@ class TensorClient:
             manual backup and allow check the last modified date from S3 (create an extra class for this would be ideal)
             or simple use the attrs of Zarr and ZarrStorage.
 
-        6) Add the option to use s3fs for the paths and read directly from the backup.
-
-        7) Improve the performance avoiding the local_base_map for almost all the internal parts and use simple and str
     """
 
     def __init__(self,
