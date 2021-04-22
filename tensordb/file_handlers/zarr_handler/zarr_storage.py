@@ -1,3 +1,5 @@
+import os
+
 import fsspec
 import xarray
 import numpy as np
@@ -6,6 +8,7 @@ import json
 import time
 
 from typing import Dict, List, Union, Any
+from concurrent.futures import ThreadPoolExecutor
 from loguru import logger
 
 from tensordb.file_handlers import BaseStorage
@@ -14,7 +17,7 @@ from tensordb.file_handlers.zarr_handler.utils import (
     update_checksums_temp,
     update_checksums,
     merge_local_checksums,
-    no_lock
+    get_lock
 )
 
 
@@ -57,8 +60,6 @@ class ZarrStorage(BaseStorage):
 
         path_map = self.backup_map if remote else self.local_map
         new_data = self._transform_to_dataset(new_data)
-        logger.info(new_data)
-        logger.info(self.synchronizer)
         delayed_write = new_data.to_zarr(
             path_map,
             group=self.group,
@@ -68,7 +69,6 @@ class ZarrStorage(BaseStorage):
             consolidated=consolidated,
             synchronizer=None if remote else self.synchronizer
         )
-        logger.info('error in write')
         if remote:
             update_checksums(path_map, list(path_map.keys()))
         else:
@@ -188,7 +188,6 @@ class ZarrStorage(BaseStorage):
     def backup(self, overwrite_backup: bool = False, **kwargs) -> bool:
         if self.backup_map is None:
             return False
-        logger.info('making backup')
         if overwrite_backup:
             files_names = list(self.local_map.keys()) + [
                 'last_modification_date.json',
@@ -255,12 +254,13 @@ class ZarrStorage(BaseStorage):
 
     def transfer_files(self, receiver_path_map, sender_path_map, paths):
         paths = [paths] if isinstance(paths, str) else paths
-        for path in paths:
-            lock = no_lock
-            if self.synchronizer is not None:
-                lock = self.synchronizer[path]
+
+        def transfer(path, lock):
             with lock:
                 receiver_path_map[path] = sender_path_map[path]
+
+        with ThreadPoolExecutor(min(os.cpu_count(), len(paths))) as executor:
+            executor.map(lambda x: transfer(x, get_lock(self.synchronizer, x)), tuple(paths))
 
     def upload_files(self, paths):
         if self.backup_map is None:
@@ -273,12 +273,8 @@ class ZarrStorage(BaseStorage):
         self.transfer_files(self.local_map, self.backup_map, paths)
 
     def set_attrs(self, remote: bool = False, **kwargs):
-        lock = no_lock
-        if self.synchronizer is not None:
-            lock = self.synchronizer['.zattrs']
-
         path_map = self.backup_map if remote else self.local_map
-        with lock:
+        with get_lock(self.synchronizer, '.zattrs'):
             total_attrs = kwargs
             if path_map.fs.exists(f'{path_map.root}/.zattrs'):
                 total_attrs.update(json.loads(path_map['.zattrs']))
