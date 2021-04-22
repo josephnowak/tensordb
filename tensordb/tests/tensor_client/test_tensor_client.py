@@ -12,7 +12,6 @@ def get_default_tensor_client():
     default_settings = {
         'handler': {
             'dims': ['index', 'columns'],
-            'data_handler': ZarrStorage,
         },
     }
 
@@ -54,7 +53,6 @@ def get_default_tensor_client():
             },
             'replace_last_valid_dim': {
                 'replace_path': 'last_valid_index',
-                'value': np.nan,
                 'dim': 'index',
                 'calculate_last_valid': False
             }
@@ -96,11 +94,14 @@ def get_default_tensor_client():
         }
     }
 
-    return TensorClient(
+    tensor_client = TensorClient(
         local_base_map=fsspec.get_mapper(TEST_DIR_TENSOR_CLIENT),
         backup_base_map=fsspec.get_mapper(TEST_DIR_TENSOR_CLIENT + '/backup'),
-        tensors_definition=tensors_definition
+        tensors_definition=tensors_definition,
+        synchronizer_definitions='thread'
     )
+    tensor_client.add_tensor_definition(**tensors_definition)
+    return tensor_client
 
 
 class TestTensorClient:
@@ -147,19 +148,19 @@ class TestTensorClient:
 
     def test_store(self):
         tensor_client = get_default_tensor_client()
-        tensor_client.store(new_data=TestTensorClient.arr, path='data_one')
+        tensor_client.store(new_data=TestTensorClient.arr, path='data_one', synchronizer='thread')
         assert tensor_client.read(path='data_one').equals(TestTensorClient.arr)
 
-        tensor_client.store(new_data=TestTensorClient.arr2, path='data_two')
+        tensor_client.store(new_data=TestTensorClient.arr2, path='data_two', synchronizer='thread')
         assert tensor_client.read(path='data_two').equals(TestTensorClient.arr2)
 
-        tensor_client.store(new_data=TestTensorClient.arr3, path='data_three')
+        tensor_client.store(new_data=TestTensorClient.arr3, path='data_three', synchronizer='thread')
         assert tensor_client.read(path='data_three').equals(TestTensorClient.arr3)
 
     def test_update(self):
         self.test_store()
         tensor_client = get_default_tensor_client()
-        tensor_client.update(new_data=TestTensorClient.arr2, path='data_one')
+        tensor_client.update(new_data=TestTensorClient.arr2, path='data_one', synchronizer='thread')
         assert tensor_client.read(path='data_one').equals(TestTensorClient.arr2)
 
     def test_append(self):
@@ -239,10 +240,10 @@ class TestTensorClient:
 
 if __name__ == "__main__":
     test = TestTensorClient()
-    # test.test_store()
+    test.test_store()
     # test.test_update()
     # test.test_append()
-    test.test_backup()
+    # test.test_backup()
     # test.test_read_from_formula()
     # test.test_ffill()
     # test.test_replace_last_valid_dim()

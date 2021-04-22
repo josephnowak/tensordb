@@ -65,22 +65,10 @@ class BaseStorage:
     #     for future in futures:
     #         future.get()
 
-    def upload_files(self, paths):
-        if self.backup_map is None:
-            return
-
-        paths = [paths] if isinstance(paths, str) else paths
-        for path in paths:
-            self.backup_map[path] = self.local_map[path]
-
-    def download_files(self, paths):
-        if self.backup_map is None:
-            return
-        paths = [paths] if isinstance(paths, str) else paths
-        for path in paths:
-            self.local_map[path] = self.backup_map[path]
-
     @staticmethod
     def remove_files(path_map, path: str, recursive: bool = False):
         if path_map.fs.exists(f'{path_map.root}/{path}'):
             path_map.fs.rm(f'{path_map.root}/{path}', recursive=recursive)
+
+
+
