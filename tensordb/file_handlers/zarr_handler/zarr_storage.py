@@ -2,14 +2,10 @@ import fsspec
 import xarray
 import numpy as np
 import zarr
-import os
-import pandas as pd
 import json
 import time
 
 from typing import Dict, List, Union, Any
-from datetime import datetime
-from dask.delayed import Delayed
 from loguru import logger
 
 from tensordb.file_handlers import BaseStorage
@@ -17,7 +13,8 @@ from tensordb.file_handlers.zarr_handler.utils import (
     get_affected_chunks,
     update_checksums_temp,
     update_checksums,
-    merge_local_checksums
+    merge_local_checksums,
+    no_lock
 )
 
 
@@ -26,6 +23,8 @@ class ZarrStorage(BaseStorage):
     TODO:
         1) The next versions of zarr will add support for the modification dates of the chunks, that will simplify
             the code of backup, so It is a good idea modify the code after the modification being published
+        2) The of option of compute = False does not work correctly due to the way
+                We update the chunks, it should allow delayed. Using the point one this will not be required
     """
 
     def __init__(self,
@@ -33,23 +32,24 @@ class ZarrStorage(BaseStorage):
                  chunks: Dict[str, int] = None,
                  group: str = None,
                  synchronizer: str = None,
+                 encoding: Dict = None,
                  **kwargs):
         super().__init__(**kwargs)
         self.name = name
         self.chunks = chunks
         self.group = group
-        self.synchronizer = None
-        if synchronizer is not None:
-            if synchronizer == 'process':
-                self.synchronizer = zarr.sync.ProcessSynchronizer(self.local_map.root)
-            elif synchronizer == 'thread':
-                self.synchronizer = zarr.sync.ThreadSynchronizer()
-            else:
-                raise ValueError(f"{synchronizer} is not a valid option for the synchronizer")
+        self.encoding = encoding
+        if synchronizer is None:
+            self.synchronizer = None
+        elif synchronizer == 'process':
+            self.synchronizer = zarr.ProcessSynchronizer(self.local_map.root)
+        elif synchronizer == 'thread':
+            self.synchronizer = zarr.ThreadSynchronizer()
+        else:
+            raise ValueError(f"{synchronizer} is not a valid option for the synchronizer")
 
     def store(self,
               new_data: Union[xarray.DataArray, xarray.Dataset],
-              encoding: Dict = None,
               compute: bool = True,
               consolidated: bool = False,
               remote: bool = False,
@@ -57,15 +57,18 @@ class ZarrStorage(BaseStorage):
 
         path_map = self.backup_map if remote else self.local_map
         new_data = self._transform_to_dataset(new_data)
+        logger.info(new_data)
+        logger.info(self.synchronizer)
         delayed_write = new_data.to_zarr(
             path_map,
             group=self.group,
             mode='w',
-            encoding=encoding,
+            encoding=self.encoding,
             compute=compute,
             consolidated=consolidated,
             synchronizer=None if remote else self.synchronizer
         )
+        logger.info('error in write')
         if remote:
             update_checksums(path_map, list(path_map.keys()))
         else:
@@ -77,7 +80,7 @@ class ZarrStorage(BaseStorage):
                new_data: Union[xarray.DataArray, xarray.Dataset],
                compute: bool = True,
                remote: bool = False,
-               **kwargs) -> List[Union[None, Delayed]]:
+               **kwargs) -> List[Union[None, xarray.backends.zarr.ZarrStore]]:
 
         exist = self.exist(raise_error_missing_backup=False, **kwargs)
         if not exist:
@@ -161,7 +164,6 @@ class ZarrStorage(BaseStorage):
 
     def read(self,
              consolidated: bool = False,
-             chunks: Dict = None,
              remote: bool = False,
              **kwargs) -> xarray.DataArray:
 
@@ -171,7 +173,7 @@ class ZarrStorage(BaseStorage):
             path_map if remote else path_map.root,
             group=self.group,
             consolidated=consolidated,
-            chunks=chunks,
+            chunks=self.chunks,
             synchronizer=None if remote else self.synchronizer
         )[self.name]
 
@@ -184,15 +186,9 @@ class ZarrStorage(BaseStorage):
         return new_data
 
     def backup(self, overwrite_backup: bool = False, **kwargs) -> bool:
-        """
-        TODO:
-            1) Add the synchronizer option for this method, this will prevent from uploading a file that
-                is being wrote by another process or thread
-        """
-
         if self.backup_map is None:
             return False
-
+        logger.info('making backup')
         if overwrite_backup:
             files_names = list(self.local_map.keys()) + [
                 'last_modification_date.json',
@@ -208,14 +204,8 @@ class ZarrStorage(BaseStorage):
 
         return True
 
-    def update_from_backup(self,
-                           force_update_from_backup: bool = False,
-                           **kwargs) -> bool:
+    def update_from_backup(self, force_update_from_backup: bool = False, **kwargs) -> bool:
         """
-        TODO:
-            1) Add the synchronizer option for this method, this will prevent from overwriting a file that
-                is being used by another process or thread
-            2) Improve the logic for saving and handle the checksums and last modification date jsons
         """
         if self.backup_map is None:
             return False
@@ -227,6 +217,8 @@ class ZarrStorage(BaseStorage):
         if force_update_from_backup:
             self.download_files(list(self.backup_map.keys()))
         else:
+            if not self.backup_map.fs.exists(f'{self.backup_map.root}/last_modification_date.json'):
+                return False
             if self.local_map['last_modification_date.json'] == self.backup_map['last_modification_date.json']:
                 return False
 
@@ -260,3 +252,42 @@ class ZarrStorage(BaseStorage):
 
     def close(self, **kwargs):
         self.backup(**kwargs)
+
+    def transfer_files(self, receiver_path_map, sender_path_map, paths):
+        paths = [paths] if isinstance(paths, str) else paths
+        for path in paths:
+            lock = no_lock
+            if self.synchronizer is not None:
+                lock = self.synchronizer[path]
+            with lock:
+                receiver_path_map[path] = sender_path_map[path]
+
+    def upload_files(self, paths):
+        if self.backup_map is None:
+            return
+        self.transfer_files(self.backup_map, self.local_map, paths)
+
+    def download_files(self, paths):
+        if self.backup_map is None:
+            return
+        self.transfer_files(self.local_map, self.backup_map, paths)
+
+    def set_attrs(self, remote: bool = False, **kwargs):
+        lock = no_lock
+        if self.synchronizer is not None:
+            lock = self.synchronizer['.zattrs']
+
+        path_map = self.backup_map if remote else self.local_map
+        with lock:
+            total_attrs = kwargs
+            if path_map.fs.exists(f'{path_map.root}/.zattrs'):
+                total_attrs.update(json.loads(path_map['.zattrs']))
+            path_map['.zattrs'] = json.dumps(total_attrs).encode('utf-8')
+        if remote:
+            update_checksums(path_map, ['.zattrs'])
+        else:
+            update_checksums_temp(path_map, ['.zattrs'])
+
+    def get_attrs(self, remote: bool = False):
+        path_map = self.backup_map if remote else self.local_map
+        return json.loads(path_map['.zattrs'])

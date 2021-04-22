@@ -1,12 +1,15 @@
 import xarray
 import json
 import numpy as np
-import zarr
 import fsspec
 
 from typing import Dict
 from pandas import Timestamp
+from zarr.util import NoLock
 from loguru import logger
+
+
+no_lock = NoLock()
 
 
 def get_dims(path_map: fsspec.FSMap, name: str):

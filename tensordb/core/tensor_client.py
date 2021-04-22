@@ -39,40 +39,50 @@ class TensorClient:
         2) Add more methods to modify the data like bfill or other xarray methods that can be improved when
             appending data.
 
+        3) Separate the logic of the modify data methods to another class or put them in a functions
+
         4) Enable the max_files_on_disk option, this will allow to establish a maximum number of files that can be
             on disk.
 
-        5) The tensors definition must be saved on disk and after that a backup is necessary, probably one solution
-            for this is create a ZarrStorage for saving all the files settings (this has a lot of limitation due to
-            the zarr way to save strings which is basically an array of fixed size) or simple use a json and make a
-            manual backup and allow check the last modified date from S3 (create an extra class for this would be ideal)
-            or simple use the attrs of Zarr and ZarrStorage.
+
 
     """
 
     def __init__(self,
-                 tensors_definition: Dict[str, Dict[str, Any]],
                  local_base_map: fsspec.FSMap,
                  backup_base_map: fsspec.FSMap = None,
                  max_files_on_disk: int = 0,
+                 synchronizer: str = None,
                  **kwargs):
 
         self.local_base_map = local_base_map
         self.backup_base_map = backup_base_map
-        self._tensors_definition = tensors_definition
         self.open_base_store: Dict[str, Dict[str, Any]] = {}
         self.max_files_on_disk = max_files_on_disk
+        self.synchronizer = synchronizer
+        self._tensors_definition = ZarrStorage(
+            path='tensors_definition',
+            local_base_map=self.local_base_map,
+            backup_base_map=self.backup_base_map,
+            synchronizer=self.synchronizer
+        )
 
-    def add_tensor_definition(self, tensor_definition_id, tensor_definition):
-        self._tensors_definition[tensor_definition_id] = tensor_definition
+    def add_tensor_definition(self, remote: bool = False, **kwargs):
+        if not remote:
+            self._tensors_definition.update_from_backup()
+        self._tensors_definition.set_attrs(remote=remote, **kwargs)
+        if not remote:
+            self._tensors_definition.backup()
 
-    def get_tensor_definition(self, path) -> Dict:
+    def get_tensor_definition(self, path, remote: bool = False) -> Dict:
+        if not remote:
+            self._tensors_definition.update_from_backup()
         tensor_definition_id = os.path.basename(os.path.normpath(path))
-        return self._tensors_definition[tensor_definition_id]
+        return self._tensors_definition.get_attrs(remote=remote)[tensor_definition_id]
 
     def _get_handler(self, path: str, tensor_definition: Dict = None) -> BaseStorage:
         handler_settings = self.get_tensor_definition(path) if tensor_definition is None else tensor_definition
-        handler_settings = handler_settings.get('handler', {})
+        handler_settings = {**{'synchronizer': self.synchronizer}, **handler_settings.get('handler', {})}
         if path not in self.open_base_store:
             self.open_base_store[path] = {
                 'data_handler': handler_settings.get('data_handler', ZarrStorage)(

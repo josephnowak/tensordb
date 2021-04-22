@@ -12,7 +12,6 @@ def get_default_tensor_client():
     default_settings = {
         'handler': {
             'dims': ['index', 'columns'],
-            'data_handler': ZarrStorage,
         },
     }
 
@@ -54,7 +53,6 @@ def get_default_tensor_client():
             },
             'replace_last_valid_dim': {
                 'replace_path': 'last_valid_index',
-                'value': np.nan,
                 'dim': 'index',
                 'calculate_last_valid': False
             }
@@ -96,11 +94,14 @@ def get_default_tensor_client():
         }
     }
 
-    return TensorClient(
+    tensor_client = TensorClient(
         local_base_map=fsspec.get_mapper(TEST_DIR_TENSOR_CLIENT),
         backup_base_map=fsspec.get_mapper(TEST_DIR_TENSOR_CLIENT + '/backup'),
+        synchronizer='thread',
         tensors_definition=tensors_definition
     )
+    tensor_client.add_tensor_definition(**tensors_definition)
+    return tensor_client
 
 
 class TestTensorClient:
@@ -239,10 +240,10 @@ class TestTensorClient:
 
 if __name__ == "__main__":
     test = TestTensorClient()
-    # test.test_store()
+    test.test_store()
     # test.test_update()
     # test.test_append()
-    test.test_backup()
+    # test.test_backup()
     # test.test_read_from_formula()
     # test.test_ffill()
     # test.test_replace_last_valid_dim()
