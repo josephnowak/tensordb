@@ -97,7 +97,6 @@ def get_default_tensor_client():
     tensor_client = TensorClient(
         local_base_map=fsspec.get_mapper(TEST_DIR_TENSOR_CLIENT),
         backup_base_map=fsspec.get_mapper(TEST_DIR_TENSOR_CLIENT + '/backup'),
-        synchronizer='thread',
         tensors_definition=tensors_definition
     )
     tensor_client.add_tensor_definition(**tensors_definition)
@@ -148,19 +147,19 @@ class TestTensorClient:
 
     def test_store(self):
         tensor_client = get_default_tensor_client()
-        tensor_client.store(new_data=TestTensorClient.arr, path='data_one')
+        tensor_client.store(new_data=TestTensorClient.arr, path='data_one', synchronizer='thread')
         assert tensor_client.read(path='data_one').equals(TestTensorClient.arr)
 
-        tensor_client.store(new_data=TestTensorClient.arr2, path='data_two')
+        tensor_client.store(new_data=TestTensorClient.arr2, path='data_two', synchronizer='thread')
         assert tensor_client.read(path='data_two').equals(TestTensorClient.arr2)
 
-        tensor_client.store(new_data=TestTensorClient.arr3, path='data_three')
+        tensor_client.store(new_data=TestTensorClient.arr3, path='data_three', synchronizer='thread')
         assert tensor_client.read(path='data_three').equals(TestTensorClient.arr3)
 
     def test_update(self):
         self.test_store()
         tensor_client = get_default_tensor_client()
-        tensor_client.update(new_data=TestTensorClient.arr2, path='data_one')
+        tensor_client.update(new_data=TestTensorClient.arr2, path='data_one', synchronizer='thread')
         assert tensor_client.read(path='data_one').equals(TestTensorClient.arr2)
 
     def test_append(self):
