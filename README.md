@@ -6,7 +6,7 @@ TensorDB born from the necessity of completly read big timeseries matrices to ma
 2. It use Xarray to read the tensors, so you have the same options that Xarray provide and It's a really well-supported library.
 3. Fast reads and writes due to the use of Zarr (more formats in the future).
 4. Simple, smart and efficient backup system that avoid update not modified data (supported by fsspec).
-5. You can create new tensors using formulas.
+5. You can create new tensors using string formulas.
 
 # When is good idea use TensorDB
 1. When you need to organize multiple tensors and personalize every one of them to have different behaviours.
