@@ -97,7 +97,8 @@ def get_default_tensor_client():
     tensor_client = TensorClient(
         local_base_map=fsspec.get_mapper(TEST_DIR_TENSOR_CLIENT),
         backup_base_map=fsspec.get_mapper(TEST_DIR_TENSOR_CLIENT + '/backup'),
-        tensors_definition=tensors_definition
+        tensors_definition=tensors_definition,
+        synchronizer_definitions='thread'
     )
     tensor_client.add_tensor_definition(**tensors_definition)
     return tensor_client
