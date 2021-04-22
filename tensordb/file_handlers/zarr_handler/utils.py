@@ -12,6 +12,12 @@ from loguru import logger
 no_lock = NoLock()
 
 
+def get_lock(synchronizer, path):
+    if synchronizer is None:
+        return no_lock
+    return synchronizer[path]
+
+
 def get_dims(path_map: fsspec.FSMap, name: str):
     return json.loads(path_map[f'{name}/.zattrs'])['_ARRAY_DIMENSIONS']
 

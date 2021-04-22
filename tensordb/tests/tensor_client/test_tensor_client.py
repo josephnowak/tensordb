@@ -2,6 +2,8 @@ import fsspec
 import xarray
 import numpy as np
 
+from loguru import logger
+
 from tensordb import TensorClient
 from tensordb.core.utils import create_dummy_array
 from tensordb.file_handlers import ZarrStorage
