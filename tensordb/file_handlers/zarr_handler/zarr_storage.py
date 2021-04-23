@@ -1,11 +1,9 @@
 import os
-
 import fsspec
 import xarray
 import numpy as np
 import zarr
 import json
-import time
 
 from typing import Dict, List, Union, Any
 from concurrent.futures import ThreadPoolExecutor
@@ -35,13 +33,11 @@ class ZarrStorage(BaseStorage):
                  chunks: Dict[str, int] = None,
                  group: str = None,
                  synchronizer: str = None,
-                 encoding: Dict = None,
                  **kwargs):
         super().__init__(**kwargs)
         self.name = name
         self.chunks = chunks
         self.group = group
-        self.encoding = encoding
         if synchronizer is None:
             self.synchronizer = None
         elif synchronizer == 'process':
@@ -56,6 +52,7 @@ class ZarrStorage(BaseStorage):
               compute: bool = True,
               consolidated: bool = False,
               remote: bool = False,
+              encoding: Dict = None,
               **kwargs) -> Any:
 
         path_map = self.backup_map if remote else self.local_map
@@ -64,7 +61,7 @@ class ZarrStorage(BaseStorage):
             path_map,
             group=self.group,
             mode='w',
-            encoding=self.encoding,
+            encoding=encoding,
             compute=compute,
             consolidated=consolidated,
             synchronizer=None if remote else self.synchronizer
