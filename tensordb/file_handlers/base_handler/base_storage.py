@@ -4,7 +4,6 @@ import fsspec
 
 from abc import abstractmethod
 from typing import Dict, List, Any, Union, Callable, Generic
-from multiprocessing.pool import ThreadPool
 
 
 class BaseStorage:
@@ -55,15 +54,6 @@ class BaseStorage:
     @abstractmethod
     def exist(self, remote: bool = False, **kwargs):
         pass
-
-    # def _multi_process_function(self, func: Callable, arguments: List[Dict[str, str]]):
-    #     """
-    #     TODO: Simplify or improve this code, probably would be better to use map
-    #     """
-    #     p = ThreadPool(processes=self.max_concurrency)
-    #     futures = [p.apply_async(func=func, kwds=kwds) for kwds in arguments]
-    #     for future in futures:
-    #         future.get()
 
     @staticmethod
     def remove_files(path_map, path: str, recursive: bool = False):

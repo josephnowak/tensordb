@@ -1,6 +1,5 @@
 import xarray
 import os
-import json
 import fsspec
 
 from typing import Dict, List, Any, Union
@@ -17,7 +16,7 @@ from tensordb.file_handlers import (
 class TensorClient:
     """
         TensorClient
-        ----------
+        ------------
         It's a kind of SGBD based on files (not necessary the same type of file). It provide a set of basic methods
         that include append, update, store and retrieve data, all these methods are combined with a backup using S3.
 
@@ -43,6 +42,8 @@ class TensorClient:
 
         4) Enable the max_files_on_disk option, this will allow to establish a maximum number of files that can be
             on disk.
+
+        5) Improve the tensors definition, I need to think in more ideas for this, but at this moment is really good
 
 
 
