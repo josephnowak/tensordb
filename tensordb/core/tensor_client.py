@@ -83,17 +83,18 @@ class TensorClient:
     def _get_handler(self, path: str, tensor_definition: Dict = None) -> BaseStorage:
         handler_settings = self.get_tensor_definition(path) if tensor_definition is None else tensor_definition
         handler_settings = handler_settings.get('handler', {})
+        data_handler = handler_settings.get('data_handler', ZarrStorage)(
+            local_base_map=self.local_base_map,
+            backup_base_map=self.backup_base_map,
+            path=path,
+            **handler_settings
+        )
         if path not in self.open_base_store:
             self.open_base_store[path] = {
-                'data_handler': handler_settings.get('data_handler', ZarrStorage)(
-                    local_base_map=self.local_base_map,
-                    backup_base_map=self.backup_base_map,
-                    path=path,
-                    **handler_settings
-                ),
                 'first_read_date': Timestamp.now(),
                 'num_use': 0
             }
+        self.open_base_store[path]['data_handler'] = data_handler
         self.open_base_store[path]['num_use'] += 1
         return self.open_base_store[path]['data_handler']
 
