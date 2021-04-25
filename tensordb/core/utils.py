@@ -5,6 +5,9 @@ import pandas as pd
 from loguru import logger
 
 
+internal_actions = ['store', 'update', 'append', 'upsert', 'delete', 'backup', 'update_from_backup', 'close']
+
+
 def create_dummy_array(n_rows, n_cols, coords=None, dtype=None) -> xarray.DataArray:
     coords = coords
     if coords is None:

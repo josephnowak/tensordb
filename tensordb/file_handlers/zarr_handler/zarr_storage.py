@@ -272,9 +272,10 @@ class ZarrStorage(BaseStorage):
     def set_attrs(self, remote: bool = False, **kwargs):
         path_map = self.backup_map if remote else self.local_map
         with get_lock(self.synchronizer, '.zattrs'):
-            total_attrs = kwargs
+            total_attrs = {}
             if path_map.fs.exists(f'{path_map.root}/.zattrs'):
-                total_attrs.update(json.loads(path_map['.zattrs']))
+                total_attrs = json.loads(path_map['.zattrs'])
+            total_attrs.update(kwargs)
             path_map['.zattrs'] = json.dumps(total_attrs).encode('utf-8')
         if remote:
             update_checksums(path_map, ['.zattrs'])

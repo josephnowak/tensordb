@@ -2,8 +2,8 @@ import xarray
 import os
 import fsspec
 
-from typing import Dict, List, Any, Union
-from numpy import nan
+from typing import Dict, List, Any, Union, Tuple
+from numpy import nan, array
 from pandas import Timestamp
 from loguru import logger
 
@@ -11,6 +11,7 @@ from tensordb.file_handlers import (
     ZarrStorage,
     BaseStorage
 )
+from tensordb.core.utils import internal_actions
 
 
 class TensorClient:
@@ -109,14 +110,35 @@ class TensorClient:
         method_settings = tensor_definition.get(kwargs['action_type'], {})
         if 'personalized_method' in method_settings:
             method = method_settings['personalized_method']
-            if method in ['store', 'update', 'append', 'upsert', 'delete', 'backup', 'update_from_backup', 'close']:
-                return getattr(self, method_settings['personalized_method'])(path=path, **kwargs)
+            if method in internal_actions:
+                return getattr(self, method)(path=path, **kwargs)
             return getattr(self, method)(**kwargs)
 
         if 'data_methods' in method_settings:
             kwargs['new_data'] = self._apply_data_methods(data_methods=method_settings['data_methods'], **kwargs)
 
         return getattr(kwargs['handler'], action_type)(**{**kwargs, **method_settings})
+
+    def _apply_data_methods(self,
+                            data_methods: List[Union[str, Tuple[str, Dict]]],
+                            tensor_definition: Dict,
+                            **kwargs):
+        results = {**{'new_data': None}, **kwargs}
+        for method in data_methods:
+            if isinstance(method, (list, tuple)):
+                method_name, parameters = method[0], method[1]
+            else:
+                method_name, parameters = method, tensor_definition.get(method, {})
+            result = getattr(self, method_name)(
+                **{**parameters, **results},
+                tensor_definition=tensor_definition
+            )
+            if method_name in internal_actions:
+                continue
+
+            results.update(result if isinstance(result, dict) else {'new_data': result})
+
+        return results['new_data']
 
     def read(self, path: str, **kwargs) -> xarray.DataArray:
         return self._personalize_handler_action(path=path, **{**kwargs, **{'action_type': 'read'}})
@@ -145,26 +167,28 @@ class TensorClient:
     def exist(self, path: str, **kwargs):
         return self._get_handler(path, **kwargs).exist(**kwargs)
 
-    def _apply_data_methods(self, data_methods: List[str], tensor_definition: Dict, **kwargs):
-        results = {**{'new_data': None}, **kwargs}
-        for method in data_methods:
-            result = getattr(self, method)(
-                **{**tensor_definition.get(method, {}), **results},
-                tensor_definition=tensor_definition
-            )
-            result = result if isinstance(result, dict) else {'new_data': result}
-            results.update(result)
-        return results['new_data']
+    def read_from_formula(self,
+                          tensor_definition: Dict = None,
+                          new_data: xarray.DataArray = None,
+                          formula: str = None,
+                          use_exec: bool = False,
+                          **kwargs):
+        if formula is None:
+            formula = tensor_definition['read_from_formula']['formula']
+            use_exec = tensor_definition['read_from_formula'].get('use_exec', False)
 
-    def read_from_formula(self, tensor_definition, new_data: xarray.DataArray = None, **kwargs):
-        formula = tensor_definition['read_from_formula']['formula']
         data_fields = {}
-        data_fields_intervals = [i for i, c in enumerate(formula) if c == '`']
+        data_fields_intervals = array([i for i, c in enumerate(formula) if c == '`'])
         for i in range(0, len(data_fields_intervals), 2):
             name_data_field = formula[data_fields_intervals[i] + 1: data_fields_intervals[i + 1]]
             data_fields[name_data_field] = self.read(name_data_field)
         for name, dataset in data_fields.items():
             formula = formula.replace(f"`{name}`", f"data_fields['{name}']")
+        if use_exec:
+            d = {'data_fields': data_fields, 'new_data': new_data}
+            d.update(kwargs)
+            exec(formula, d)
+            return d['new_data']
         return eval(formula)
 
     def reindex(self,
