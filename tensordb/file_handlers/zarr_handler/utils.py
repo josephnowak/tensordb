@@ -81,16 +81,17 @@ def update_checksums(path_map: fsspec.FSMap, chunks_name):
 
 
 def merge_local_checksums(local_map: fsspec.FSMap):
-    if not local_map.fs.exists(f'{local_map.root}/temp_checksums.json'):
+    if 'temp_checksums.json' not in local_map:
         return
 
     checksums = {}
-    if local_map.fs.exists(f'{local_map.root}/checksums.json'):
+    if 'checksums.json' in local_map:
         checksums = json.loads(local_map['checksums.json'])
     checksums.update(json.loads(local_map['temp_checksums.json']))
 
     local_map['checksums.json'] = json.dumps(checksums).encode('utf-8')
-    local_map.fs.rm(f'{local_map.root}/temp_checksums.json')
     local_map['last_modification_date.json'] = local_map['temp_last_modification_date.json']
-    local_map.fs.rm(f'{local_map.root}/temp_last_modification_date.json')
+
+    del local_map['temp_checksums.json']
+    del local_map['temp_last_modification_date.json']
 
