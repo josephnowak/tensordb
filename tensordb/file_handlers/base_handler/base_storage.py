@@ -57,7 +57,7 @@ class BaseStorage:
 
     @staticmethod
     def remove_files(path_map, path: str, recursive: bool = False):
-        if path_map.fs.exists(f'{path_map.root}/{path}'):
+        if path in path_map:
             path_map.fs.rm(f'{path_map.root}/{path}', recursive=recursive)
 
 

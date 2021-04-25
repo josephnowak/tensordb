@@ -254,7 +254,7 @@ class TestTensorClient:
 
 if __name__ == "__main__":
     test = TestTensorClient()
-    # test.test_add_tensor_definition()
+    test.test_add_tensor_definition()
     # test.test_store()
     # test.test_update()
     # test.test_append()
@@ -265,4 +265,4 @@ if __name__ == "__main__":
     # test.test_last_valid_index()
     # test.test_reindex()
     # test.test_overwrite_append_data()
-    test.test_specifics_definition()
+    # test.test_specifics_definition()

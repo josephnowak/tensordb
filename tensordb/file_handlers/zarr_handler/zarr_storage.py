@@ -206,9 +206,7 @@ class ZarrStorage(BaseStorage):
         if self.backup_map is None:
             return False
 
-        force_update_from_backup = force_update_from_backup | (
-            not self.local_map.fs.exists(f'{self.local_map.root}/last_modification_date.json')
-        )
+        force_update_from_backup = force_update_from_backup | ('last_modification_date.json' not in self.local_map)
 
         if force_update_from_backup:
             self.download_files(list(self.backup_map.keys()))
@@ -273,7 +271,7 @@ class ZarrStorage(BaseStorage):
         path_map = self.backup_map if remote else self.local_map
         with get_lock(self.synchronizer, '.zattrs'):
             total_attrs = {}
-            if path_map.fs.exists(f'{path_map.root}/.zattrs'):
+            if '.zattrs' in path_map:
                 total_attrs = json.loads(path_map['.zattrs'])
             total_attrs.update(kwargs)
             path_map['.zattrs'] = json.dumps(total_attrs).encode('utf-8')
