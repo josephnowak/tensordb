@@ -1,12 +1,72 @@
 # Why was created TensorDB
-TensorDB born from the necessity of completly read big timeseries matrices to make historical analisys, previous to this project there were a lot of attempt to read the data using databases like Influx, Postgresql, Timescale, Cassandra or Mongo none of those DBs gave good read times and the memory consumption was really big due to the normalized formats (except for mongo) and the necessity of load as much as possible data to reduce the query times. For solving the aforementioned problem the use of Parquet files was thinked as a good solution but It has a great number of limitations in term of the concatenation of new data, so to solve it Xarray and Zarr become the best solution.
+TensorDB born from the necessity of completely read big time-series matrices to make historical analysis, previous to this project there were a lot of attempts to read the data using databases like Influx, Postgresql, Timescale, Cassandra, or Mongo none of those DBs gave good read times and the memory consumption was really big due to the normalized formats and the required transformations (except for mongo). For solving the aforementioned problem the use of Zarr files was thought as the best solution and combined with Xarray provided a really good, simple, and faster solution but then other problems arrived, organize and treat more than 200 files becomes really problematic, basically, every file needed a daily append of data with a different treat and much of the characteristics that a database provides like triggers were lost, so to solve the problem this package was created as a way to organize and standardize the definition of a tensor.
 
 # Why use TensorDB
-1. Tensors' definitions are highly personalizable and simple, so they provide a good way to define your datasets.
+1. Tensors' definitions are highly personalizable and simple, so they provide a good way to organize and treat your datasets.
 2. It use Xarray to read the tensors, so you have the same options that Xarray provide and It's a really well-supported library.
 3. Fast reads and writes due to the use of Zarr (more formats in the future).
 4. Simple, smart and efficient backup system that avoid update not modified data (supported by fsspec).
 5. You can create new tensors using string formulas.
+
+Probably is better show an example of the library as a good introduce of the capabilities
+# Example
+```py
+import tensordb
+import fsspec
+import xarray
+
+
+tensor_client = tensordb.TensorClient(
+    local_base_map=fsspec.get_mapper('test_db'),
+    backup_base_map=fsspec.get_mapper('test_db' + '/backup'),
+    synchronizer_definitions='thread'
+)
+
+dummy_tensor = xarray.DataArray(
+    0.,
+    coords={'index': list(range(3)), 'columns': list(range(3))},
+    dims=['index', 'columns']
+)
+
+# Adding a default tensor definition
+tensor_client.add_tensor_definition(dummy_tensor={})
+
+# Storing the dummy tensor
+tensor_client.store(path='dummy_tensor', new_data=dummy_tensor)
+
+# Reading the dummy tensor (we can avoid the use of path= )
+tensor_client.read(path='dummy_tensor')
+
+
+# Creating a new tensor definition using a formula, you have the same Xarray method but the tensor name need to be wrapped by ``
+tensor_client.add_tensor_definition(
+    dummy_tensor_formula={
+       'store': {
+            'data_methods': ['read_from_formula'],
+        },
+        'read_from_formula': {
+            'formula': '`dummy_tensor` + 1'
+        }
+    }
+)
+
+# storing the new dummy tensor
+tensor_client.store(path='dummy_tensor_formula')
+
+# reading the new dummy tensor
+tensor_client.read('dummy_tensor_formula')
+
+
+# Appending a new row and a new columns to a dummy tensor
+new_data = xarray.DataArray(
+    2.,
+    coords={'index': [3], 'columns': list(range(4))},
+    dims=['index', 'columns']
+)
+
+tensor_client.append('dummy_tensor_formula', new_data=new_data)
+tensor_client.read('dummy_tensor_formula')
+```
 
 # When is good idea use TensorDB
 1. When you need to organize multiple tensors and personalize every one of them to have different behaviours.
@@ -14,9 +74,8 @@ TensorDB born from the necessity of completly read big timeseries matrices to ma
 3. When you need to make complex calculations (rollings, dot, etc.).
 4. When you need to make fast reads.
 5. When you need to read the data in different ways not only reading by columns or by rows.
-6. When you need to make fast modifications of your data on disk.
-7. When you need to have a verification of the integrity of your data using a checksum.
-8. When you don't need to delete parts of the data frequently (the deletion require the overwrite of the entiere tensor).
-9. When you don't need to insert data in middle position frequently (overwrite problem).
+6. When you need to have a verification of the integrity of your data using a checksum.
+7. When you don't need to delete parts of the data frequently (the deletion require the overwrite of the entiere tensor).
+8. When you don't need to insert data in middle positions frequently (overwrite problem).
 
 
