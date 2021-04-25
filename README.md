@@ -7,8 +7,10 @@ TensorDB born from the necessity of completely read big time-series matrices to 
 3. Fast reads and writes due to the use of Zarr (more formats in the future).
 4. Simple, smart and efficient backup system that avoid update not modified data (supported by fsspec).
 5. You can create new tensors using string formulas.
+6. Simple syntax, easy to learn.
+7. You can store or read directly from the backup without download the data.
 
-Probably is better show an example of the library as a good introduce of the capabilities
+Probably is better show an small example of the packages
 # Example
 ```py
 import tensordb
@@ -78,4 +80,7 @@ tensor_client.read('dummy_tensor_formula')
 7. When you don't need to delete parts of the data frequently (the deletion require the overwrite of the entiere tensor).
 8. When you don't need to insert data in middle positions frequently (overwrite problem).
 
+# Recomendations
+1. Inherite the TensorClient class to add customized methods.
+2. Use a database like Postgresql to complement TensorDB, for example you can keep track of autoincremental indexes that are going to be use to generate files names.
 
