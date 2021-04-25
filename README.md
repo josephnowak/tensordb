@@ -3,14 +3,14 @@ TensorDB born from the necessity of completely read big time-series matrices to 
 
 # Why use TensorDB
 1. Tensors' definitions are highly personalizable and simple, so they provide a good way to organize and treat your datasets.
-2. It use Xarray to read the tensors, so you have the same options that Xarray provide and It's a really well-supported library.
+2. It uses Xarray to read the tensors, so you have the same options that Xarray provides and It's a really well-supported library.
 3. Fast reads and writes due to the use of Zarr (more formats in the future).
-4. Simple, smart and efficient backup system that avoid update not modified data (supported by fsspec).
+4. Simple, smart, and efficient backup system that avoids update, not modified data (supported by fsspec).
 5. You can create new tensors using string formulas.
 6. Simple syntax, easy to learn.
 7. You can store or read directly from the backup without download the data.
 
-Probably is better show an small example of the packages
+Probably is better to show a small example of the packages
 # Example
 ```py
 import tensordb
@@ -70,17 +70,17 @@ tensor_client.append('dummy_tensor_formula', new_data=new_data)
 tensor_client.read('dummy_tensor_formula')
 ```
 
-# When is good idea use TensorDB
-1. When you need to organize multiple tensors and personalize every one of them to have different behaviours.
-2. When your data can be modeled as a set of tensors of homogenous dtype (every tensor can has his own dtype).
+# When is a good idea to use TensorDB
+1. When you need to organize multiple tensors and personalize every one of them to have different behaviors.
+2. When your data can be modeled as a set of tensors of homogenous dtype (every tensor can have its own dtype).
 3. When you need to make complex calculations (rollings, dot, etc.).
 4. When you need to make fast reads.
-5. When you need to read the data in different ways not only reading by columns or by rows.
+5. When you need to read the data in different ways, not only read by columns or rows.
 6. When you need to have a verification of the integrity of your data using a checksum.
-7. When you don't need to delete parts of the data frequently (the deletion require the overwrite of the entiere tensor).
+7. When you don't need to delete parts of the data frequently (the deletion requires the overwrite of the entire tensor).
 8. When you don't need to insert data in middle positions frequently (overwrite problem).
 
 # Recomendations
-1. Inherite the TensorClient class to add customized methods.
-2. Use a database like Postgresql to complement TensorDB, for example you can keep track of autoincremental indexes that are going to be use to generate files names.
+1. Inherited the TensorClient class to add customized methods.
+2. Use a database like Postgresql to complement TensorDB, for example, you can keep track of autoincrement indexes that are going to be used to generate file names.
 
