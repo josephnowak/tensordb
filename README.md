@@ -38,7 +38,7 @@ tensor_client.store(path='dummy_tensor', new_data=dummy_tensor)
 tensor_client.read(path='dummy_tensor')
 
 
-# Creating a new tensor definition using a formula, you have the same Xarray method but the tensor name need to be wrapped by ``
+# Creating a new tensor definition using a formula, you have the same Xarray methods but the tensor name need to be wrapped by ``
 tensor_client.add_tensor_definition(
     dummy_tensor_formula={
        'store': {
