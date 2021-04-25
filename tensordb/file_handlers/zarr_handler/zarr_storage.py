@@ -21,10 +21,14 @@ from tensordb.file_handlers.zarr_handler.utils import (
 
 class ZarrStorage(BaseStorage):
     """
+    ZarrStorage
+    -----------
+        This class is a handler for the Zarr files which implement the necessary methods to be used for TensorClient
     TODO:
-        1) The next versions of zarr will add support for the modification dates of the chunks, that will simplify
+        1. Add more documentation and better comments
+        2. The next versions of zarr will add support for the modification dates of the chunks, that will simplify
             the code of backup, so It is a good idea modify the code after the modification being published
-        2) The of option of compute = False does not work correctly due to the way
+        3. The of option of compute = False does not work correctly due to the way
                 We update the chunks, it should allow delayed. Using the point one this will not be required
     """
 
@@ -249,6 +253,8 @@ class ZarrStorage(BaseStorage):
 
     def transfer_files(self, receiver_path_map, sender_path_map, paths):
         paths = [paths] if isinstance(paths, str) else paths
+        if len(paths) == 0:
+            return
 
         def transfer(path, lock):
             with lock:
