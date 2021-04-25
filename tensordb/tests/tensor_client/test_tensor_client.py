@@ -16,7 +16,7 @@ tensors_definition = {
     'data_three': {},
     'data_four': {
         'read': {
-            'personalized_method': 'read_from_formula',
+            'customized_method': 'read_from_formula',
         },
         'read_from_formula': {
             'formula': "new_data = (`data_one` * `data_two`).rolling({'index': 3}).sum()",
@@ -83,7 +83,7 @@ tensors_definition = {
             'formula': "`data_one`",
         },
         'append': {
-            'personalized_method': 'store'
+            'customized_method': 'store'
         }
     },
     'specific_definition': {

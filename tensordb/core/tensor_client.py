@@ -18,18 +18,109 @@ class TensorClient:
     """
         TensorClient
         ------------
-        It's a kind of SGBD based on files (not necessary the same type of file). It provide a set of basic methods
-        that include append, update, store and retrieve data, all these methods are combined with a backup using S3.
+        It's a kind of SGBD for tensor data built with Xarray, all the data is stored using Zarr a supported
+        Xarray file format (In the future will be more formats) and is organized using a file system storage.
 
-        It was designed with the idea of being an inheritable class, so if there is a file that need a special
-        treatment, it will be possible to create a new method that handle that specific file
+        It provide a set of basic methods: append, update, upsert, store and read, which are customizable and
+        can define the complete behaviour of the every tensor, basically you can define triggers for every time you call
+        one of those methods.
 
-        Notes
-        -----
-        1) This class does not have any kind of concurrency but of course the internal handler could have
+        Additional features:
+            1. Support for any backup system using fsspec package and a specific method to simplify the work (backup).
+            2. Creation or modification of new tensors using dynamic string formulas (even string python code)
+            3. The read method return a lazy Xarray DataArray instead of only retrieve the data.
+            4. It's easy to inherit the class and add customized methods.
+            5. The backups are faster and saver because the checksum of every chunk of every tensor
+                is stored to avoid uploading or downloading unnecessary data and is useful to check the integrity
+                of the data.
 
-        2) The actual recommend option to handle the files is using the zarr handler class which allow to write and read
-        concurrently
+        Examples
+        --------
+        Store and read a dummy array:
+            >>> import tensordb
+            >>> import fsspec
+            >>> import xarray
+            >>>
+            >>>
+            >>> tensor_client = tensordb.TensorClient(
+            ...     local_base_map=fsspec.get_mapper('test_db'),
+            ...     backup_base_map=fsspec.get_mapper('test_db' + '/backup'),
+            ...     synchronizer_definitions='thread'
+            ... )
+            >>>
+            >>> dummy_tensor = xarray.DataArray(
+            ...     0,
+            ...     coords={'index': list(range(3)), 'columns': list(range(3))},
+            ...     dims=['index', 'columns']
+            ... )
+            >>>
+            >>> # Adding a default tensor definition
+            >>> tensor_client.add_tensor_definition(dummy_tensor={})
+            >>>
+            >>> # Storing the dummy tensor
+            >>> tensor_client.store(path='dummy_tensor', new_data=dummy_tensor)
+            <xarray.backends.zarr.ZarrStore object at 0x00000201E7395A60>
+            >>>
+            >>> # Reading the dummy tensor (we can avoid the use of path= )
+            >>> tensor_client.read(path='dummy_tensor')
+            <xarray.DataArray 'data' (index: 3, columns: 3)>
+            array([[0, 0, 0],
+                   [0, 0, 0],
+                   [0, 0, 0]])
+            Coordinates:
+              * columns  (columns) int32 0 1 2
+              * index    (index) int32 0 1 2
+            >>>
+
+        Storing a tensor from a string formula:
+            >>> # Creating a new tensor definition using a formula
+            >>> tensor_client.add_tensor_definition(
+            ...     dummy_tensor_formula={
+            ...        'store': {
+            ...             'data_methods': ['read_from_formula'],
+            ...         },
+            ...         'read_from_formula': {
+            ...             'formula': '`dummy_tensor` + 1'
+            ...         }
+            ...     }
+            ... )
+            >>>
+            >>> # storing the new dummy tensor
+            >>> tensor_client.store(path='dummy_tensor_formula')
+            <xarray.backends.zarr.ZarrStore object at 0x00000201EA1AB7C0>
+            >>>
+            >>> # reading the new dummy tensor
+            >>> tensor_client.read('dummy_tensor_formula')
+            <xarray.DataArray 'data' (index: 3, columns: 3)>
+            array([[1, 1, 1],
+                   [1, 1, 1],
+                   [1, 1, 1]])
+            Coordinates:
+              * columns  (columns) int32 0 1 2
+              * index    (index) int32 0 1 2
+            >>>
+
+        Appending a new row and a new column to a tensor:
+            >>> # Appending a new row and a new columns to a dummy tensor
+            >>> new_data = xarray.DataArray(
+            ...     2.,
+            ...     coords={'index': [3], 'columns': list(range(4))},
+            ...     dims=['index', 'columns']
+            ... )
+            >>>
+            >>> tensor_client.append('dummy_tensor_formula', new_data=new_data)
+            [<xarray.backends.zarr.ZarrStore object at 0x000001FFF52EBCA0>, <xarray.backends.zarr.ZarrStore object at 0x000001FFF52EBE80>]
+            >>> tensor_client.read('dummy_tensor_formula')
+            <xarray.DataArray 'data' (index: 4, columns: 4)>
+            array([[ 1.,  1.,  1., nan],
+                   [ 1.,  1.,  1., nan],
+                   [ 1.,  1.,  1., nan],
+                   [ 2.,  2.,  2.,  2.]])
+            Coordinates:
+              * columns  (columns) int32 0 1 2 3
+              * index    (index) int32 0 1 2 3
+            >>>
+
 
         TODO
         ----
@@ -44,9 +135,11 @@ class TensorClient:
         4) Enable the max_files_on_disk option, this will allow to establish a maximum number of files that can be
             on disk.
 
-        5) Improve the tensors definition, I need to think in more ideas for this, but at this moment is really good
+        5) Add documentation and more comments
 
-
+        Parameters
+        ----------
+        local_base_map:
 
     """
 
@@ -99,7 +192,7 @@ class TensorClient:
         self.open_base_store[path]['num_use'] += 1
         return self.open_base_store[path]['data_handler']
 
-    def _personalize_handler_action(self, path: str, action_type: str, **kwargs):
+    def _customize_handler_action(self, path: str, action_type: str, **kwargs):
         tensor_definition = self.get_tensor_definition(path)
         kwargs.update({
             'action_type': action_type,
@@ -108,8 +201,8 @@ class TensorClient:
         })
 
         method_settings = tensor_definition.get(kwargs['action_type'], {})
-        if 'personalized_method' in method_settings:
-            method = method_settings['personalized_method']
+        if 'customized_method' in method_settings:
+            method = method_settings['customized_method']
             if method in internal_actions:
                 return getattr(self, method)(path=path, **kwargs)
             return getattr(self, method)(**kwargs)
@@ -141,28 +234,28 @@ class TensorClient:
         return results['new_data']
 
     def read(self, path: str, **kwargs) -> xarray.DataArray:
-        return self._personalize_handler_action(path=path, **{**kwargs, **{'action_type': 'read'}})
+        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'read'}})
 
     def append(self, path: str, **kwargs) -> xarray.DataArray:
-        return self._personalize_handler_action(path=path, **{**kwargs, **{'action_type': 'append'}})
+        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'append'}})
 
     def update(self, path: str, **kwargs) -> xarray.DataArray:
-        return self._personalize_handler_action(path=path, **{**kwargs, **{'action_type': 'update'}})
+        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'update'}})
 
     def store(self, path: str, **kwargs) -> xarray.DataArray:
-        return self._personalize_handler_action(path=path, **{**kwargs, **{'action_type': 'store'}})
+        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'store'}})
 
     def backup(self, path: str, **kwargs) -> xarray.DataArray:
-        return self._personalize_handler_action(path=path, **{**kwargs, **{'action_type': 'backup'}})
+        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'backup'}})
 
     def update_from_backup(self, path: str, **kwargs) -> xarray.DataArray:
-        return self._personalize_handler_action(path=path, **{**kwargs, **{'action_type': 'update_from_backup'}})
+        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'update_from_backup'}})
 
     def close(self, path: str, **kwargs) -> xarray.DataArray:
-        return self._personalize_handler_action(path=path, **{**kwargs, **{'action_type': 'close'}})
+        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'close'}})
 
     def delete(self, path: str, **kwargs) -> xarray.DataArray:
-        return self._personalize_handler_action(path=path, **{**kwargs, **{'action_type': 'delete'}})
+        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'delete'}})
 
     def exist(self, path: str, **kwargs):
         return self._get_handler(path, **kwargs).exist(**kwargs)
