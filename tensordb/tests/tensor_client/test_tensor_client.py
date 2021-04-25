@@ -10,99 +10,100 @@ from tensordb.file_handlers import ZarrStorage
 from tensordb.config.config_root_dir import TEST_DIR_TENSOR_CLIENT
 
 
-def get_default_tensor_client():
-    default_settings = {
-        'handler': {
-            'dims': ['index', 'columns'],
+tensors_definition = {
+    'data_one': {},
+    'data_two': {},
+    'data_three': {},
+    'data_four': {
+        'read': {
+            'personalized_method': 'read_from_formula',
         },
-    }
-
-    tensors_definition = {
-        'data_one': default_settings.copy(),
-        'data_two': default_settings.copy(),
-        'data_three': default_settings.copy(),
-        'data_four': {
-            'read': {
-                'personalized_method': 'read_from_formula',
-            },
-            'read_from_formula': {
-                'formula': "(`data_one` * `data_two`).rolling({'index': 3}).sum()",
-            }
-        },
-
-        'data_ffill': {
-            **default_settings,
-            'store': {
-                'data_methods': ['read_from_formula', 'ffill'],
-            },
-            'read_from_formula': {
-                'formula': "`data_one`",
-            },
-            'ffill': {
-                'dim': 'index'
-            }
-        },
-        'data_replace_last_valid_dim': {
-            **default_settings,
-            'store': {
-                'data_methods': ['read_from_formula', 'ffill', 'replace_last_valid_dim'],
-            },
-            'read_from_formula': {
-                'formula': "`data_one`",
-            },
-            'ffill': {
-                'dim': 'index'
-            },
-            'replace_last_valid_dim': {
-                'replace_path': 'last_valid_index',
-                'dim': 'index',
-                'calculate_last_valid': False
-            }
-        },
-        'last_valid_index': {
-            'store': {
-                'data_methods': ['read_from_formula', 'last_valid_dim'],
-            },
-            'read_from_formula': {
-                'formula': "`data_one`",
-            },
-            'last_valid_dim': {
-                'dim': "index",
-            }
-        },
-        'data_reindex': {
-            'store': {
-                'data_methods': ['read_from_formula', 'reindex'],
-            },
-            'read_from_formula': {
-                'formula': "`data_one`",
-            },
-            'reindex': {
-                'coords_to_reindex': ["index"],
-                'reindex_path': 'data_three',
-                'method_fill_value': 'ffill'
-            }
-        },
-        'overwrite_append_data': {
-            'store': {
-                'data_methods': ['read_from_formula'],
-            },
-            'read_from_formula': {
-                'formula': "`data_one`",
-            },
-            'append': {
-                'personalized_method': 'store'
-            }
+        'read_from_formula': {
+            'formula': "new_data = (`data_one` * `data_two`).rolling({'index': 3}).sum()",
+            'use_exec': True
         }
-    }
+    },
 
+    'data_ffill': {
+        'store': {
+            'data_methods': ['read_from_formula', 'ffill'],
+        },
+        'read_from_formula': {
+            'formula': "`data_one`",
+        },
+        'ffill': {
+            'dim': 'index'
+        }
+    },
+    'data_replace_last_valid_dim': {
+        'store': {
+            'data_methods': ['read_from_formula', 'ffill', 'replace_last_valid_dim'],
+        },
+        'read_from_formula': {
+            'formula': "`data_one`",
+        },
+        'ffill': {
+            'dim': 'index'
+        },
+        'replace_last_valid_dim': {
+            'replace_path': 'last_valid_index',
+            'dim': 'index',
+            'calculate_last_valid': False
+        }
+    },
+    'last_valid_index': {
+        'store': {
+            'data_methods': ['read_from_formula', 'last_valid_dim'],
+        },
+        'read_from_formula': {
+            'formula': "`data_one`",
+        },
+        'last_valid_dim': {
+            'dim': "index",
+        }
+    },
+    'data_reindex': {
+        'store': {
+            'data_methods': ['read_from_formula', 'reindex'],
+        },
+        'read_from_formula': {
+            'formula': "`data_one`",
+        },
+        'reindex': {
+            'coords_to_reindex': ["index"],
+            'reindex_path': 'data_three',
+            'method_fill_value': 'ffill'
+        }
+    },
+    'overwrite_append_data': {
+        'store': {
+            'data_methods': ['read_from_formula'],
+        },
+        'read_from_formula': {
+            'formula': "`data_one`",
+        },
+        'append': {
+            'personalized_method': 'store'
+        }
+    },
+    'specific_definition': {
+        'store': {
+            'data_methods': [
+                ['read_from_formula', {'formula': "`data_one`"}],
+                ['read_from_formula', {'formula': "new_data * `data_one`"}],
+            ],
+        },
+    }
+}
+
+
+def get_default_tensor_client():
     tensor_client = TensorClient(
         local_base_map=fsspec.get_mapper(TEST_DIR_TENSOR_CLIENT),
         backup_base_map=fsspec.get_mapper(TEST_DIR_TENSOR_CLIENT + '/backup'),
-        tensors_definition=tensors_definition,
         synchronizer_definitions='thread'
     )
-    tensor_client.add_tensor_definition(**tensors_definition)
+
     return tensor_client
 
 
@@ -147,6 +148,11 @@ class TestTensorClient:
         dims=['index', 'columns'],
         coords={'index': [0, 1, 2, 3, 4, 5], 'columns': [0, 1, 2, 3, 4]},
     )
+
+    def test_add_tensor_definition(self):
+        tensor_client = get_default_tensor_client()
+        tensor_client.add_tensor_definition(**tensors_definition)
+        assert tensors_definition == tensor_client._tensors_definition.get_attrs()
 
     def test_store(self):
         tensor_client = get_default_tensor_client()
@@ -239,10 +245,17 @@ class TestTensorClient:
         tensor_client = get_default_tensor_client()
         tensor_client.append(path='overwrite_append_data')
 
+    def test_specifics_definition(self):
+        self.test_store()
+        tensor_client = get_default_tensor_client()
+        tensor_client.store('specific_definition')
+        assert tensor_client.read('specific_definition').equals(tensor_client.read('data_one') ** 2)
+
 
 if __name__ == "__main__":
     test = TestTensorClient()
-    test.test_store()
+    # test.test_add_tensor_definition()
+    # test.test_store()
     # test.test_update()
     # test.test_append()
     # test.test_backup()
@@ -252,5 +265,4 @@ if __name__ == "__main__":
     # test.test_last_valid_index()
     # test.test_reindex()
     # test.test_overwrite_append_data()
-
-
+    test.test_specifics_definition()
