@@ -7,6 +7,7 @@ from numpy import nan, array
 from pandas import Timestamp
 from loguru import logger
 
+from tensordb.core.cached_tensor import CachedTensorHandler
 from tensordb.file_handlers import (
     ZarrStorage,
     BaseStorage
@@ -254,11 +255,19 @@ class TensorClient:
     def close(self, path: str, **kwargs) -> xarray.DataArray:
         return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'close'}})
 
-    def delete(self, path: str, **kwargs) -> xarray.DataArray:
-        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'delete'}})
+    def delete_file(self, path: str, **kwargs) -> xarray.DataArray:
+        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'delete_file'}})
 
     def exist(self, path: str, **kwargs):
         return self._get_handler(path, **kwargs).exist(**kwargs)
+
+    def get_cached_tensor_manager(self, path, max_cached_in_dim: int, dim: str, **kwargs):
+        handler = self._get_handler(path, **kwargs)
+        return CachedTensorHandler(
+            file_handler=handler,
+            max_cached_in_dim=max_cached_in_dim,
+            dim=dim
+        )
 
     def read_from_formula(self,
                           tensor_definition: Dict = None,
