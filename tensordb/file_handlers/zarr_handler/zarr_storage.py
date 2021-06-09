@@ -81,6 +81,8 @@ class ZarrStorage(BaseStorage):
                new_data: Union[xarray.DataArray, xarray.Dataset],
                compute: bool = True,
                remote: bool = False,
+               consolidated: bool = False,
+               encoding: Dict = None,
                **kwargs) -> List[Union[None, xarray.backends.zarr.ZarrStore]]:
 
         if not self._exist_download(remote=remote):
@@ -111,7 +113,9 @@ class ZarrStorage(BaseStorage):
                     append_dim=dim,
                     compute=compute,
                     group=self.group,
-                    synchronizer=None if remote else self.synchronizer
+                    synchronizer=None if remote else self.synchronizer,
+                    consolidated=consolidated,
+                    encoding=encoding
                 )
             )
 
@@ -126,6 +130,10 @@ class ZarrStorage(BaseStorage):
     def update(self,
                new_data: Union[xarray.DataArray, xarray.Dataset],
                remote: bool = False,
+               compute: bool = True,
+               consolidated: bool = False,
+               encoding: Dict = None,
+               complete_update_dim: str = '',
                **kwargs):
         """
         TODO: Avoid loading the entire new data in memory
@@ -140,29 +148,46 @@ class ZarrStorage(BaseStorage):
                 f'and there is no backup in the remote path: {self.backup_map.root}'
             )
 
-        path_map = self.backup_map if remote else self.local_map
-
         if isinstance(new_data, xarray.Dataset):
-            new_data = new_data.to_array()
+            new_data = new_data.to_array(name=self.name)
 
-        act_coords = {k: coord.values for k, coord in self.read(remote=remote).coords.items()}
+        act_data = self.read(remote=remote)
+        act_coords = {k: coord for k, coord in act_data.coords.items()}
+        if complete_update_dim is not None:
+            new_data = new_data.reindex(
+                **{dim: coord for dim, coord in act_coords.items() if dim != complete_update_dim}
+            )
 
-        coords_names = list(act_coords.keys())
-        bitmask = np.isin(act_coords[coords_names[0]], new_data.coords[coords_names[0]].values)
-        for coord_name in coords_names[1:]:
-            bitmask = bitmask & np.isin(act_coords[coord_name], new_data.coords[coord_name].values)[:, None]
+        bitmask = True
+        regions = {}
+        for coord_name in act_data.dims:
+            act_bitmask = act_coords[coord_name].isin(new_data.coords[coord_name].values)
+            valid_positions = np.nonzero(act_bitmask.values)[0]
+            regions[coord_name] = slice(np.min(valid_positions), np.max(valid_positions) + 1)
+            bitmask = bitmask & act_bitmask.isel(**{act_bitmask.dims[0]: valid_positions})
 
-        arr = zarr.open(
-            fsspec.FSMap(f'{path_map.root}/{self.name}', path_map.fs),
-            mode='a',
-            synchronizer=None if remote else self.synchronizer
+        act_data = act_data.isel(**regions)
+        new_data = new_data.reindex(act_data.coords)
+        act_data = act_data.where(~bitmask, new_data)
+
+        path_map = self.backup_map if remote else self.local_map
+        act_data = self._transform_to_dataset(act_data)
+        delayed_write = act_data.to_zarr(
+            path_map,
+            group=self.group,
+            compute=compute,
+            consolidated=consolidated,
+            encoding=encoding,
+            synchronizer=None if remote else self.synchronizer,
+            region=regions
         )
-        arr.set_mask_selection(bitmask, new_data.values.ravel())
         affected_chunks = get_affected_chunks(path_map, self.read(remote=remote, **kwargs), new_data.coords, self.name)
         if remote:
             update_checksums(path_map, affected_chunks)
         else:
             update_checksums_temp(path_map, affected_chunks)
+
+        return delayed_write
 
     def upsert(self, new_data: Union[xarray.DataArray, xarray.Dataset], **kwargs):
         self.update(new_data, **kwargs)

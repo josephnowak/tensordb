@@ -46,16 +46,16 @@ class TestCachedTensor:
         cached_tensor.append(arr.isel(index=[2]))
 
         assert cached_tensor._cached_count == 3
-        assert len(cached_tensor._cached_operations) == 1
+        assert len(cached_tensor._cached_operations['append']['new_data']) == 3
 
         cached_tensor.append(arr.isel(index=[3]))
         assert cached_tensor._cached_count == 0
-        assert len(cached_tensor._cached_operations) == 0
+        assert len(cached_tensor._cached_operations['append']['new_data']) == 0
 
         cached_tensor.append(arr.isel(index=[4]))
         cached_tensor.close()
         assert cached_tensor._cached_count == 0
-        assert len(cached_tensor._cached_operations) == 0
+        assert len(cached_tensor._cached_operations['append']['new_data']) == 0
 
         assert cached_tensor.read().equals(arr)
         cached_tensor.delete_file(False)
@@ -66,14 +66,14 @@ class TestCachedTensor:
         cached_tensor.append(arr.isel(index=[1]))
         cached_tensor.append(arr.isel(index=[2]))
         assert cached_tensor._cached_count == 3
-        assert len(cached_tensor._cached_operations) == 1
+        assert len(cached_tensor._cached_operations['store']['new_data']) == 3
 
         cached_tensor.store(arr.isel(index=[3, 4]))
         assert cached_tensor._cached_count == 2
-        assert len(cached_tensor._cached_operations) == 1
+        assert len(cached_tensor._cached_operations['store']['new_data']) == 1
         cached_tensor.close()
         assert cached_tensor._cached_count == 0
-        assert len(cached_tensor._cached_operations) == 0
+        assert len(cached_tensor._cached_operations['store']['new_data']) == 0
 
         assert cached_tensor.read().equals(arr.isel(index=[3, 4]))
         cached_tensor.delete_file(False)

@@ -11,50 +11,55 @@ class CachedTensorHandler:
         self.file_handler = file_handler
         self.max_cached_in_dim = max_cached_in_dim
         self.dim = dim
-        self._cached_operations = []
+        self._cached_operations = {}
+        self._cached_count = 0
+        self._clean_cached_operations()
+
+    def _clean_cached_operations(self):
+        self._cached_operations = {
+            'store': {'new_data': []},
+            'append': {'new_data': []},
+            'update': {'new_data': []}
+        }
         self._cached_count = 0
 
-    def add_operation(self, type_operation: str, parameters: Dict[str, Any]):
-        self._cached_count += parameters['new_data'].sizes[self.dim]
+    def add_operation(self, type_operation: str, new_data: xarray.DataArray, parameters: Dict[str, Any]):
+        self._cached_count += new_data.sizes[self.dim]
+        if type_operation == 'append' and self._cached_operations['store']['new_data']:
+            type_operation = 'store'
 
-        if not self._cached_operations or type_operation == 'update':
-            parameters['new_data'] = [parameters['new_data']]
-            self._cached_operations.append({'type_operation': type_operation, 'parameters': parameters})
-            return
-
-        self._cached_operations[-1]['parameters']['new_data'].append(parameters['new_data'])
+        self._cached_operations[type_operation].update(parameters)
+        self._cached_operations[type_operation]['new_data'].append(new_data)
 
         if self._cached_count > self.max_cached_in_dim:
             self.execute_operations()
 
     def execute_operations(self):
-        for operation in self._cached_operations:
-            operation['parameters']['new_data'] = xarray.concat(
-                operation['parameters']['new_data'],
+        for type_operation in ['store', 'append', 'update']:
+            operation = self._cached_operations[type_operation]
+            if not operation['new_data']:
+                continue
+            operation['new_data'] = xarray.concat(
+                operation['new_data'],
                 dim=self.dim
             )
-            getattr(self.file_handler, operation['type_operation'])(**operation['parameters'])
+            getattr(self.file_handler, type_operation)(**operation)
 
-        self._cached_count = 0
-        self._cached_operations = []
+        self._clean_cached_operations()
 
     def read(self, **kwargs) -> xarray.DataArray:
         self.execute_operations()
         return self.file_handler.read(**kwargs)
 
     def append(self, new_data: xarray.DataArray, **kwargs):
-        kwargs['new_data'] = new_data
-        self.add_operation('append', kwargs)
+        self.add_operation('append', new_data, kwargs)
 
     def update(self, new_data: xarray.DataArray, **kwargs):
-        kwargs['new_data'] = new_data
-        self.add_operation('update', kwargs)
+        self.add_operation('update', new_data, kwargs)
 
     def store(self, new_data: xarray.DataArray, **kwargs):
-        self._cached_count = 0
-        self._cached_operations = []
-        kwargs['new_data'] = new_data
-        self.add_operation('store', kwargs)
+        self._clean_cached_operations()
+        self.add_operation('store', new_data, kwargs)
 
     def close(self):
         self.execute_operations()
