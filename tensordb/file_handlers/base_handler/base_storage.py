@@ -52,7 +52,11 @@ class BaseStorage:
         pass
 
     @abstractmethod
-    def exist(self, remote: bool = False, **kwargs):
+    def exist(self, on_local: bool, **kwargs):
+        pass
+
+    @abstractmethod
+    def delete_file(self, only_local: bool = True, **kwargs):
         pass
 
     @staticmethod

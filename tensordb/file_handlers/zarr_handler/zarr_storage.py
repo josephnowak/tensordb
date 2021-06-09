@@ -81,11 +81,13 @@ class ZarrStorage(BaseStorage):
                new_data: Union[xarray.DataArray, xarray.Dataset],
                compute: bool = True,
                remote: bool = False,
+               consolidated: bool = False,
+               encoding: Dict = None,
                **kwargs) -> List[Union[None, xarray.backends.zarr.ZarrStore]]:
 
-        exist = self.exist(raise_error_missing_backup=False, **kwargs)
-        if not exist:
+        if not self._exist_download(remote=remote):
             return self.store(new_data=new_data, remote=remote, compute=compute, **kwargs)
+
 
         path_map = self.backup_map if remote else self.local_map
 
@@ -111,7 +113,9 @@ class ZarrStorage(BaseStorage):
                     append_dim=dim,
                     compute=compute,
                     group=self.group,
-                    synchronizer=None if remote else self.synchronizer
+                    synchronizer=None if remote else self.synchronizer,
+                    consolidated=consolidated,
+                    encoding=encoding
                 )
             )
 
@@ -126,6 +130,10 @@ class ZarrStorage(BaseStorage):
     def update(self,
                new_data: Union[xarray.DataArray, xarray.Dataset],
                remote: bool = False,
+               compute: bool = True,
+               consolidated: bool = False,
+               encoding: Dict = None,
+               complete_update_dim: str = '',
                **kwargs):
         """
         TODO: Avoid loading the entire new data in memory
@@ -133,31 +141,53 @@ class ZarrStorage(BaseStorage):
               probably a good solution, the only problem is the time that could take to update,
               but I suppose that the block updating is ideal only when the new_data represent a big % of the entire data
         """
-        self.exist(raise_error_missing_backup=True, **kwargs)
+
+        if not self._exist_download(remote=remote):
+            raise OSError(
+                f'There is no file in the local path: {self.local_map.root} '
+                f'and there is no backup in the remote path: {self.backup_map.root}'
+            )
 
         if isinstance(new_data, xarray.Dataset):
-            new_data = new_data.to_array()
+            new_data = new_data.to_array(name=self.name)
+
+        act_data = self.read(remote=remote)
+        act_coords = {k: coord for k, coord in act_data.coords.items()}
+        if complete_update_dim is not None:
+            new_data = new_data.reindex(
+                **{dim: coord for dim, coord in act_coords.items() if dim != complete_update_dim}
+            )
+
+        bitmask = True
+        regions = {}
+        for coord_name in act_data.dims:
+            act_bitmask = act_coords[coord_name].isin(new_data.coords[coord_name].values)
+            valid_positions = np.nonzero(act_bitmask.values)[0]
+            regions[coord_name] = slice(np.min(valid_positions), np.max(valid_positions) + 1)
+            bitmask = bitmask & act_bitmask.isel(**{act_bitmask.dims[0]: regions[coord_name]})
+
+        act_data = act_data.isel(**regions)
+        new_data = new_data.reindex(act_data.coords)
+        act_data = act_data.where(~bitmask, new_data)
 
         path_map = self.backup_map if remote else self.local_map
-
-        act_coords = {k: coord.values for k, coord in self.read(remote=remote).coords.items()}
-
-        coords_names = list(act_coords.keys())
-        bitmask = np.isin(act_coords[coords_names[0]], new_data.coords[coords_names[0]].values)
-        for coord_name in coords_names[1:]:
-            bitmask = bitmask & np.isin(act_coords[coord_name], new_data.coords[coord_name].values)[:, None]
-
-        arr = zarr.open(
-            fsspec.FSMap(f'{path_map.root}/{self.name}', path_map.fs),
-            mode='a',
-            synchronizer=None if remote else self.synchronizer
+        act_data = self._transform_to_dataset(act_data)
+        delayed_write = act_data.to_zarr(
+            path_map,
+            group=self.group,
+            compute=compute,
+            consolidated=consolidated,
+            encoding=encoding,
+            synchronizer=None if remote else self.synchronizer,
+            region=regions
         )
-        arr.set_mask_selection(bitmask, new_data.values.ravel())
         affected_chunks = get_affected_chunks(path_map, self.read(remote=remote, **kwargs), new_data.coords, self.name)
         if remote:
             update_checksums(path_map, affected_chunks)
         else:
             update_checksums_temp(path_map, affected_chunks)
+
+        return delayed_write
 
     def upsert(self, new_data: Union[xarray.DataArray, xarray.Dataset], **kwargs):
         self.update(new_data, **kwargs)
@@ -168,8 +198,14 @@ class ZarrStorage(BaseStorage):
              remote: bool = False,
              **kwargs) -> xarray.DataArray:
 
+        if not self._exist_download(remote=remote):
+            raise OSError(
+                f'There is no file in the local path: {self.local_map.root} '
+                f'and there is no backup in the remote path: {self.backup_map.root}'
+            )
+
         path_map = self.backup_map if remote else self.local_map
-        self.exist(raise_error_missing_backup=True, **kwargs)
+
         return xarray.open_zarr(
             path_map if remote else path_map.root,
             group=self.group,
@@ -210,13 +246,14 @@ class ZarrStorage(BaseStorage):
         if self.backup_map is None:
             return False
 
+        if not self.exist(on_local=False):
+            raise ValueError(f'There is no backup in the remote path: {self.backup_map.root}')
+
         force_update_from_backup = force_update_from_backup | ('last_modification_date.json' not in self.local_map)
 
         if force_update_from_backup:
             self.download_files(list(self.backup_map.keys()))
         else:
-            if not self.backup_map.fs.exists(f'{self.backup_map.root}/last_modification_date.json'):
-                return False
             if self.local_map['last_modification_date.json'] == self.backup_map['last_modification_date.json']:
                 return False
 
@@ -234,22 +271,66 @@ class ZarrStorage(BaseStorage):
 
         return True
 
-    def exist(self, raise_error_missing_backup: bool = False, **kwargs):
-        if self.local_map.fs.exists(f'{self.local_map.root}/.zattrs'):
+    def exist(self, on_local: bool, **kwargs) -> bool:
+        if on_local and self.local_map.fs.exists(f'{self.local_map.root}/.zattrs'):
             return True
-        exist = self.update_from_backup(
-            force_update_from_backup=True,
-            **kwargs
-        )
-        if raise_error_missing_backup and not exist:
-            raise FileNotFoundError(
-                f"The file with local path: {self.local_map.root} "
-                f"does not exist and there is not backup in: {self.backup_map.root}"
-            )
-        return exist
+
+        if not on_local and self.backup_map.fs.exists(f'{self.backup_map.root}/last_modification_date.json'):
+            return True
+
+        return False
+
+    def _exist_download(self, remote: bool) -> bool:
+        exist_on_local = self.exist(on_local=True)
+        exist_on_remote = self.exist(on_local=False)
+
+        if not exist_on_remote and not exist_on_local:
+            return False
+
+        if remote and not exist_on_remote:
+            return False
+
+        if not remote and not exist_on_local and exist_on_remote:
+            self.update_from_backup(True)
+
+        return True
 
     def close(self, **kwargs):
         self.backup(**kwargs)
+
+    def delete_file(self, only_local: bool = True, **kwargs):
+        if self.local_map.fs.exists(self.local_map.root):
+            self.local_map.fs.rm(self.local_map.root, recursive=True)
+
+        if not only_local and self.backup_map.fs.exists(self.backup_map.root):
+            self.backup_map.fs.rm(self.backup_map.root, recursive=True)
+
+    def set_attrs(self, remote: bool = False, **kwargs):
+        if not self._exist_download(remote=remote):
+            raise OSError(
+                f'There is no file in the local path: {self.local_map.root} '
+                f'and there is no backup in the remote path: {self.backup_map.root}'
+            )
+        path_map = self.backup_map if remote else self.local_map
+        with get_lock(self.synchronizer, '.zattrs'):
+            total_attrs = {}
+            if '.zattrs' in path_map:
+                total_attrs = json.loads(path_map['.zattrs'])
+            total_attrs.update(kwargs)
+            path_map['.zattrs'] = json.dumps(total_attrs).encode('utf-8')
+        if remote:
+            update_checksums(path_map, ['.zattrs'])
+        else:
+            update_checksums_temp(path_map, ['.zattrs'])
+
+    def get_attrs(self, remote: bool = False):
+        if not self._exist_download(remote=remote):
+            raise OSError(
+                f'There is no file in the local path: {self.local_map.root} '
+                f'and there is no backup in the remote path: {self.backup_map.root}'
+            )
+        path_map = self.backup_map if remote else self.local_map
+        return json.loads(path_map['.zattrs'])
 
     def transfer_files(self, receiver_path_map, sender_path_map, paths):
         paths = [paths] if isinstance(paths, str) else paths
@@ -273,19 +354,4 @@ class ZarrStorage(BaseStorage):
             return
         self.transfer_files(self.local_map, self.backup_map, paths)
 
-    def set_attrs(self, remote: bool = False, **kwargs):
-        path_map = self.backup_map if remote else self.local_map
-        with get_lock(self.synchronizer, '.zattrs'):
-            total_attrs = {}
-            if '.zattrs' in path_map:
-                total_attrs = json.loads(path_map['.zattrs'])
-            total_attrs.update(kwargs)
-            path_map['.zattrs'] = json.dumps(total_attrs).encode('utf-8')
-        if remote:
-            update_checksums(path_map, ['.zattrs'])
-        else:
-            update_checksums_temp(path_map, ['.zattrs'])
 
-    def get_attrs(self, remote: bool = False):
-        path_map = self.backup_map if remote else self.local_map
-        return json.loads(path_map['.zattrs'])
