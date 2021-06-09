@@ -164,7 +164,7 @@ class ZarrStorage(BaseStorage):
             act_bitmask = act_coords[coord_name].isin(new_data.coords[coord_name].values)
             valid_positions = np.nonzero(act_bitmask.values)[0]
             regions[coord_name] = slice(np.min(valid_positions), np.max(valid_positions) + 1)
-            bitmask = bitmask & act_bitmask.isel(**{act_bitmask.dims[0]: valid_positions})
+            bitmask = bitmask & act_bitmask.isel(**{act_bitmask.dims[0]: regions[coord_name]})
 
         act_data = act_data.isel(**regions)
         new_data = new_data.reindex(act_data.coords)
