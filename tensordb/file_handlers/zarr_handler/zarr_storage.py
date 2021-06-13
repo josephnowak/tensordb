@@ -225,10 +225,13 @@ class ZarrStorage(BaseStorage):
                 'checksums.json'
             ]
         else:
-            files_names = list(json.loads(self.local_map['temp_checksums.json']).keys()) + [
+            files_names = []
+            if 'temp_checksums.json' in self.local_map:
+                files_names.extend(list(json.loads(self.local_map['temp_checksums.json']).keys()))
+            files_names.extend([
                 'last_modification_date.json',
                 'checksums.json'
-            ]
+            ])
         merge_local_checksums(self.local_map)
         self.upload_files(files_names)
 
