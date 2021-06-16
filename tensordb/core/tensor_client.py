@@ -177,16 +177,15 @@ class TensorClient:
         base_storage.backup_map['tensor_definition.json'] = json.dumps(kwargs).encode('utf-8')
 
     def get_tensor_definition(self, path, remote: bool = False) -> Dict:
-        if not remote:
-            self._tensors_definition.update_from_backup()
-
         base_storage = BaseStorage(path, self.local_base_map, self.backup_base_map)
         if 'tensor_definition.json' not in base_storage.backup_map:
             raise KeyError('You can not use a tensor without first call the create_tensor method')
-
         tensor_definition = json.loads(base_storage.backup_map['tensor_definition.json'])['definition']
         if isinstance(tensor_definition, dict):
             return tensor_definition
+
+        if not remote:
+            self._tensors_definition.update_from_backup()
 
         return self._tensors_definition.get_attrs(remote=remote)[tensor_definition]
 
