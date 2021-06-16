@@ -273,7 +273,7 @@ class TensorClient:
         return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'delete_file'}})
 
     def exist(self, path: str, **kwargs):
-        return self._get_handler(path, **kwargs).exist(**kwargs)
+        return self._get_handler(path).exist(**kwargs)
 
     def exist_tensor_definition(self, path):
         base_storage = BaseStorage(path, self.local_base_map, self.backup_base_map)
