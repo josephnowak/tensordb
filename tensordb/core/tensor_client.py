@@ -1,5 +1,7 @@
+import loguru
 import xarray
 import os
+import json
 import fsspec
 
 from typing import Dict, List, Any, Union, Tuple
@@ -146,7 +148,7 @@ class TensorClient:
 
     def __init__(self,
                  local_base_map: fsspec.FSMap,
-                 backup_base_map: fsspec.FSMap = None,
+                 backup_base_map: fsspec.FSMap,
                  max_files_on_disk: int = 0,
                  synchronizer_definitions: str = None,
                  **kwargs):
@@ -169,11 +171,24 @@ class TensorClient:
         if not remote:
             self._tensors_definition.backup()
 
+    def create_tensor(self, path: str, tensor_definition: Union[str, Dict], **kwargs):
+        base_storage = BaseStorage(path, self.local_base_map, self.backup_base_map)
+        kwargs.update({'definition': tensor_definition})
+        base_storage.backup_map['tensor_definition.json'] = json.dumps(kwargs).encode('utf-8')
+
     def get_tensor_definition(self, path, remote: bool = False) -> Dict:
         if not remote:
             self._tensors_definition.update_from_backup()
-        tensor_definition_id = os.path.basename(os.path.normpath(path))
-        return self._tensors_definition.get_attrs(remote=remote)[tensor_definition_id]
+
+        base_storage = BaseStorage(path, self.local_base_map, self.backup_base_map)
+        if 'tensor_definition.json' not in base_storage.backup_map:
+            raise KeyError('You can not use a tensor without first call the create_tensor method')
+
+        tensor_definition = json.loads(base_storage.backup_map['tensor_definition.json'])['definition']
+        if isinstance(tensor_definition, dict):
+            return tensor_definition
+
+        return self._tensors_definition.get_attrs(remote=remote)[tensor_definition]
 
     def _get_handler(self, path: str, tensor_definition: Dict = None) -> BaseStorage:
         handler_settings = self.get_tensor_definition(path) if tensor_definition is None else tensor_definition
@@ -260,6 +275,10 @@ class TensorClient:
 
     def exist(self, path: str, **kwargs):
         return self._get_handler(path, **kwargs).exist(**kwargs)
+
+    def exist_tensor_definition(self, path):
+        base_storage = BaseStorage(path, self.local_base_map, self.backup_base_map)
+        return 'tensor_definition.json' in base_storage.backup_map
 
     def get_cached_tensor_manager(self, path, max_cached_in_dim: int, dim: str, **kwargs):
         handler = self._get_handler(path, **kwargs)

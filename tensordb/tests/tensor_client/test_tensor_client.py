@@ -156,12 +156,16 @@ class TestTensorClient:
 
     def test_store(self):
         tensor_client = get_default_tensor_client()
+
+        tensor_client.create_tensor(path='data_one', tensor_definition='data_one')
         tensor_client.store(new_data=TestTensorClient.arr, path='data_one', synchronizer='thread')
         assert tensor_client.read(path='data_one').equals(TestTensorClient.arr)
 
+        tensor_client.create_tensor(path='data_two', tensor_definition='data_two')
         tensor_client.store(new_data=TestTensorClient.arr2, path='data_two', synchronizer='thread')
         assert tensor_client.read(path='data_two').equals(TestTensorClient.arr2)
 
+        tensor_client.create_tensor(path='data_three', tensor_definition='data_three')
         tensor_client.store(new_data=TestTensorClient.arr3, path='data_three', synchronizer='thread')
         assert tensor_client.read(path='data_three').equals(TestTensorClient.arr3)
 
@@ -194,6 +198,8 @@ class TestTensorClient:
 
     def test_backup(self):
         tensor_client = get_default_tensor_client()
+
+        tensor_client.create_tensor(path='data_one', tensor_definition=tensors_definition['data_one'])
         tensor_client.store(new_data=TestTensorClient.arr, path='data_one')
 
         handler = tensor_client._get_handler(path='data_one')
@@ -207,6 +213,8 @@ class TestTensorClient:
     def test_read_from_formula(self):
         self.test_store()
         tensor_client = get_default_tensor_client()
+        tensor_client.create_tensor(path='data_four', tensor_definition='data_four')
+
         data_four = tensor_client.read(path='data_four')
         data_one = tensor_client.read(path='data_one')
         data_two = tensor_client.read(path='data_two')
@@ -215,18 +223,21 @@ class TestTensorClient:
     def test_ffill(self):
         self.test_store()
         tensor_client = get_default_tensor_client()
+        tensor_client.create_tensor(path='data_ffill', tensor_definition='data_ffill')
         tensor_client.store(path='data_ffill')
         assert tensor_client.read(path='data_ffill').equals(tensor_client.read(path='data_one').ffill('index'))
 
     def test_last_valid_index(self):
         self.test_store()
         tensor_client = get_default_tensor_client()
+        tensor_client.create_tensor(path='last_valid_index', tensor_definition='last_valid_index')
         tensor_client.store(path='last_valid_index')
         assert np.array_equal(tensor_client.read(path='last_valid_index').values, [2, 4, 4, 4, 4])
 
     def test_replace_last_valid_dim(self):
         self.test_last_valid_index()
         tensor_client = get_default_tensor_client()
+        tensor_client.create_tensor(path='data_replace_last_valid_dim', tensor_definition='data_replace_last_valid_dim')
         tensor_client.store(path='data_replace_last_valid_dim')
 
         data_ffill = tensor_client.read(path='data_ffill')
@@ -236,6 +247,7 @@ class TestTensorClient:
     def test_reindex(self):
         self.test_store()
         tensor_client = get_default_tensor_client()
+        tensor_client.create_tensor(path='data_reindex', tensor_definition='data_reindex')
         tensor_client.store(path='data_reindex')
         data_reindex = tensor_client.read(path='data_reindex')
         assert data_reindex.sel(index=5, drop=True).equals(data_reindex.sel(index=4, drop=True))
@@ -243,22 +255,24 @@ class TestTensorClient:
     def test_overwrite_append_data(self):
         self.test_store()
         tensor_client = get_default_tensor_client()
+        tensor_client.create_tensor(path='overwrite_append_data', tensor_definition='overwrite_append_data')
         tensor_client.append(path='overwrite_append_data')
 
     def test_specifics_definition(self):
         self.test_store()
         tensor_client = get_default_tensor_client()
+        tensor_client.create_tensor(path='specific_definition', tensor_definition='specific_definition')
         tensor_client.store('specific_definition')
         assert tensor_client.read('specific_definition').equals(tensor_client.read('data_one') ** 2)
 
 
 if __name__ == "__main__":
     test = TestTensorClient()
-    test.test_add_tensor_definition()
+    # test.test_add_tensor_definition()
     # test.test_store()
     # test.test_update()
     # test.test_append()
-    # test.test_backup()
+    test.test_backup()
     # test.test_read_from_formula()
     # test.test_ffill()
     # test.test_replace_last_valid_dim()

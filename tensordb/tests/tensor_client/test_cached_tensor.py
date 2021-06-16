@@ -81,7 +81,7 @@ class TestCachedTensor:
 
 if __name__ == "__main__":
     test = TestCachedTensor()
-    test.test_append()
+    # test.test_append()
     test.test_store()
 
 
