@@ -10,14 +10,12 @@ class BaseStorage:
     def __init__(self,
                  path: str,
                  local_base_map: fsspec.FSMap,
-                 backup_base_map: fsspec.FSMap = None,
+                 backup_base_map: fsspec.FSMap,
                  **kwargs):
         self.path = path
         self.local_map: fsspec.FSMap = fsspec.FSMap(f'{local_base_map.root}/{path}', local_base_map.fs)
-        self.backup_map: fsspec.FSMap = None
+        self.backup_map: fsspec.FSMap = fsspec.FSMap(f'{backup_base_map.root}/{path}', backup_base_map.fs)
         self.max_concurrency = os.cpu_count()
-        if backup_base_map is not None:
-            self.backup_map = fsspec.FSMap(f'{backup_base_map.root}/{path}', backup_base_map.fs)
 
     @abstractmethod
     def append(self, new_data: Union[xarray.DataArray, xarray.Dataset], remote: bool = False, **kwargs):

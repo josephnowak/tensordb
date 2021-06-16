@@ -135,12 +135,6 @@ class ZarrStorage(BaseStorage):
                encoding: Dict = None,
                complete_update_dim: str = '',
                **kwargs):
-        """
-        TODO: Avoid loading the entire new data in memory
-              Using the to_zarr method of xarray and updating in blocks with the region parameter is
-              probably a good solution, the only problem is the time that could take to update,
-              but I suppose that the block updating is ideal only when the new_data represent a big % of the entire data
-        """
 
         if not self._exist_download(remote=remote):
             raise OSError(
@@ -164,7 +158,7 @@ class ZarrStorage(BaseStorage):
             act_bitmask = act_coords[coord_name].isin(new_data.coords[coord_name].values)
             valid_positions = np.nonzero(act_bitmask.values)[0]
             regions[coord_name] = slice(np.min(valid_positions), np.max(valid_positions) + 1)
-            bitmask = bitmask & act_bitmask.isel(**{act_bitmask.dims[0]: regions[coord_name]})
+            bitmask = bitmask & act_bitmask.isel(**{coord_name: regions[coord_name]})
 
         act_data = act_data.isel(**regions)
         new_data = new_data.reindex(act_data.coords)
@@ -231,10 +225,13 @@ class ZarrStorage(BaseStorage):
                 'checksums.json'
             ]
         else:
-            files_names = list(json.loads(self.local_map['temp_checksums.json']).keys()) + [
+            files_names = []
+            if 'temp_checksums.json' in self.local_map:
+                files_names.extend(list(json.loads(self.local_map['temp_checksums.json']).keys()))
+            files_names.extend([
                 'last_modification_date.json',
                 'checksums.json'
-            ]
+            ])
         merge_local_checksums(self.local_map)
         self.upload_files(files_names)
 
