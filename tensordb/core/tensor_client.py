@@ -16,6 +16,7 @@ from tensordb.file_handlers import (
     JsonStorage
 )
 from tensordb.core.utils import internal_actions
+from tensordb.config.handlers import mapping_storages
 
 
 class TensorClient:
@@ -187,7 +188,12 @@ class TensorClient:
     def _get_handler(self, path: str, tensor_definition: Dict = None) -> BaseStorage:
         handler_settings = self.get_storage_tensor_definition(path) if tensor_definition is None else tensor_definition
         handler_settings = handler_settings.get('handler', {})
-        data_handler = handler_settings.get('data_handler', ZarrStorage)(
+
+        data_handler = ZarrStorage
+        if 'data_handler' in handler_settings:
+            data_handler = mapping_storages[handler_settings['data_handler']]
+
+        data_handler = data_handler(
             local_base_map=self.local_base_map,
             backup_base_map=self.backup_base_map,
             path=path,

@@ -6,7 +6,6 @@ from loguru import logger
 
 from tensordb import TensorClient
 from tensordb.core.utils import create_dummy_array
-from tensordb.file_handlers import ZarrStorage
 from tensordb.config.config_root_dir import TEST_DIR_TENSOR_CLIENT
 
 
@@ -93,6 +92,11 @@ tensors_definition = {
                 ['read_from_formula', {'formula': "new_data * `data_one`"}],
             ],
         },
+    },
+    'different_client': {
+        'handler': {
+            'data_handler': 'json_storage'
+        }
     }
 }
 
@@ -266,10 +270,17 @@ class TestTensorClient:
         tensor_client.store('specific_definition')
         assert tensor_client.read('specific_definition').equals(tensor_client.read('data_one') ** 2)
 
+    def test_different_client(self):
+        self.test_add_tensor_definition()
+        tensor_client = get_default_tensor_client()
+        tensor_client.create_tensor(path='different_client', tensor_definition='different_client')
+        tensor_client.store(path='different_client', name='different_client', new_data={'a': 100})
+        assert {'a': 100} == tensor_client.read(path='different_client', name='different_client')
+
 
 if __name__ == "__main__":
     test = TestTensorClient()
-    test.test_add_tensor_definition()
+    # test.test_add_tensor_definition()
     # test.test_store()
     # test.test_update()
     # test.test_append()
@@ -281,3 +292,4 @@ if __name__ == "__main__":
     # test.test_reindex()
     # test.test_overwrite_append_data()
     # test.test_specifics_definition()
+    test.test_different_client()
