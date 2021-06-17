@@ -6,7 +6,6 @@ from loguru import logger
 
 from tensordb import TensorClient
 from tensordb.core.utils import create_dummy_array
-from tensordb.file_handlers import ZarrStorage
 from tensordb.config.config_root_dir import TEST_DIR_TENSOR_CLIENT
 
 
@@ -93,6 +92,11 @@ tensors_definition = {
                 ['read_from_formula', {'formula': "new_data * `data_one`"}],
             ],
         },
+    },
+    'different_client': {
+        'handler': {
+            'data_handler': 'json_storage'
+        }
     }
 }
 
@@ -151,8 +155,9 @@ class TestTensorClient:
 
     def test_add_tensor_definition(self):
         tensor_client = get_default_tensor_client()
-        tensor_client.add_tensor_definition(**tensors_definition)
-        assert tensors_definition == tensor_client._tensors_definition.get_attrs()
+        for tensor_id, data in tensors_definition.items():
+            tensor_client.add_tensor_definition(tensor_id=tensor_id, new_data=data)
+            assert tensors_definition[tensor_id] == tensor_client.get_tensor_definition(tensor_id)
 
     def test_store(self):
         tensor_client = get_default_tensor_client()
@@ -265,6 +270,13 @@ class TestTensorClient:
         tensor_client.store('specific_definition')
         assert tensor_client.read('specific_definition').equals(tensor_client.read('data_one') ** 2)
 
+    def test_different_client(self):
+        self.test_add_tensor_definition()
+        tensor_client = get_default_tensor_client()
+        tensor_client.create_tensor(path='different_client', tensor_definition='different_client')
+        tensor_client.store(path='different_client', name='different_client', new_data={'a': 100})
+        assert {'a': 100} == tensor_client.read(path='different_client', name='different_client')
+
 
 if __name__ == "__main__":
     test = TestTensorClient()
@@ -272,7 +284,7 @@ if __name__ == "__main__":
     # test.test_store()
     # test.test_update()
     # test.test_append()
-    test.test_backup()
+    # test.test_backup()
     # test.test_read_from_formula()
     # test.test_ffill()
     # test.test_replace_last_valid_dim()
@@ -280,3 +292,4 @@ if __name__ == "__main__":
     # test.test_reindex()
     # test.test_overwrite_append_data()
     # test.test_specifics_definition()
+    test.test_different_client()
