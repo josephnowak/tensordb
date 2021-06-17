@@ -151,8 +151,9 @@ class TestTensorClient:
 
     def test_add_tensor_definition(self):
         tensor_client = get_default_tensor_client()
-        tensor_client.add_tensor_definition(**tensors_definition)
-        assert tensors_definition == tensor_client._tensors_definition.get_attrs()
+        for tensor_id, data in tensors_definition.items():
+            tensor_client.add_tensor_definition(tensor_id=tensor_id, new_data=data)
+            assert tensors_definition[tensor_id] == tensor_client.get_tensor_definition(tensor_id)
 
     def test_store(self):
         tensor_client = get_default_tensor_client()
@@ -268,11 +269,11 @@ class TestTensorClient:
 
 if __name__ == "__main__":
     test = TestTensorClient()
-    # test.test_add_tensor_definition()
+    test.test_add_tensor_definition()
     # test.test_store()
     # test.test_update()
     # test.test_append()
-    test.test_backup()
+    # test.test_backup()
     # test.test_read_from_formula()
     # test.test_ffill()
     # test.test_replace_last_valid_dim()

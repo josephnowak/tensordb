@@ -1,5 +1,4 @@
 import xarray
-import os
 import fsspec
 
 from abc import abstractmethod
@@ -15,7 +14,6 @@ class BaseStorage:
         self.path = path
         self.local_map: fsspec.FSMap = fsspec.FSMap(f'{local_base_map.root}/{path}', local_base_map.fs)
         self.backup_map: fsspec.FSMap = fsspec.FSMap(f'{backup_base_map.root}/{path}', backup_base_map.fs)
-        self.max_concurrency = os.cpu_count()
 
     @abstractmethod
     def append(self, new_data: Union[xarray.DataArray, xarray.Dataset], remote: bool = False, **kwargs):
@@ -35,6 +33,14 @@ class BaseStorage:
 
     @abstractmethod
     def read(self, remote: bool = False, **kwargs) -> xarray.DataArray:
+        pass
+
+    @abstractmethod
+    def set_attrs(self, remote: bool = False, **kwargs) -> xarray.DataArray:
+        pass
+
+    @abstractmethod
+    def get_attrs(self, remote: bool = False, **kwargs) -> xarray.DataArray:
         pass
 
     @abstractmethod

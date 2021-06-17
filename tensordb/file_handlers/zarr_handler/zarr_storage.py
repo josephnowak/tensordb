@@ -42,6 +42,7 @@ class ZarrStorage(BaseStorage):
         self.name = name
         self.chunks = chunks
         self.group = group
+        self.max_concurrency = os.cpu_count()
         if synchronizer is None:
             self.synchronizer = None
         elif synchronizer == 'process':
@@ -303,6 +304,7 @@ class ZarrStorage(BaseStorage):
             self.backup_map.fs.rm(self.backup_map.root, recursive=True)
 
     def set_attrs(self, remote: bool = False, **kwargs):
+        logger.info('set_attrs')
         if not self._exist_download(remote=remote):
             raise OSError(
                 f'There is no file in the local path: {self.local_map.root} '

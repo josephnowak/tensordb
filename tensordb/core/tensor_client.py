@@ -12,7 +12,8 @@ from loguru import logger
 from tensordb.core.cached_tensor import CachedTensorHandler
 from tensordb.file_handlers import (
     ZarrStorage,
-    BaseStorage
+    BaseStorage,
+    JsonStorage
 )
 from tensordb.core.utils import internal_actions
 
@@ -157,40 +158,34 @@ class TensorClient:
         self.backup_base_map = backup_base_map
         self.open_base_store: Dict[str, Dict[str, Any]] = {}
         self.max_files_on_disk = max_files_on_disk
-        self._tensors_definition = ZarrStorage(
+        self._tensors_definition = JsonStorage(
             path='tensors_definition',
             local_base_map=self.local_base_map,
             backup_base_map=self.backup_base_map,
-            synchronizer=synchronizer_definitions
         )
 
-    def add_tensor_definition(self, remote: bool = False, **kwargs):
-        if not remote:
-            self._tensors_definition.update_from_backup()
-        self._tensors_definition.set_attrs(remote=remote, **kwargs)
-        if not remote:
-            self._tensors_definition.backup()
+    def add_tensor_definition(self, tensor_id: Union[str, Dict], new_data: Dict):
+        self._tensors_definition.store(name=tensor_id, new_data=new_data)
 
     def create_tensor(self, path: str, tensor_definition: Union[str, Dict], **kwargs):
-        base_storage = BaseStorage(path, self.local_base_map, self.backup_base_map)
+        json_storage = JsonStorage(path, self.local_base_map, self.backup_base_map)
         kwargs.update({'definition': tensor_definition})
-        base_storage.backup_map['tensor_definition.json'] = json.dumps(kwargs).encode('utf-8')
+        json_storage.store(new_data=kwargs, name='tensor_definition.json')
 
-    def get_tensor_definition(self, path, remote: bool = False) -> Dict:
-        base_storage = BaseStorage(path, self.local_base_map, self.backup_base_map)
-        if 'tensor_definition.json' not in base_storage.backup_map:
+    def get_tensor_definition(self, name: str):
+        return self._tensors_definition.read(name)
+
+    def get_storage_tensor_definition(self, path) -> Dict:
+        json_storage = JsonStorage(path, self.local_base_map, self.backup_base_map)
+        if not json_storage.exist('tensor_definition.json'):
             raise KeyError('You can not use a tensor without first call the create_tensor method')
-        tensor_definition = json.loads(base_storage.backup_map['tensor_definition.json'])['definition']
+        tensor_definition = json_storage.read('tensor_definition.json')['definition']
         if isinstance(tensor_definition, dict):
             return tensor_definition
-
-        if not remote:
-            self._tensors_definition.update_from_backup()
-
-        return self._tensors_definition.get_attrs(remote=remote)[tensor_definition]
+        return self.get_tensor_definition(tensor_definition)
 
     def _get_handler(self, path: str, tensor_definition: Dict = None) -> BaseStorage:
-        handler_settings = self.get_tensor_definition(path) if tensor_definition is None else tensor_definition
+        handler_settings = self.get_storage_tensor_definition(path) if tensor_definition is None else tensor_definition
         handler_settings = handler_settings.get('handler', {})
         data_handler = handler_settings.get('data_handler', ZarrStorage)(
             local_base_map=self.local_base_map,
@@ -208,7 +203,7 @@ class TensorClient:
         return self.open_base_store[path]['data_handler']
 
     def _customize_handler_action(self, path: str, action_type: str, **kwargs):
-        tensor_definition = self.get_tensor_definition(path)
+        tensor_definition = self.get_storage_tensor_definition(path)
         kwargs.update({
             'action_type': action_type,
             'handler': self._get_handler(path=path, tensor_definition=tensor_definition),
@@ -266,6 +261,12 @@ class TensorClient:
     def update_from_backup(self, path: str, **kwargs) -> xarray.DataArray:
         return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'update_from_backup'}})
 
+    def set_attrs(self, path: str, **kwargs):
+        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'set_attrs'}})
+
+    def get_attrs(self, path: str, **kwargs):
+        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'get_attrs'}})
+
     def close(self, path: str, **kwargs) -> xarray.DataArray:
         return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'close'}})
 
@@ -275,7 +276,7 @@ class TensorClient:
     def exist(self, path: str, **kwargs):
         return self._get_handler(path).exist(**kwargs)
 
-    def exist_tensor_definition(self, path):
+    def exist_tensor_definition(self, path: str):
         base_storage = BaseStorage(path, self.local_base_map, self.backup_base_map)
         return 'tensor_definition.json' in base_storage.backup_map
 
