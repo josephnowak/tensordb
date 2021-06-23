@@ -261,6 +261,9 @@ class TensorClient:
     def store(self, path: str, **kwargs) -> xarray.DataArray:
         return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'store'}})
 
+    def upsert(self, path: str, **kwargs) -> xarray.DataArray:
+        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'upsert'}})
+
     def backup(self, path: str, **kwargs) -> xarray.DataArray:
         return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'backup'}})
 

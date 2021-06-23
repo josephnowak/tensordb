@@ -55,7 +55,7 @@ class ZarrStorage(BaseStorage):
     def store(self,
               new_data: Union[xarray.DataArray, xarray.Dataset],
               compute: bool = True,
-              consolidated: bool = False,
+              consolidated: bool = True,
               remote: bool = False,
               encoding: Dict = None,
               **kwargs) -> Any:
@@ -82,13 +82,12 @@ class ZarrStorage(BaseStorage):
                new_data: Union[xarray.DataArray, xarray.Dataset],
                compute: bool = True,
                remote: bool = False,
-               consolidated: bool = False,
+               consolidated: bool = True,
                encoding: Dict = None,
-               **kwargs) -> List[Union[None, xarray.backends.zarr.ZarrStore]]:
+               **kwargs) -> List[xarray.backends.zarr.ZarrStore]:
 
         if not self._exist_download(remote=remote):
             return self.store(new_data=new_data, remote=remote, compute=compute, **kwargs)
-
 
         path_map = self.backup_map if remote else self.local_map
 
@@ -132,7 +131,6 @@ class ZarrStorage(BaseStorage):
                new_data: Union[xarray.DataArray, xarray.Dataset],
                remote: bool = False,
                compute: bool = True,
-               consolidated: bool = False,
                encoding: Dict = None,
                complete_update_dim: str = '',
                **kwargs):
@@ -171,7 +169,6 @@ class ZarrStorage(BaseStorage):
             path_map,
             group=self.group,
             compute=compute,
-            consolidated=consolidated,
             encoding=encoding,
             synchronizer=None if remote else self.synchronizer,
             region=regions
@@ -189,7 +186,7 @@ class ZarrStorage(BaseStorage):
         self.append(new_data, **kwargs)
 
     def read(self,
-             consolidated: bool = False,
+             consolidated: bool = True,
              remote: bool = False,
              **kwargs) -> xarray.DataArray:
 
@@ -304,7 +301,6 @@ class ZarrStorage(BaseStorage):
             self.backup_map.fs.rm(self.backup_map.root, recursive=True)
 
     def set_attrs(self, remote: bool = False, **kwargs):
-        logger.info('set_attrs')
         if not self._exist_download(remote=remote):
             raise OSError(
                 f'There is no file in the local path: {self.local_map.root} '
