@@ -152,13 +152,14 @@ class TensorClient:
                  local_base_map: fsspec.FSMap,
                  backup_base_map: fsspec.FSMap,
                  max_files_on_disk: int = 0,
-                 synchronizer_definitions: str = None,
+                 synchronizer: str = None,
                  **kwargs):
 
         self.local_base_map = local_base_map
         self.backup_base_map = backup_base_map
         self.open_base_store: Dict[str, Dict[str, Any]] = {}
         self.max_files_on_disk = max_files_on_disk
+        self.synchronizer = synchronizer
         self._tensors_definition = JsonStorage(
             path='tensors_definition',
             local_base_map=self.local_base_map,
@@ -188,6 +189,7 @@ class TensorClient:
     def _get_handler(self, path: str, tensor_definition: Dict = None) -> BaseStorage:
         handler_settings = self.get_storage_tensor_definition(path) if tensor_definition is None else tensor_definition
         handler_settings = handler_settings.get('handler', {})
+        handler_settings['synchronizer'] = handler_settings.get('synchronizer', self.synchronizer)
 
         data_handler = ZarrStorage
         if 'data_handler' in handler_settings:
@@ -283,6 +285,7 @@ class TensorClient:
         return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'delete_file'}})
 
     def exist(self, path: str, **kwargs):
+        # TODO: this method fail if the tensor was not created, so this must be fixed it should return False
         return self._get_handler(path).exist(**kwargs)
 
     def exist_tensor_definition(self, path: str):
