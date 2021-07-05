@@ -7,6 +7,32 @@ from tensordb.file_handlers import BaseStorage
 
 
 class CachedTensorHandler:
+    """
+    CachedTensorHandler
+    -------------------
+
+    The CachedTensorHandler allows two things:
+
+    1.  To keep open the FileStorage of a tensor, this is useful for multiple writes on
+        the same file because because TensorClient has to always read the tensor_definition before open a tensor
+        so this take a lot of time if you have to a lot of writes.
+
+    2.  Cache a fixed number of writes, this allow to reduce the number of small writes to the file.
+
+    Parameters
+    ----------
+
+    file_handler: BaseStorage
+        Storage of the file.
+
+    max_cached_in_dim: int
+        Max number of elements of a dim that can be cached
+
+    dim: str
+        Dimension used to count the number of element for max_cached_in_dim
+
+    """
+
     def __init__(self, file_handler: BaseStorage, max_cached_in_dim: int, dim: str):
         self.file_handler = file_handler
         self.max_cached_in_dim = max_cached_in_dim
@@ -68,5 +94,3 @@ class CachedTensorHandler:
         self.file_handler.delete_file(only_local=only_local, **kwargs)
         self._cached_count = 0
         self._cached_operations = []
-
-
