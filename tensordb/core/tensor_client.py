@@ -180,6 +180,15 @@ class TensorClient:
         new_data: Dict
             Description of the definition, find an example of the format here.
 
+        Examples
+        --------
+
+        Add examples
+
+        See also
+        --------
+        Read the `TensorClient.storage_method_caller` to learn how to personalize your methods
+
         """
         self._tensors_definition.store(name=tensor_id, new_data=new_data)
 
@@ -199,6 +208,20 @@ class TensorClient:
 
         **kwargs: Dict
             Aditional metadata for the tensor.
+
+        Reserved Keys
+        -------------
+
+        handler: This key is used to personalize the Storage used for the tensor, inside it you can use the next
+        reserved keywords:
+
+            1.  data_handler: Here you put the name of your storage (default zarr_storage), you can see all the names
+            in the variable MAPPING_STORAGES.
+
+        See also
+        --------
+
+        If you want to personalize any method of your Storage read the `TensorClient.storage_method_caller` doc
 
         """
         json_storage = JsonStorage(path, self.local_base_map, self.backup_base_map)
@@ -310,7 +333,11 @@ class TensorClient:
 
     def storage_method_caller(self, path: str, method_name: str, **kwargs) -> Any:
         """
-        Calls any method of the Storage that was defined in the tensor definition
+        Calls an specific method of a Storage, this include send the parameters specified in the tensor_definition
+        or modifying the behaviour of the method based in your tensor_definition (read See also section).
+
+        If you want to know the specific behaviour of the method that you are using,
+        please read the specific documentation of the Storage that you are using or read `BaseStorage`.
 
         Parameters
         ----------
@@ -318,65 +345,64 @@ class TensorClient:
             Location of your stored tensor.
 
         method_name: str
-            Name of the method used by the Storage
+            Name of the method used by the Storage.
+
+        **kwargs: Dict
+            Extra parameters that are going to be used by the Storage, in case that any of this parameter
+            match with the ones provided in the tensor_definition they will overwrite them.
 
         Returns
         -------
-        The result vary depending on the method called
+        The result vary depending on the method called.
+
+        Reserved Keys
+        -------------
+
+        You can personalize the way that any Storage method is used specifying it in the tensor_definition, this is
+        basically add a key with the name of the method and inside of it you can add any kind of parameters, but there
+        are some reserved words that are used by the Tensorclient to add specific functionalities,
+        these are described here:
+
+            1. data_methods: The data methods are basically Storage methods (they are called following the same logic
+            of storage_method_caller) that must be called before the execution of your "method_name",
+            so it is really useful if you need to read the data from an specific place or make some transformation
+            before apply your method. You need to pass a list with the names of your methods
+            or if you want a personalization beyond the tensor_definition you can pass a list of tuples where
+            the first element of every tuple is the name of the method and the second is Dict with parameters.
+
+            2. customized_method: Modify the method called, this is useful if you want to overwrite the defaults
+            methods of storage, read, etc for some specific tensors, this is normally used when you want to read
+            a tensor on the fly with a formula.
+
         """
         return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': method_name}})
 
     def read(self, path: str, **kwargs) -> xarray.DataArray:
         """
-        Calls the read method of the corresponding Storage defined for the tensor in the path
-        (read `BaseStorage` for more info of this method or read the specific doc of your Storage).
-
-        Parameters
-        ----------
-        path: str
-            Location of your stored tensor.
-
-        **kwargs
-            Parameters used for the internal Storage that you choose.
+        Calls `TensorClient.storage_method_caller` with read as method_name (has the same parameters).
 
         Returns
         -------
         An xarray.DataArray that allow to read the data in the path.
 
         """
-        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'read'}})
+        return self.storage_method_caller(path=path, method_name='read', **kwargs)
 
     def append(self, path: str, **kwargs) -> List[xarray.backends.common.AbstractWritableDataStore]:
         """
-        Calls the append method of the corresponding Storage defined for the tensor in the path
-        (read `BaseStorage` for more info of this method or read the specific doc of your Storage).
-
-        Parameters
-        ----------
-        path: str
-            Location of your stored tensor.
-        **kwargs
-            Parameters used for the internal Storage that you choosed.
+        Calls `TensorClient.storage_method_caller` with append as method_name (has the same parameters).
 
         Returns
         -------
-        Returns a list of xarray.backends.common.AbstractWritableDataStore objects,
-        which is a class used as an interface for the corresponding backend that you select in xarray (the Storage).
+        Returns a List of xarray.backends.common.AbstractWritableDataStore objects,
+        which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
-        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'append'}})
+        return self.storage_method_caller(path=path, method_name='append', **kwargs)
 
     def update(self, path: str, **kwargs) -> xarray.backends.common.AbstractWritableDataStore:
         """
-        Calls the update method of the corresponding Storage defined for the tensor in the path
-        (read `BaseStorage` for more info of this method or read the specific doc of your Storage).
-
-        Parameters
-        ----------
-        path: str
-            Location of your stored tensor.
-        **kwargs
-            Parameters used for the internal Storage that you choosed.
+        Calls `TensorClient.storage_method_caller` with update as method_name (has the same parameters).
 
         Returns
         -------
@@ -384,20 +410,11 @@ class TensorClient:
         which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
-        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'update'}})
+        return self.storage_method_caller(path=path, method_name='update', **kwargs)
 
     def store(self, path: str, **kwargs) -> xarray.backends.common.AbstractWritableDataStore:
         """
-        Calls the store method of the corresponding Storage defined for the tensor in the path
-        (read `BaseStorage` for more info of this method or read the specific doc of your Storage).
-
-        Parameters
-        ----------
-        path: str
-            Location of your stored tensor.
-
-        **kwargs
-            Parameters used for the internal Storage that you choosed.
+        Calls `TensorClient.storage_method_caller` with store as method_name (has the same parameters).
 
         Returns
         -------
@@ -405,20 +422,11 @@ class TensorClient:
         which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
-        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'store'}})
+        return self.storage_method_caller(path=path, method_name='store', **kwargs)
 
     def upsert(self, path: str, **kwargs) -> List[xarray.backends.common.AbstractWritableDataStore]:
         """
-        Calls the upsert method of the corresponding Storage defined for the tensor in the path
-        (read `BaseStorage` for more info of this method or read the specific doc of your Storage).
-
-        Parameters
-        ----------
-        path: str
-            Location of your stored tensor.
-
-        **kwargs
-            Parameters used for the internal Storage that you choosed.
+        Calls `TensorClient.storage_method_caller` with upsert as method_name (has the same parameters).
 
         Returns
         -------
@@ -426,124 +434,63 @@ class TensorClient:
         which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
-        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'upsert'}})
+        return self.storage_method_caller(path=path, method_name='upsert', **kwargs)
 
     def backup(self, path: str, **kwargs) -> xarray.DataArray:
         """
-        Calls the backup method of the corresponding Storage defined for the tensor in the path
-        (read `BaseStorage` for more info of this method or read the specific doc of your Storage).
-
-        Parameters
-        ----------
-        path: str
-            Location of your stored tensor.
-
-        **kwargs
-            Parameters used for the internal Storage that you choosed.
+        Calls `TensorClient.storage_method_caller` with backup as method_name (has the same parameters).
 
         Returns
         -------
-        Returns a List of xarray.backends.common.AbstractWritableDataStore objects,
-        which is used as an interface for the corresponding backend that you select in xarray (the Storage).
+        Depends of every Storage.
+
         """
-        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'backup'}})
+        return self.storage_method_caller(path=path, method_name='backup', **kwargs)
 
     def update_from_backup(self, path: str, **kwargs) -> Any:
         """
-        Calls the update_from_backup method of the corresponding Storage defined for the tensor in the path
-        (read `BaseStorage` for more info of this method or read the specific doc of your Storage).
-
-        Parameters
-        ----------
-        path: str
-            Location of your stored tensor.
-
-        **kwargs
-            Parameters used for the internal Storage that you choosed.
+        Calls `TensorClient.storage_method_caller` with update_from_backup as method_name (has the same parameters).
 
         Returns
         -------
-        Dependens of the Storage used.
+        Depends of every Storage.
+
         """
-        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'update_from_backup'}})
+        return self.storage_method_caller(path=path, method_name='update_from_backup', **kwargs)
 
     def set_attrs(self, path: str, **kwargs):
         """
-        Calls the set_attrs method of the corresponding Storage defined for the tensor in the path
-        (read `BaseStorage` for more info of this method or read the specific doc of your Storage).
-
-        Parameters
-        ----------
-        path: str
-            Location of your stored tensor.
-
-        **kwargs
-            Parameters used for the internal Storage that you choosed.
+        Calls `TensorClient.storage_method_caller` with set_attrs as method_name (has the same parameters).
 
         """
-        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'set_attrs'}})
+        return self.storage_method_caller(path=path, method_name='set_attrs', **kwargs)
 
     def get_attrs(self, path: str, **kwargs) -> Dict:
         """
-        Calls the update_from_backup method of the corresponding Storage defined for the tensor in the path
-        (read `BaseStorage` for more info of this method or read the specific doc of your Storage).
-
-        Parameters
-        ----------
-        path: str
-            Location of your stored tensor.
-
-        **kwargs
-            Parameters used for the internal Storage that you choosed.
+        Calls `TensorClient.storage_method_caller` with get_attrs as method_name (has the same parameters).
 
         Returns
         -------
         A dict with the attributes of the tensor (metadata).
         """
-        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'get_attrs'}})
+        return self.storage_method_caller(path=path, method_name='get_attrs', **kwargs)
 
-    def close(self, path: str, **kwargs) -> xarray.DataArray:
+    def close(self, path: str, **kwargs) -> Any:
         """
-        Calls the close method of the corresponding Storage defined for the tensor in the path
-        (read `BaseStorage` for more info of this method or read the specific doc of your Storage).
+        Calls `TensorClient.storage_method_caller` with close as method_name (has the same parameters).
 
-        Parameters
-        ----------
-        path: str
-            Location of your stored tensor.
-        **kwargs
-            Parameters used for the internal Storage that you choosed.
         """
-        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'close'}})
+        return self.storage_method_caller(path=path, method_name='close', **kwargs)
 
     def delete_file(self, path: str, **kwargs) -> Any:
         """
-        Calls the delete_file method of the corresponding Storage defined for the tensor in the path
-        (read `BaseStorage` for more info of this method or read the specific doc of your Storage).
-
-        Parameters
-        ----------
-        path: str
-            Location of your stored tensor.
-
-        **kwargs
-            Parameters used for the internal Storage that you choosed.
-
+        Calls `TensorClient.storage_method_caller` with delete_file as method_name (has the same parameters).
         """
-        return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': 'delete_file'}})
+        return self.storage_method_caller(path=path, method_name='delete_file', **kwargs)
 
     def exist(self, path: str, **kwargs) -> bool:
         """
-        Calls the exist method of the corresponding Storage defined for the tensor in the path
-        (read `BaseStorage` for more info of this method or read the specific doc of your Storage).
-
-        Parameters
-        ----------
-        path: str
-            Location of your stored tensor.
-
-        **kwargs
-            Parameters used for the internal Storage that you choosed.
+        Calls `TensorClient.storage_method_caller` with exist as method_name (has the same parameters).
 
         Returns
         -------
@@ -579,10 +526,10 @@ class TensorClient:
             Location of your stored tensor.
 
         max_cached_in_dim: int
-            ``CachedTensorHandler.max_cached_in_dim``
+            `CachedTensorHandler.max_cached_in_dim`
 
         dim: str
-            ``CachedTensorHandler.dim``
+            `CachedTensorHandler.dim`
 
         **kwargs
             Parameters used for the internal Storage that you choosed.
@@ -606,7 +553,7 @@ class TensorClient:
                           use_exec: bool = False,
                           **kwargs):
         """
-        This is one of the most important methods of the ``TensorClient`` class, basically it allows to define
+        This is one of the most important methods of the `TensorClient` class, basically it allows to define
         formulas that use the tensors stored with a simple strings, so you can create new tensors from this formulas
         (make use of python eval). This is very flexible and the only thing you need to know is that you have
         to wrap the path of your tensor with "`" to be parsed and read it automatically.

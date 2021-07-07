@@ -32,6 +32,7 @@ Storage Methods
 .. autosummary::
    :toctree: api/
 
+   TensorClient.storage_method_caller
    TensorClient.read
    TensorClient.store
    TensorClient.append
