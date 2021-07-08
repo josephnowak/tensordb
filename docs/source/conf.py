@@ -12,8 +12,8 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.join(os.path.abspath('../../')))
 
+sys.path.insert(0, os.path.join(os.path.abspath('../../')))
 
 # -- Project information -----------------------------------------------------
 
@@ -26,7 +26,6 @@ release = '0.1'
 
 # -- Numpy docs configuration ---------------------------------------------------
 numpydoc_show_class_members = False
-
 
 # -- General configuration ---------------------------------------------------
 
@@ -57,7 +56,6 @@ language = 'en'
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
-
 
 # -- Options for HTML output -------------------------------------------------
 

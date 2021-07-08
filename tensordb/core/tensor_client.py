@@ -22,8 +22,6 @@ from tensordb.config.handlers import MAPPING_STORAGES
 
 class TensorClient:
     """
-    TensorClient
-    ------------
 
     It's client designed to handle tensor data in a simpler way and it's built with Xarray,
     it can support the same files than Xarray but those formats need to be implement
@@ -70,7 +68,7 @@ class TensorClient:
         >>> import xarray
         >>>
         >>>
-        >>> tensor_client = tensordb.TensorClient(
+        >>> tensor_client = TensorClient(
         ...     local_base_map=fsspec.get_mapper('test_db'),
         ...     backup_base_map=fsspec.get_mapper('test_db' + '/backup'),
         ...     synchronizer_definitions='thread'
@@ -182,12 +180,10 @@ class TensorClient:
 
         Examples
         --------
+        Add examples.
 
-        Add examples
-
-        See also
-        --------
-        Read the `TensorClient.storage_method_caller` to learn how to personalize your methods
+        See Also:
+            Read the :meth:`TensorClient.storage_method_caller` to learn how to personalize your methods
 
         """
         self._tensors_definition.store(name=tensor_id, new_data=new_data)
@@ -196,6 +192,13 @@ class TensorClient:
         """
         Create the path and the first file of the tensor which store the necessary metadata to use it,
         this method must always be called before start to write in the tensor.
+
+        Reserved Keys:
+            handler: This key is used to personalize the Storage used for the tensor, inside it you can use the next
+            reserved keywords:
+
+                1.  data_handler: Here you put the name of your storage (default zarr_storage), you can see
+                all the names in the variable MAPPING_STORAGES.
 
         Parameters
         ----------
@@ -209,19 +212,9 @@ class TensorClient:
         **kwargs: Dict
             Aditional metadata for the tensor.
 
-        Reserved Keys
-        -------------
+        See Also:
+            If you want to personalize any method of your Storage read the `TensorClient.storage_method_caller` doc
 
-        handler: This key is used to personalize the Storage used for the tensor, inside it you can use the next
-        reserved keywords:
-
-            1.  data_handler: Here you put the name of your storage (default zarr_storage), you can see all the names
-            in the variable MAPPING_STORAGES.
-
-        See also
-        --------
-
-        If you want to personalize any method of your Storage read the `TensorClient.storage_method_caller` doc
 
         """
         json_storage = JsonStorage(path, self.local_base_map, self.backup_base_map)
@@ -339,6 +332,25 @@ class TensorClient:
         If you want to know the specific behaviour of the method that you are using,
         please read the specific documentation of the Storage that you are using or read `BaseStorage`.
 
+        Reserved Keys:
+            You can personalize the way that any Storage method is used specifying it in the tensor_definition,
+            this is basically add a key with the name of the method and inside of it you can add any kind of parameters,
+            but there are some reserved words that are used by the Tensorclient to add specific functionalities,
+            these are described here:
+
+                1. data_methods:
+                    The data methods are basically Storage methods (they are called following the same logic
+                    of storage_method_caller) that must be called before the execution of your "method_name",
+                    so it is really useful if you need to read the data from an specific place or make some
+                    transformation before apply your method. You need to pass a list with the names of your methods
+                    or if you want a personalization beyond the tensor_definition you can pass a list of tuples where
+                    the first element of every tuple is the name of the method and the second is Dict with parameters.
+
+                2. customized_method:
+                    Modify the method called, this is useful if you want to overwrite the defaults
+                    methods of storage, read, etc for some specific tensors, this is normally used when you want to read
+                    a tensor on the fly with a formula.
+
         Parameters
         ----------
         path: str
@@ -355,31 +367,12 @@ class TensorClient:
         -------
         The result vary depending on the method called.
 
-        Reserved Keys
-        -------------
-
-        You can personalize the way that any Storage method is used specifying it in the tensor_definition, this is
-        basically add a key with the name of the method and inside of it you can add any kind of parameters, but there
-        are some reserved words that are used by the Tensorclient to add specific functionalities,
-        these are described here:
-
-            1. data_methods: The data methods are basically Storage methods (they are called following the same logic
-            of storage_method_caller) that must be called before the execution of your "method_name",
-            so it is really useful if you need to read the data from an specific place or make some transformation
-            before apply your method. You need to pass a list with the names of your methods
-            or if you want a personalization beyond the tensor_definition you can pass a list of tuples where
-            the first element of every tuple is the name of the method and the second is Dict with parameters.
-
-            2. customized_method: Modify the method called, this is useful if you want to overwrite the defaults
-            methods of storage, read, etc for some specific tensors, this is normally used when you want to read
-            a tensor on the fly with a formula.
-
         """
         return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': method_name}})
 
     def read(self, path: str, **kwargs) -> xarray.DataArray:
         """
-        Calls `TensorClient.storage_method_caller` with read as method_name (has the same parameters).
+        Calls :meth:`TensorClient.storage_method_caller` with read as method_name (has the same parameters).
 
         Returns
         -------
@@ -390,7 +383,7 @@ class TensorClient:
 
     def append(self, path: str, **kwargs) -> List[xarray.backends.common.AbstractWritableDataStore]:
         """
-        Calls `TensorClient.storage_method_caller` with append as method_name (has the same parameters).
+        Calls :meth:`TensorClient.storage_method_caller` with append as method_name (has the same parameters).
 
         Returns
         -------
@@ -402,7 +395,7 @@ class TensorClient:
 
     def update(self, path: str, **kwargs) -> xarray.backends.common.AbstractWritableDataStore:
         """
-        Calls `TensorClient.storage_method_caller` with update as method_name (has the same parameters).
+        Calls :meth:`TensorClient.storage_method_caller` with update as method_name (has the same parameters).
 
         Returns
         -------
@@ -414,7 +407,7 @@ class TensorClient:
 
     def store(self, path: str, **kwargs) -> xarray.backends.common.AbstractWritableDataStore:
         """
-        Calls `TensorClient.storage_method_caller` with store as method_name (has the same parameters).
+        Calls :meth:`TensorClient.storage_method_caller` with store as method_name (has the same parameters).
 
         Returns
         -------
@@ -426,7 +419,7 @@ class TensorClient:
 
     def upsert(self, path: str, **kwargs) -> List[xarray.backends.common.AbstractWritableDataStore]:
         """
-        Calls `TensorClient.storage_method_caller` with upsert as method_name (has the same parameters).
+        Calls :meth:`TensorClient.storage_method_caller` with upsert as method_name (has the same parameters).
 
         Returns
         -------
@@ -438,7 +431,7 @@ class TensorClient:
 
     def backup(self, path: str, **kwargs) -> xarray.DataArray:
         """
-        Calls `TensorClient.storage_method_caller` with backup as method_name (has the same parameters).
+        Calls :meth:`TensorClient.storage_method_caller` with backup as method_name (has the same parameters).
 
         Returns
         -------
@@ -449,7 +442,8 @@ class TensorClient:
 
     def update_from_backup(self, path: str, **kwargs) -> Any:
         """
-        Calls `TensorClient.storage_method_caller` with update_from_backup as method_name (has the same parameters).
+        Calls :meth:`TensorClient.storage_method_caller` with update_from_backup as
+        method_name (has the same parameters).
 
         Returns
         -------
@@ -460,14 +454,16 @@ class TensorClient:
 
     def set_attrs(self, path: str, **kwargs):
         """
-        Calls `TensorClient.storage_method_caller` with set_attrs as method_name (has the same parameters).
+        Calls :meth:`TensorClient.storage_method_caller` with set_attrs as
+        method_name (has the same parameters).
 
         """
         return self.storage_method_caller(path=path, method_name='set_attrs', **kwargs)
 
     def get_attrs(self, path: str, **kwargs) -> Dict:
         """
-        Calls `TensorClient.storage_method_caller` with get_attrs as method_name (has the same parameters).
+        Calls :meth:`TensorClient.storage_method_caller` with get_attrs as method_name
+        (has the same parameters).
 
         Returns
         -------
@@ -477,20 +473,20 @@ class TensorClient:
 
     def close(self, path: str, **kwargs) -> Any:
         """
-        Calls `TensorClient.storage_method_caller` with close as method_name (has the same parameters).
+        Calls :meth:`TensorClient.storage_method_caller` with close as method_name (has the same parameters).
 
         """
         return self.storage_method_caller(path=path, method_name='close', **kwargs)
 
     def delete_file(self, path: str, **kwargs) -> Any:
         """
-        Calls `TensorClient.storage_method_caller` with delete_file as method_name (has the same parameters).
+        Calls :meth:`TensorClient.storage_method_caller` with delete_file as method_name (has the same parameters).
         """
         return self.storage_method_caller(path=path, method_name='delete_file', **kwargs)
 
     def exist(self, path: str, **kwargs) -> bool:
         """
-        Calls `TensorClient.storage_method_caller` with exist as method_name (has the same parameters).
+        Calls :meth:`TensorClient.storage_method_caller` with exist as method_name (has the same parameters).
 
         Returns
         -------

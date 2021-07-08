@@ -8,10 +8,4 @@ Welcome to TensorDB's documentation!
    reference/tensor_client
    reference/base_storage
    reference/cached_tensor_handler
-
-
-Indices and tables
-==================
-
-* :ref:`modindex`
-* :ref:`search`
+   reference/zarr_storage

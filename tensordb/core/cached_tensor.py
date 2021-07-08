@@ -8,16 +8,14 @@ from tensordb.file_handlers import BaseStorage
 
 class CachedTensorHandler:
     """
-    CachedTensorHandler
-    -------------------
 
     The CachedTensorHandler allows two things:
 
-    1.  To keep open the FileStorage of a tensor, this is useful for multiple writes on
-        the same file because because TensorClient has to always read the tensor_definition before open a tensor
-        so this take a lot of time if you have to a lot of writes.
+        1.  Keep open the FileStorage of a tensor, this is useful for multiple writes on
+            the same file because because TensorClient has to always read the tensor_definition before open a tensor
+            so this take a lot of time if you have to do a lot of writes.
 
-    2.  Cache a fixed number of writes, this allow to reduce the number of small writes to the file.
+        2.  Cache a fixed number of writes, this allow to reduce the number of small writes to the file.
 
     Parameters
     ----------
