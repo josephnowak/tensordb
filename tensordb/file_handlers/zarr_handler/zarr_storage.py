@@ -52,7 +52,7 @@ class ZarrStorage(BaseStorage):
 
 
     TODO:
-        1. Add more documentation and better comments
+        1. Add more examples to the documentation
         2. The next versions of zarr will add support for the modification dates of the chunks, that will simplify
             the code of backup, so It is a good idea modify the code after the modification being published
 

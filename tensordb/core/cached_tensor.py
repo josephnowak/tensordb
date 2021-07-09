@@ -8,14 +8,20 @@ from tensordb.file_handlers import BaseStorage
 
 class CachedTensorHandler:
     """
-
-    The CachedTensorHandler allows two things:
+    CachedTensorHandler only contains the basic methods of the Storages: store, read, update, append,
+    close and delete_file, but it was designed to allows two things:
 
         1.  Keep open the FileStorage of a tensor, this is useful for multiple writes on
-            the same file because because TensorClient has to always read the tensor_definition before open a tensor
+            the same file because TensorClient has to always read the tensor_definition before open a tensor
             so this take a lot of time if you have to do a lot of writes.
 
         2.  Cache a fixed number of writes, this allow to reduce the number of small writes to the file.
+
+    You must always call the close method to guaranty that it write all the cached information.
+
+    Internally it calls the corresponding storage method without take care of the tensor_definition, if you want
+    to preserve the tensor_definition and you want to do multiples writes use the compute = True option
+    that some Storage support (basically use dask.delayed).
 
     Parameters
     ----------

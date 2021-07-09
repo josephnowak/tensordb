@@ -59,84 +59,105 @@ class TensorClient:
 
     Examples
     --------
-    Update this examples.
 
-    Store and read a dummy array:
+    Store and read a simple tensor:
 
-        >>> import tensordb
-        >>> import fsspec
+        >>> from tensordb import TensorClient
         >>> import xarray
-        >>>
+        >>> import fsspec
         >>>
         >>> tensor_client = TensorClient(
         ...     local_base_map=fsspec.get_mapper('test_db'),
         ...     backup_base_map=fsspec.get_mapper('test_db' + '/backup'),
-        ...     synchronizer_definitions='thread'
+        ...     synchronizer='thread'
         ... )
         >>>
-        >>> dummy_tensor = xarray.DataArray(
-        ...     0,
-        ...     coords={'index': list(range(3)), 'columns': list(range(3))},
-        ...     dims=['index', 'columns']
-        ... )
-        >>>
-        >>> # Adding a default tensor definition
-        >>> tensor_client.add_tensor_definition(dummy_tensor={})
-        >>>
-        >>> # Storing the dummy tensor
-        >>> tensor_client.store(path='dummy_tensor', new_data=dummy_tensor)
-        <xarray.backends.zarr.ZarrStore object at 0x00000201E7395A60>
-        >>>
-        >>> # Reading the dummy tensor (we can avoid the use of path= )
-        >>> tensor_client.read(path='dummy_tensor')
-        <xarray.DataArray 'data' (index: 3, columns: 3)>
-        array([[0, 0, 0],
-               [0, 0, 0],
-               [0, 0, 0]])
-        Coordinates:
-          * columns  (columns) int32 0 1 2
-          * index    (index) int32 0 1 2
-
-    Storing a tensor from a string formula:
-
-        >>> # Creating a new tensor definition using a formula
+        >>> # Adding an empty tensor definition (there is no personalization)
         >>> tensor_client.add_tensor_definition(
-        ...     dummy_tensor_formula={
-        ...        'store': {
-        ...             'data_methods': ['read_from_formula'],
-        ...         },
-        ...         'read_from_formula': {
-        ...             'formula': '`dummy_tensor` + 1'
+        ...     tensor_id='dummy_tensor_definition',
+        ...     new_data={
+        ...         # This key is used for modify options of the Storage constructor
+        ...         # (documented on the reserved keys section of this method)
+        ...         'handler': {
+        ...             # modify the default Storage for the zarr_storage
+        ...             'data_handler': 'zarr_storage'
         ...         }
         ...     }
         ... )
         >>>
-        >>> # storing the new dummy tensor
-        >>> tensor_client.store(path='dummy_tensor_formula')
-        <xarray.backends.zarr.ZarrStore object at 0x00000201EA1AB7C0>
+        >>> # create a new empty tensor, you must always call this method to start using the tensor.
+        >>> tensor_client.create_tensor(path='tensor1', tensor_definition='dummy_tensor_definition')
         >>>
-        >>> # reading the new dummy tensor
-        >>> tensor_client.read('dummy_tensor_formula')
+        >>> new_data = xarray.DataArray(
+        ...     0.0,
+        ...     coords={'index': list(range(3)), 'columns': list(range(3))},
+        ...     dims=['index', 'columns']
+        ... )
+        >>>
+        >>> # Storing tensor1 on disk
+        >>> tensor_client.store(path='tensor1', new_data=new_data)
+        <xarray.backends.zarr.ZarrStore object at 0x000001FFBE9ADB80>
+        >>>
+        >>> # Reading the tensor1 (normally you will get a lazy Xarray (use dask in the backend))
+        >>> tensor_client.read(path='tensor1')
         <xarray.DataArray 'data' (index: 3, columns: 3)>
-        array([[1, 1, 1],
-               [1, 1, 1],
-               [1, 1, 1]])
+        array([[0., 0., 0.],
+               [0., 0., 0.],
+               [0., 0., 0.]])
+        Coordinates:
+          * columns  (columns) int32 0 1 2
+          * index    (index) int32 0 1 2
+
+    Storing a tensor from a string formula (if you want to create an 'on the fly' tensor using formula see
+    the docs :meth:`TensorClient.read_from_formula`:
+
+        >>> # Creating a new tensor definition using a formula that depend on the previous stored tensor
+        >>> tensor_client.add_tensor_definition(
+        ...     tensor_id='tensor_formula',
+        ...     new_data={
+        ...         'store': {
+        ...             # read the docs of this method to understand the behaviour of the data_methods key
+        ...             'data_methods': ['read_from_formula'],
+        ...         },
+        ...         'read_from_formula': {
+        ...             'formula': '`tensor1` + 1 + `tensor1` * 10'
+        ...         }
+        ...     }
+        ... )
+        >>>
+        >>> # create a new empty tensor, you must always call this method to start using the tensor.
+        >>> tensor_client.create_tensor(path='tensor_formula', tensor_definition='tensor_formula')
+        >>>
+        >>> # Storing tensor_formula on disk, check that now we do not need to send the new_data parameter, because it is generated
+        >>> # from the formula that we create previously
+        >>> tensor_client.store(path='tensor_formula')
+        <xarray.backends.zarr.ZarrStore object at 0x000001FFBEA93C40>
+        >>>
+        >>> # Reading the tensor_formula (normally you will get a lazy Xarray (use dask in the backend))
+        >>> tensor_client.read(path='tensor_formula')
+        <xarray.DataArray 'data' (index: 3, columns: 3)>
+        array([[1., 1., 1.],
+               [1., 1., 1.],
+               [1., 1., 1.]])
         Coordinates:
           * columns  (columns) int32 0 1 2
           * index    (index) int32 0 1 2
 
     Appending a new row and a new column to a tensor:
 
-        >>> # Appending a new row and a new columns to a dummy tensor
+        >>> # Appending a new row and a new columns to the tensor_formula stored previously
         >>> new_data = xarray.DataArray(
         ...     2.,
         ...     coords={'index': [3], 'columns': list(range(4))},
         ...     dims=['index', 'columns']
         ... )
         >>>
-        >>> tensor_client.append('dummy_tensor_formula', new_data=new_data)
-        [<xarray.backends.zarr.ZarrStore object at 0x000001FFF52EBCA0>, <xarray.backends.zarr.ZarrStore object at 0x000001FFF52EBE80>]
-        >>> tensor_client.read('dummy_tensor_formula')
+        >>> # Appending the data, you can use the compute=False parameter if you dont want to execute this immediately
+        >>> tensor_client.append('tensor_formula', new_data=new_data)
+        [<xarray.backends.zarr.ZarrStore object at 0x000001FFBEB77AC0>, <xarray.backends.zarr.ZarrStore object at 0x000001FFBEB779A0>]
+        >>>
+        >>> # Reading the tensor_formula (normally you will get a lazy Xarray (use dask in the backend))
+        >>> tensor_client.read('tensor_formula')
         <xarray.DataArray 'data' (index: 4, columns: 4)>
         array([[ 1.,  1.,  1., nan],
                [ 1.,  1.,  1., nan],
@@ -145,6 +166,9 @@ class TensorClient:
         Coordinates:
           * columns  (columns) int32 0 1 2 3
           * index    (index) int32 0 1 2 3
+
+    TODO:
+        1. Add more examples to the documentation
 
     """
 
@@ -170,6 +194,32 @@ class TensorClient:
         """
         Add (store) a new tensor definition (internally is stored as a JSON file).
 
+        Reserved Keywords:
+            handler: This key is used to personalize the Storage used for the tensor, inside it you can use the next
+            reserved keywords:
+
+                1.  data_handler: Here you put the name of your storage (default zarr_storage), you can see
+                all the names in the variable MAPPING_STORAGES.
+
+            You can personalize the way that any Storage method is used specifying it in the tensor_definition,
+            this is basically add a key with the name of the method and inside of it you can add any kind of parameters,
+            but there are some reserved words that are used by the Tensorclient to add specific functionalities,
+            these are described here:
+
+                1. data_methods:
+                    The data methods are basically Storage methods (they are called following the same logic
+                    of storage_method_caller) that must be called before the execution of your "method_name",
+                    so it is really useful if you need to read the data from an specific place or make some
+                    transformation before apply your method. You need to pass a list with the names of your methods
+                    or if you want a personalization beyond the tensor_definition you can pass a list of tuples where
+                    the first element of every tuple is the name of the method and the second is Dict with parameters.
+
+                2. customized_method:
+                    Modify the method called, this is useful if you want to overwrite the defaults
+                    methods of storage, read, etc for some specific tensors, this is normally used when you want to read
+                    a tensor on the fly with a formula.
+
+
         Parameters
         ----------
         tensor_id: str
@@ -192,13 +242,6 @@ class TensorClient:
         """
         Create the path and the first file of the tensor which store the necessary metadata to use it,
         this method must always be called before start to write in the tensor.
-
-        Reserved Keys:
-            handler: This key is used to personalize the Storage used for the tensor, inside it you can use the next
-            reserved keywords:
-
-                1.  data_handler: Here you put the name of your storage (default zarr_storage), you can see
-                all the names in the variable MAPPING_STORAGES.
 
         Parameters
         ----------
@@ -327,29 +370,11 @@ class TensorClient:
     def storage_method_caller(self, path: str, method_name: str, **kwargs) -> Any:
         """
         Calls an specific method of a Storage, this include send the parameters specified in the tensor_definition
-        or modifying the behaviour of the method based in your tensor_definition (read See also section).
+        or modifying the behaviour of the method based in your tensor_definition
+        (read :meth:`TensorClient.add_tensor_definition` for more info of how to personalize your method).
 
         If you want to know the specific behaviour of the method that you are using,
         please read the specific documentation of the Storage that you are using or read `BaseStorage`.
-
-        Reserved Keys:
-            You can personalize the way that any Storage method is used specifying it in the tensor_definition,
-            this is basically add a key with the name of the method and inside of it you can add any kind of parameters,
-            but there are some reserved words that are used by the Tensorclient to add specific functionalities,
-            these are described here:
-
-                1. data_methods:
-                    The data methods are basically Storage methods (they are called following the same logic
-                    of storage_method_caller) that must be called before the execution of your "method_name",
-                    so it is really useful if you need to read the data from an specific place or make some
-                    transformation before apply your method. You need to pass a list with the names of your methods
-                    or if you want a personalization beyond the tensor_definition you can pass a list of tuples where
-                    the first element of every tuple is the name of the method and the second is Dict with parameters.
-
-                2. customized_method:
-                    Modify the method called, this is useful if you want to overwrite the defaults
-                    methods of storage, read, etc for some specific tensors, this is normally used when you want to read
-                    a tensor on the fly with a formula.
 
         Parameters
         ----------
@@ -551,11 +576,13 @@ class TensorClient:
         """
         This is one of the most important methods of the `TensorClient` class, basically it allows to define
         formulas that use the tensors stored with a simple strings, so you can create new tensors from this formulas
-        (make use of python eval). This is very flexible and the only thing you need to know is that you have
-        to wrap the path of your tensor with "`" to be parsed and read it automatically.
+        (make use of python eval and the same syntax that you use with Xarray).
+        This is very flexible, you can even create relations between tensor and the only extra thing
+        you need to know is that you have to wrap the path of your tensor with "`" to be parsed and
+        read automatically.
 
         Another important chracteristic is that you can even pass entiere python codes to create this new tensors
-        (it make use of python exec so use use_exec as True).
+        (it make use of python exec so use use_exec parameter as True).
 
         Parameters
         ----------
@@ -575,8 +602,38 @@ class TensorClient:
 
         Examples
         --------
-        You can see some examples of this method in the example of TensorClient, I will put more examples
-        here in the future
+
+        Reading a tensor directly from a formula, all this is lazy evaluated:
+            >>> # Creating a new tensor definition using an 'on the fly' formula
+            >>> tensor_client.add_tensor_definition(
+            ...     tensor_id='tensor_formula_on_the_fly',
+            ...     new_data={
+            ...         'read': {
+            ...             # Read the section reserved Keywords
+            ...             'customized_method': 'read_from_formula',
+            ...         },
+            ...         'read_from_formula': {
+            ...             'formula': '`tensor1` + 1 + `tensor1` * 10'
+            ...         }
+            ...     }
+            ... )
+            >>>
+            >>> # create a new empty tensor, you must always call this method to start using the tensor.
+            >>> tensor_client.create_tensor(path='tensor_formula_on_the_fly', tensor_definition='tensor_formula_on_the_fly')
+            >>>
+            >>> # Now we don't need to call the store method when we want to read our tensor
+            >>> # the good part is that everything is still lazy
+            >>> tensor_client.read(path='tensor_formula_on_the_fly')
+            <xarray.DataArray 'data' (index: 3, columns: 3)>
+            array([[1., 1., 1.],
+                   [1., 1., 1.],
+                   [1., 1., 1.]])
+            Coordinates:
+              * columns  (columns) int32 0 1 2
+              * index    (index) int32 0 1 2
+
+        You can see an example of how to store a tensor from a formula in the examples of the
+        constructor section in `TensorClient`
 
         Returns
         -------
