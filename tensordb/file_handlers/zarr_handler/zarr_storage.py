@@ -5,7 +5,7 @@ import numpy as np
 import zarr
 import json
 
-from typing import Dict, List, Union, Any
+from typing import Dict, List, Union, Any, Literal
 from concurrent.futures import ThreadPoolExecutor
 from loguru import logger
 
@@ -21,22 +21,48 @@ from tensordb.file_handlers.zarr_handler.utils import (
 
 class ZarrStorage(BaseStorage):
     """
-    ZarrStorage
-    -----------
-        This class is a handler for the Zarr files which implement the necessary methods to be used for TensorClient
+    Storage created for the Zarr files which implement the necessary methods to be used for TensorClient.
+
+    Internally it store a checksum for every chunk created by Zarr, this allow to speed up the backups and check
+    the integrity of the data.
+
+    Parameters
+    ----------
+
+    name: str, default 'data'
+        Name of the dataset, this is necessary if you want to work with Xarray DataArrays
+        due that Xarray only support writes to Zarr files from datasets.
+        Read the doc of `to_dataset <http://xarray.pydata.org/en/stable/generated/xarray.DataArray.to_dataset.html?highlight=dataset>`_
+
+    chunks: Dict[str, int], default None
+        Define the chunks of the Zarr files, read the doc of the Xarray method
+        `to_zarr <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+        in the parameter 'chunks' for more details.
+
+    group: str, default None
+        read the doc of the Xarray method
+        `to_zarr <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+        in the parameter 'group' for more details.
+
+    synchronizer: {'thread', 'process'}, default None
+        Depending on the option send it will create a zarr.sync.ThreadSynchronizer or a zarr.sync.ProcessSynchronizer
+        for more info read the doc of `Zarr synchronizer <https://zarr.readthedocs.io/en/stable/api/sync.html>`_
+        and the Xarray `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+        in the parameter 'synchronizer'.
+
+
     TODO:
-        1. Add more documentation and better comments
+        1. Add more examples to the documentation
         2. The next versions of zarr will add support for the modification dates of the chunks, that will simplify
             the code of backup, so It is a good idea modify the code after the modification being published
-        3. The of option of compute = False does not work correctly due to the way
-                We update the chunks, it should allow delayed. Using the point one this will not be required
+
     """
 
     def __init__(self,
                  name: str = "data",
                  chunks: Dict[str, int] = None,
                  group: str = None,
-                 synchronizer: str = None,
+                 synchronizer: Union[Literal['process', 'thread'], None] = None,
                  **kwargs):
         super().__init__(**kwargs)
         self.name = name
@@ -50,7 +76,7 @@ class ZarrStorage(BaseStorage):
         elif synchronizer == 'thread':
             self.synchronizer = zarr.ThreadSynchronizer()
         else:
-            raise ValueError(f"{synchronizer} is not a valid option for the synchronizer")
+            raise NotImplemented(f"{synchronizer} is not a valid option for the synchronizer")
 
     def store(self,
               new_data: Union[xarray.DataArray, xarray.Dataset],
@@ -58,8 +84,42 @@ class ZarrStorage(BaseStorage):
               consolidated: bool = True,
               remote: bool = False,
               encoding: Dict = None,
-              **kwargs) -> Any:
+              **kwargs) -> xarray.backends.common.AbstractWritableDataStore:
 
+        """
+        Store the data in the Zarr file, the dtype and all the details will depend of what you pass in the new_data
+        parameter, internally this method calls the
+        `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+        with a 'w' mode using that data.
+
+        Parameters
+        ----------
+
+        new_data: Union[xarray.DataArray, xarray.Dataset]
+            This is the data that want to be stored
+
+        remote: bool, default False
+            If the value is True indicate that we want to store the data directly in the backup in the other case
+            it will store the data in your local path (then you can use the backup method manually)
+
+        consolidated: bool, default True
+            Read the doc of `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+            in the parameter 'consolidated'
+
+        encoding: Dict, default None
+            Read the doc of `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+            in the parameter 'encoding'
+
+        **kwargs: Dict
+            It is not used in this method but due to the way the TensorClient pass the parameters it is necessary
+
+        Returns
+        -------
+
+        An xarray.backends.common.AbstractWritableDataStore produced by the
+        `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+
+        """
         path_map = self.backup_map if remote else self.local_map
         new_data = self._transform_to_dataset(new_data)
         delayed_write = new_data.to_zarr(
@@ -84,7 +144,43 @@ class ZarrStorage(BaseStorage):
                remote: bool = False,
                consolidated: bool = True,
                encoding: Dict = None,
-               **kwargs) -> List[xarray.backends.zarr.ZarrStore]:
+               **kwargs) -> List[xarray.backends.common.AbstractWritableDataStore]:
+
+        """
+        Append data at the end of a Zarr file (in case that the file does not exist it will call the store method),
+        internally it calls the
+        `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+        for every dimension of your data
+
+        Parameters
+        ----------
+
+        new_data: Union[xarray.DataArray, xarray.Dataset]
+            This is the data that want to be appended at the end
+
+        remote: bool, default False
+            If the value is True indicate that we want to store the data directly in the backup in the other case
+            it will store the data in your local path (then you can use the backup method manually)
+
+        consolidated: bool, default True
+            Read the doc of `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+            in the parameter 'consolidated'
+
+        encoding: Dict, default None
+            Read the doc of `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+            in the parameter 'encoding'
+
+        **kwargs: Dict
+            Extra parameters used for the read method that is called internally
+
+        Returns
+        -------
+
+        A list of xarray.backends.common.AbstractWritableDataStore produced by the
+        `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+        method executed in every dimension
+
+        """
 
         if not self._exist_download(remote=remote):
             return self.store(new_data=new_data, remote=remote, compute=compute, **kwargs)
@@ -132,9 +228,48 @@ class ZarrStorage(BaseStorage):
                remote: bool = False,
                compute: bool = True,
                encoding: Dict = None,
-               complete_update_dim: str = '',
-               **kwargs):
+               complete_update_dims: Union[List[str], str] = None,
+               **kwargs) -> xarray.backends.common.AbstractWritableDataStore:
+        """
+        Replace data on an existing Zarr files based on the new_data, internally calls the
+        `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_ using the
+        region parameter, so it automatically create this region based on your new_data, in some
+        cases it could even replace all the data in the file even if you only has two coords in your new_data
+        this happend due that Xarray only allows to write in contigous blocks (region)
+        (read carefully how the region parameter works in Xarray)
 
+        Parameters
+        ----------
+
+        new_data: Union[xarray.DataArray, xarray.Dataset]
+            This is the data that want
+
+        remote: bool, default False
+            If the value is True indicate that we want to store the data directly in the backup in the other case
+            it will store the data in your local path (then you can use the backup method manually)
+
+        consolidated: bool, default True
+            Read the doc of `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+            in the parameter 'consolidated'
+
+        encoding: Dict, default None
+            Read the doc of `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+            in the parameter 'encoding'.
+
+        complete_update_dims: Union[List, str], default = None
+            Modify the coords of your new_data based in the coords of the stored array, basically the dims in the
+            complete_update_dims are used to reindex new_data and put NaN whenever there are coords of the original
+            array that are not in the coords of new_data.
+
+        **kwargs: Dict
+            Extra parameters used for the read method that is called internally
+
+        Returns
+        -------
+
+        An xarray.backends.common.AbstractWritableDataStore produced by the
+        `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+        """
         if not self._exist_download(remote=remote):
             raise OSError(
                 f'There is no file in the local path: {self.local_map.root} '
@@ -146,9 +281,11 @@ class ZarrStorage(BaseStorage):
 
         act_data = self.read(remote=remote)
         act_coords = {k: coord for k, coord in act_data.coords.items()}
-        if complete_update_dim is not None:
+        if complete_update_dims is not None:
+            if isinstance(complete_update_dims, str):
+                complete_update_dims = [complete_update_dims]
             new_data = new_data.reindex(
-                **{dim: coord for dim, coord in act_coords.items() if dim != complete_update_dim}
+                **{dim: coord for dim, coord in act_coords.items() if dim in complete_update_dims}
             )
 
         bitmask = True
@@ -181,14 +318,52 @@ class ZarrStorage(BaseStorage):
 
         return delayed_write
 
-    def upsert(self, new_data: Union[xarray.DataArray, xarray.Dataset], **kwargs):
-        self.update(new_data, **kwargs)
-        self.append(new_data, **kwargs)
+    def upsert(
+            self,
+            new_data: Union[xarray.DataArray, xarray.Dataset],
+            **kwargs) -> List[xarray.backends.common.AbstractWritableDataStore]:
+        """
+        Calls the update and then the append method
+
+        Returns
+        -------
+        A list of xarray.backends.common.AbstractWritableDataStore produced by the append and update methods
+
+        """
+        delayed_writes = [self.update(new_data, **kwargs)]
+        delayed_writes.extend(self.append(new_data, **kwargs))
+        return delayed_writes
 
     def read(self,
              consolidated: bool = True,
              remote: bool = False,
              **kwargs) -> xarray.DataArray:
+        """
+        Read the tensor stored in the Zarr file, internally it use
+        `open_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.open_zarr.html>`_.
+
+        Parameters
+        ----------
+
+        remote: bool, default False
+            If the value is True indicate that we want to read the data directly from the backup in the other case
+            it will read the data from your local path
+
+        consolidated: bool, default True
+            Read the doc of `open_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.open_zarr.html>`_
+            in the parameter 'consolidated'
+
+        **kwargs: Dict
+            Not used
+
+        Returns
+        -------
+
+        An xarray.DataArray that allow to read your tensor, that is the same result that you get with
+        `open_zarr <http://xarray.pydata.org/en/stable/generated/xarray.open_zarr.html>`_ and then using the '[]'
+        with a name
+        """
+
 
         if not self._exist_download(remote=remote):
             raise OSError(
@@ -215,6 +390,26 @@ class ZarrStorage(BaseStorage):
         return new_data
 
     def backup(self, overwrite_backup: bool = False, **kwargs) -> bool:
+        """
+        Store the changes that you have done in your local path in the backup, it avoid overwrite unmodified chunks
+        based in the checksum stored.
+
+        If you do all your tensor modifications with remote = True, you do not need to call this method.
+
+        Parameters
+        ----------
+
+        overwrite_backup: bool, default False
+            Indicate if you want to overwrite or not the entiere backup using the data in your local path
+
+        **kwargs: Dict
+            Not used for this method
+
+        Returns
+        -------
+
+        True if the backup was executed correctly and False if there is no backup_map
+        """
         if self.backup_map is None:
             return False
         if overwrite_backup:
@@ -237,6 +432,18 @@ class ZarrStorage(BaseStorage):
 
     def update_from_backup(self, force_update_from_backup: bool = False, **kwargs) -> bool:
         """
+        Update the data in your local path using the data in the backup, it will only update the chunks
+        that has a different checksum.
+
+        Parameters
+        ----------
+
+        force_update_from_backup: bool
+            Indicate if we want to overwrite or not all the chunks independently if they have the same checksum
+            True for yes, False for no
+
+        **kwargs: Dict
+            Not used
         """
         if self.backup_map is None:
             return False
@@ -267,6 +474,21 @@ class ZarrStorage(BaseStorage):
         return True
 
     def exist(self, on_local: bool, **kwargs) -> bool:
+        """
+        Indicate if the tensor exist or not
+
+        Parameters
+        ----------
+
+        on_local: bool
+            True if you want to check if the tensor exist on the local path, False if you want to check
+            if exist in the backup
+
+        Returns
+        -------
+        True if the tensor exist, False if it not exist
+
+        """
         if on_local and self.local_map.fs.exists(f'{self.local_map.root}/.zattrs'):
             return True
 
@@ -291,9 +513,24 @@ class ZarrStorage(BaseStorage):
         return True
 
     def close(self, **kwargs):
+        """
+        Close the storage (Zarr does not need this but it will call the backup method automatically)
+        """
         self.backup(**kwargs)
 
     def delete_file(self, only_local: bool = True, **kwargs):
+        """
+        Delete the tensor
+
+        Paramters
+        ---------
+
+        only_local: bool, optional True
+
+            Indicate if we want to delete the local path and the backup or only the local,
+            True means delete the backup too and False means delete only the local
+
+        """
         if self.local_map.fs.exists(self.local_map.root):
             self.local_map.fs.rm(self.local_map.root, recursive=True)
 
@@ -301,6 +538,17 @@ class ZarrStorage(BaseStorage):
             self.backup_map.fs.rm(self.backup_map.root, recursive=True)
 
     def set_attrs(self, remote: bool = False, **kwargs):
+        """
+        This is equivalent to use the .attrs of Xarray, so basically is used to add metadata to the tensors,
+        these are writed in .zattrs file in json format
+
+        Parameters
+        ----------
+
+        remote: bool, default False
+            Indicate if we want to write the metadata directly in the backup or in the local path
+
+        """
         if not self._exist_download(remote=remote):
             raise OSError(
                 f'There is no file in the local path: {self.local_map.root} '
@@ -319,6 +567,15 @@ class ZarrStorage(BaseStorage):
             update_checksums_temp(path_map, ['.zattrs'])
 
     def get_attrs(self, remote: bool = False):
+        """
+        Read the metadata of a tensor stored using the set_attrs method
+
+        Parameters
+        ----------
+
+        remote: bool, default False
+            Indicate if we want to read the metadata directly from the backup or from the local path
+        """
         if not self._exist_download(remote=remote):
             raise OSError(
                 f'There is no file in the local path: {self.local_map.root} '
