@@ -374,7 +374,7 @@ class TensorClient:
         (read :meth:`TensorClient.add_tensor_definition` for more info of how to personalize your method).
 
         If you want to know the specific behaviour of the method that you are using,
-        please read the specific documentation of the Storage that you are using or read `BaseStorage`.
+        please read the specific documentation of the Storage that you are using or read `BaseStorage` .
 
         Parameters
         ----------
