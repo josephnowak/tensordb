@@ -1,3 +1,5 @@
+# You can see the html documentation inside docs/html open the index.html file, in the future it will be in a webpage or google drive.
+
 # Why was created TensorDB
 TensorDB born from the necessity of completely read big time-series matrices to make historical analysis, previous to this project there were a lot of attempts to read the data using databases like Influx, Postgresql, Timescale, Cassandra, or Mongo none of those DBs gave good read times and the memory consumption was really big due to the normalized formats and the required transformations (except for mongo). For solving the aforementioned problem the use of Zarr files was thought as the best solution and combined with Xarray provided a really good, simple, and faster solution but then other problems arrived, organize and treat more than 200 files becomes really problematic, basically, every file needed a daily append of data with a different treat and much of the characteristics that a database provides like triggers were lost, so to solve the problem this package was created as a way to organize and standardize the definition of a tensor.
 
