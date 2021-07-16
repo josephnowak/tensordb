@@ -1,5 +1,5 @@
 import xarray
-import json
+import orjson
 import numpy as np
 import fsspec
 
@@ -19,11 +19,11 @@ def get_lock(synchronizer, path):
 
 
 def get_dims(path_map: fsspec.FSMap, name: str):
-    return json.loads(path_map[f'{name}/.zattrs'])['_ARRAY_DIMENSIONS']
+    return orjson.loads(path_map[f'{name}/.zattrs'])['_ARRAY_DIMENSIONS']
 
 
 def get_chunks_sizes(path_map: fsspec.FSMap, name: str):
-    return json.loads(path_map[f'{name}/.zarray'])['chunks']
+    return orjson.loads(path_map[f'{name}/.zarray'])['chunks']
 
 
 def find_positions(x: np.array, y: np.array):
@@ -67,17 +67,17 @@ def get_affected_chunks(path_map: fsspec.FSMap, actual_coords, coords, data_name
 def update_checksums_temp(local_map: fsspec.FSMap, chunks_name):
     date = str(Timestamp.now())
     checksums = {chunk_name: str(local_map.fs.checksum(f'{local_map.root}/{chunk_name}')) for chunk_name in chunks_name}
-    local_map['temp_checksums.json'] = json.dumps(checksums).encode('utf-8')
-    local_map['temp_last_modification_date.json'] = json.dumps({'date': date}).encode('utf-8')
+    local_map['temp_checksums.json'] = orjson.dumps(checksums)
+    local_map['temp_last_modification_date.json'] = orjson.dumps({'date': date})
 
 
 def update_checksums(path_map: fsspec.FSMap, chunks_name):
     date = str(Timestamp.now())
     checksums = {chunk_name: str(path_map.fs.checksum(f'{path_map.root}/{chunk_name}')) for chunk_name in chunks_name}
-    total_checksums = json.loads(path_map['checksums.json'])
+    total_checksums = orjson.loads(path_map['checksums.json'])
     total_checksums.update(checksums)
-    path_map['checksums.json'] = json.dumps(total_checksums).encode('utf-8')
-    path_map['last_modification_date.json'] = json.dumps({'last_modification_date': date}).encode('utf-8')
+    path_map['checksums.json'] = orjson.dumps(total_checksums)
+    path_map['last_modification_date.json'] = orjson.dumps({'last_modification_date': date})
 
 
 def merge_local_checksums(local_map: fsspec.FSMap):
@@ -86,10 +86,10 @@ def merge_local_checksums(local_map: fsspec.FSMap):
 
     checksums = {}
     if 'checksums.json' in local_map:
-        checksums = json.loads(local_map['checksums.json'])
-    checksums.update(json.loads(local_map['temp_checksums.json']))
+        checksums = orjson.loads(local_map['checksums.json'])
+    checksums.update(orjson.loads(local_map['temp_checksums.json']))
 
-    local_map['checksums.json'] = json.dumps(checksums).encode('utf-8')
+    local_map['checksums.json'] = orjson.dumps(checksums)
     local_map['last_modification_date.json'] = local_map['temp_last_modification_date.json']
 
     del local_map['temp_checksums.json']

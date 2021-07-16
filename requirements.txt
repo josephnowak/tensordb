@@ -9,3 +9,4 @@ fasteners
 botocore
 bottleneck
 fsspec
+orjson

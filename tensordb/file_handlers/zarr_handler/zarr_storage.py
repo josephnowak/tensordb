@@ -3,7 +3,7 @@ import fsspec
 import xarray
 import numpy as np
 import zarr
-import json
+import orjson
 
 from typing import Dict, List, Union, Any, Literal
 from concurrent.futures import ThreadPoolExecutor
@@ -410,6 +410,7 @@ class ZarrStorage(BaseStorage):
 
         True if the backup was executed correctly and False if there is no backup_map
         """
+        logger.info('here')
         if self.backup_map is None:
             return False
         if overwrite_backup:
@@ -420,7 +421,7 @@ class ZarrStorage(BaseStorage):
         else:
             files_names = []
             if 'temp_checksums.json' in self.local_map:
-                files_names.extend(list(json.loads(self.local_map['temp_checksums.json']).keys()))
+                files_names.extend(list(orjson.loads(self.local_map['temp_checksums.json']).keys()))
             files_names.extend([
                 'last_modification_date.json',
                 'checksums.json'
@@ -459,8 +460,8 @@ class ZarrStorage(BaseStorage):
             if self.local_map['last_modification_date.json'] == self.backup_map['last_modification_date.json']:
                 return False
 
-            backup_checksums = json.loads(self.backup_map['checksums.json'])
-            local_checksums = json.loads(self.local_map['checksums.json'])
+            backup_checksums = orjson.loads(self.backup_map['checksums.json'])
+            local_checksums = orjson.loads(self.local_map['checksums.json'])
             files_to_download = [
                 name
                 for name, checksum in backup_checksums.items()
@@ -558,9 +559,9 @@ class ZarrStorage(BaseStorage):
         with get_lock(self.synchronizer, '.zattrs'):
             total_attrs = {}
             if '.zattrs' in path_map:
-                total_attrs = json.loads(path_map['.zattrs'])
+                total_attrs = orjson.loads(path_map['.zattrs'])
             total_attrs.update(kwargs)
-            path_map['.zattrs'] = json.dumps(total_attrs).encode('utf-8')
+            path_map['.zattrs'] = orjson.dumps(total_attrs)
         if remote:
             update_checksums(path_map, ['.zattrs'])
         else:
@@ -582,7 +583,7 @@ class ZarrStorage(BaseStorage):
                 f'and there is no backup in the remote path: {self.backup_map.root}'
             )
         path_map = self.backup_map if remote else self.local_map
-        return json.loads(path_map['.zattrs'])
+        return orjson.loads(path_map['.zattrs'])
 
     def transfer_files(self, receiver_path_map, sender_path_map, paths):
         paths = [paths] if isinstance(paths, str) else paths

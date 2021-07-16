@@ -1,7 +1,6 @@
 import loguru
 import xarray
 import os
-import json
 import fsspec
 
 from typing import Dict, List, Any, Union, Tuple
