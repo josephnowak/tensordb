@@ -39,7 +39,7 @@ class BaseStorage:
             path=path,
             store=backup_base_map
         )
-        self.path = path
+        self.path = self.local_map.path
 
     @abstractmethod
     def append(

@@ -284,9 +284,9 @@ class TestTensorClient:
 if __name__ == "__main__":
     test = TestTensorClient()
     # test.test_add_tensor_definition()
-    test.test_store()
+    # test.test_store()
     # .test_update()
-    # test.test_append()
+    test.test_append()
     # test.test_backup()
     # test.test_read_from_formula()
     # test.test_ffill()

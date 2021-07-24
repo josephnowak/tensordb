@@ -1,3 +1,4 @@
+import fsspec
 import zarr
 import os
 
@@ -8,6 +9,7 @@ from zarr.storage import (
 )
 
 from collections.abc import MutableMapping
+from loguru import logger
 
 
 class SubMapping(MutableMapping):
@@ -18,11 +20,21 @@ class SubMapping(MutableMapping):
 
     def __init__(self,
                  store: MutableMapping,
-                 path: str = None):
-        self.path = path
+                 path: str = None,):
         self.store = store
+        self.path = None
         if isinstance(store, SubMapping):
             self.store = store.store
+
+        if issubclass(type(self.store), (fsspec.AbstractFileSystem, fsspec.FSMap)):
+            if path is not None:
+                self.store = fsspec.FSMap(root=os.path.join(self.store.root, path), fs=self.store.fs)
+
+        elif issubclass(type(self.store), zarr.storage.FSStore):
+            if path is not None:
+                self.store = fsspec.FSMap(root=os.path.join(self.store.map.root, path), fs=self.store.fs)
+        else:
+            self.path = path
 
     def getitems(self, keys, **kwargs):
         if self.path is not None:
@@ -59,7 +71,14 @@ class SubMapping(MutableMapping):
 
     def keys(self):
         if self.path is not None:
-            return iter(k[len(self.path) + 1:] for k in self.store.keys() if self.path == k[:len(self.path)])
+            if hasattr(self.store, 'find'):
+                return (x for x in self.store.find(self.path))
+
+            if hasattr(self.store, '__iter__'):
+                return (k[len(self.path) + 1:] for k in self.store if self.path == k[:len(self.path)])
+
+            return (k[len(self.path) + 1:] for k in self.store.keys() if self.path == k[:len(self.path)])
+
         return self.store.keys()
 
     def __iter__(self):
@@ -91,8 +110,4 @@ class SubMapping(MutableMapping):
     def clear(self):
         raise NotImplemented
 
-    def sub_class(self, path: str):
-        if self.path is not None:
-            return SubMapping(self.store, os.path.join(self.path, path))
-        return SubMapping(self.store, path)
 
