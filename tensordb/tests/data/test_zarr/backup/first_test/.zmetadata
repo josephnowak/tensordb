@@ -1,13 +1,10 @@
 {
     "metadata": {
+        ".zattrs": {},
         ".zgroup": {
             "zarr_format": 2
         },
-        "cached_test/.zattrs": {},
-        "cached_test/.zgroup": {
-            "zarr_format": 2
-        },
-        "cached_test/columns/.zarray": {
+        "columns/.zarray": {
             "chunks": [
                 5
             ],
@@ -27,14 +24,14 @@
             ],
             "zarr_format": 2
         },
-        "cached_test/columns/.zattrs": {
+        "columns/.zattrs": {
             "_ARRAY_DIMENSIONS": [
                 "columns"
             ]
         },
-        "cached_test/data/.zarray": {
+        "data_test/.zarray": {
             "chunks": [
-                2,
+                3,
                 2
             ],
             "compressor": {
@@ -49,20 +46,20 @@
             "filters": null,
             "order": "C",
             "shape": [
-                2,
+                5,
                 5
             ],
             "zarr_format": 2
         },
-        "cached_test/data/.zattrs": {
+        "data_test/.zattrs": {
             "_ARRAY_DIMENSIONS": [
                 "index",
                 "columns"
             ]
         },
-        "cached_test/index/.zarray": {
+        "index/.zarray": {
             "chunks": [
-                2
+                5
             ],
             "compressor": {
                 "blocksize": 0,
@@ -71,16 +68,16 @@
                 "id": "blosc",
                 "shuffle": 1
             },
-            "dtype": "<i8",
+            "dtype": "<i4",
             "fill_value": null,
             "filters": null,
             "order": "C",
             "shape": [
-                2
+                5
             ],
             "zarr_format": 2
         },
-        "cached_test/index/.zattrs": {
+        "index/.zattrs": {
             "_ARRAY_DIMENSIONS": [
                 "index"
             ]

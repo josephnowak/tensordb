@@ -1,13 +1,10 @@
 {
     "metadata": {
+        ".zattrs": {},
         ".zgroup": {
             "zarr_format": 2
         },
-        "first_test/.zattrs": {},
-        "first_test/.zgroup": {
-            "zarr_format": 2
-        },
-        "first_test/columns/.zarray": {
+        "columns/.zarray": {
             "chunks": [
                 5
             ],
@@ -27,12 +24,12 @@
             ],
             "zarr_format": 2
         },
-        "first_test/columns/.zattrs": {
+        "columns/.zattrs": {
             "_ARRAY_DIMENSIONS": [
                 "columns"
             ]
         },
-        "first_test/data_test/.zarray": {
+        "data_test/.zarray": {
             "chunks": [
                 3,
                 2
@@ -54,13 +51,13 @@
             ],
             "zarr_format": 2
         },
-        "first_test/data_test/.zattrs": {
+        "data_test/.zattrs": {
             "_ARRAY_DIMENSIONS": [
                 "index",
                 "columns"
             ]
         },
-        "first_test/index/.zarray": {
+        "index/.zarray": {
             "chunks": [
                 5
             ],
@@ -80,7 +77,7 @@
             ],
             "zarr_format": 2
         },
-        "first_test/index/.zattrs": {
+        "index/.zattrs": {
             "_ARRAY_DIMENSIONS": [
                 "index"
             ]
