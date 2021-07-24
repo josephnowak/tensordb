@@ -11,12 +11,12 @@ from dask.delayed import Delayed
 
 from tensordb.core.cached_tensor import CachedTensorHandler
 from tensordb.file_handlers import (
-    ZarrStorage,
     BaseStorage,
     JsonStorage
 )
 from tensordb.core.utils import internal_actions
 from tensordb.config.handlers import MAPPING_STORAGES
+from tensordb.utils.sub_mapper import SubMapping
 
 
 class TensorClient:
@@ -172,14 +172,14 @@ class TensorClient:
     """
 
     def __init__(self,
-                 local_base_map: fsspec.FSMap,
-                 backup_base_map: fsspec.FSMap,
+                 local_base_map: SubMapping,
+                 backup_base_map: SubMapping,
                  max_files_on_disk: int = 0,
                  synchronizer: str = None,
                  **kwargs):
+        self.local_base_map = SubMapping(local_base_map)
+        self.backup_base_map = SubMapping(backup_base_map)
 
-        self.local_base_map = local_base_map
-        self.backup_base_map = backup_base_map
         self.open_base_store: Dict[str, Dict[str, Any]] = {}
         self.max_files_on_disk = max_files_on_disk
         self.synchronizer = synchronizer
@@ -259,7 +259,10 @@ class TensorClient:
 
 
         """
-        json_storage = JsonStorage(path, self.local_base_map, self.backup_base_map)
+        if isinstance(tensor_definition, str) and not self._tensors_definition.exist(tensor_definition):
+            raise KeyError(f'The tensor definition {tensor_definition} does not exist, created using '
+                           f'add_tensor_definition method or use a dictionary as definition')
+        json_storage = JsonStorage(path=path, local_base_map=self.local_base_map, backup_base_map=self.backup_base_map)
         kwargs.update({'definition': tensor_definition})
         json_storage.store(new_data=kwargs, name='tensor_definition.json')
 
@@ -293,7 +296,7 @@ class TensorClient:
         A dict containing all the information of the tensor definition previusly stored.
 
         """
-        json_storage = JsonStorage(path, self.local_base_map, self.backup_base_map)
+        json_storage = JsonStorage(path=path, local_base_map=self.local_base_map, backup_base_map=self.backup_base_map)
         if not json_storage.exist('tensor_definition.json'):
             raise KeyError('You can not use a tensor without first call the create_tensor method')
         tensor_definition = json_storage.read('tensor_definition.json')['definition']
@@ -306,10 +309,7 @@ class TensorClient:
         handler_settings = handler_settings.get('handler', {})
         handler_settings['synchronizer'] = handler_settings.get('synchronizer', self.synchronizer)
 
-        data_handler = ZarrStorage
-        if 'data_handler' in handler_settings:
-            data_handler = MAPPING_STORAGES[handler_settings['data_handler']]
-
+        data_handler = MAPPING_STORAGES[handler_settings.get('data_handler', 'zarr_storage')]
         data_handler = data_handler(
             local_base_map=self.local_base_map,
             backup_base_map=self.backup_base_map,

@@ -1,0 +1,90 @@
+{
+    "metadata": {
+        ".zgroup": {
+            "zarr_format": 2
+        },
+        "first_test/.zattrs": {},
+        "first_test/.zgroup": {
+            "zarr_format": 2
+        },
+        "first_test/columns/.zarray": {
+            "chunks": [
+                5
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<i4",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                5
+            ],
+            "zarr_format": 2
+        },
+        "first_test/columns/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "columns"
+            ]
+        },
+        "first_test/data_test/.zarray": {
+            "chunks": [
+                3,
+                2
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                5,
+                5
+            ],
+            "zarr_format": 2
+        },
+        "first_test/data_test/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "index",
+                "columns"
+            ]
+        },
+        "first_test/index/.zarray": {
+            "chunks": [
+                5
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<i4",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                5
+            ],
+            "zarr_format": 2
+        },
+        "first_test/index/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "index"
+            ]
+        }
+    },
+    "zarr_consolidated_format": 1
+}
