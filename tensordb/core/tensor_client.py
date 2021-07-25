@@ -8,6 +8,7 @@ from numpy import nan, array
 from pandas import Timestamp
 from loguru import logger
 from dask.delayed import Delayed
+from collections.abc import MutableMapping
 
 from tensordb.core.cached_tensor import CachedTensorHandler
 from tensordb.file_handlers import (
@@ -43,10 +44,10 @@ class TensorClient:
 
     Parameters
     ----------
-    local_base_map: fsspec.FSMap
+    local_base_map: MutableMapping
        FSMap instaciated with the local path that you want to use to store all tensors.
 
-    backup_base_map: fsspec.FSMap
+    backup_base_map: MutableMapping
         FSMap instaciated with the backup path that you want to use to store all tensors.
 
     synchronizer: str
@@ -172,8 +173,8 @@ class TensorClient:
     """
 
     def __init__(self,
-                 local_base_map: SubMapping,
-                 backup_base_map: SubMapping,
+                 local_base_map: MutableMapping,
+                 backup_base_map: MutableMapping,
                  max_files_on_disk: int = 0,
                  synchronizer: str = None,
                  **kwargs):
@@ -259,9 +260,6 @@ class TensorClient:
 
 
         """
-        if isinstance(tensor_definition, str) and not self._tensors_definition.exist(tensor_definition):
-            raise KeyError(f'The tensor definition {tensor_definition} does not exist, created using '
-                           f'add_tensor_definition method or use a dictionary as definition')
         json_storage = JsonStorage(path=path, local_base_map=self.local_base_map, backup_base_map=self.backup_base_map)
         kwargs.update({'definition': tensor_definition})
         json_storage.store(new_data=kwargs, name='tensor_definition.json')

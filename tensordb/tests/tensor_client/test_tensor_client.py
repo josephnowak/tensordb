@@ -106,7 +106,7 @@ def get_default_tensor_client():
     tensor_client = TensorClient(
         local_base_map=fsspec.get_mapper(TEST_DIR_TENSOR_CLIENT),
         backup_base_map=fsspec.get_mapper(TEST_DIR_TENSOR_CLIENT + '/backup'),
-        # synchronizer_definitions='thread'
+        synchronizer='thread'
     )
 
     return tensor_client
@@ -165,22 +165,21 @@ class TestTensorClient:
         tensor_client = get_default_tensor_client()
 
         tensor_client.create_tensor(path='data_one', tensor_definition='data_one')
-        tensor_client.store(new_data=TestTensorClient.arr, path='data_one', synchronizer=None)
+        tensor_client.store(new_data=TestTensorClient.arr, path='data_one', synchronizer='thread')
         assert tensor_client.read(path='data_one').equals(TestTensorClient.arr)
-        # raise ValueError('stop test')
 
         tensor_client.create_tensor(path='data_two', tensor_definition='data_two')
-        tensor_client.store(new_data=TestTensorClient.arr2, path='data_two', synchronizer=None)
+        tensor_client.store(new_data=TestTensorClient.arr2, path='data_two', synchronizer='thread')
         assert tensor_client.read(path='data_two').equals(TestTensorClient.arr2)
 
         tensor_client.create_tensor(path='data_three', tensor_definition='data_three')
-        tensor_client.store(new_data=TestTensorClient.arr3, path='data_three', synchronizer=None)
+        tensor_client.store(new_data=TestTensorClient.arr3, path='data_three', synchronizer='thread')
         assert tensor_client.read(path='data_three').equals(TestTensorClient.arr3)
 
     def test_update(self):
         self.test_store()
         tensor_client = get_default_tensor_client()
-        tensor_client.update(new_data=TestTensorClient.arr2, path='data_one', synchronizer=None)
+        tensor_client.update(new_data=TestTensorClient.arr2, path='data_one', synchronizer='thread')
         assert tensor_client.read(path='data_one').equals(TestTensorClient.arr2)
 
     def test_append(self):

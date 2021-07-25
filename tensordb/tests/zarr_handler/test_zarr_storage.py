@@ -14,8 +14,8 @@ from tensordb.utils.sub_mapper import SubMapping
 
 def get_default_zarr_storage():
     return ZarrStorage(
-        local_base_map=SubMapping(zarr.storage.FSStore(TEST_DIR_ZARR)),
-        backup_base_map=SubMapping(zarr.storage.FSStore(TEST_DIR_ZARR + '/backup')),
+        local_base_map=fsspec.get_mapper(TEST_DIR_ZARR),
+        backup_base_map=fsspec.get_mapper(TEST_DIR_ZARR + '/backup'),
         path='first_test',
         name='data_test',
         chunks={'index': 3, 'columns': 2},

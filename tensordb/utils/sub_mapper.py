@@ -22,19 +22,18 @@ class SubMapping(MutableMapping):
                  store: MutableMapping,
                  path: str = None,):
         self.store = store
-        self.path = None
         if isinstance(store, SubMapping):
             self.store = store.store
 
-        if issubclass(type(self.store), (fsspec.AbstractFileSystem, fsspec.FSMap)):
-            if path is not None:
-                self.store = fsspec.FSMap(root=os.path.join(self.store.root, path), fs=self.store.fs)
+        self.path = None
 
-        elif issubclass(type(self.store), zarr.storage.FSStore):
-            if path is not None:
+        if path is not None:
+            if isinstance(self.store, fsspec.FSMap):
+                self.store = fsspec.FSMap(root=os.path.join(self.store.root, path), fs=self.store.fs)
+            elif isinstance(self.store, zarr.storage.FSStore):
                 self.store = fsspec.FSMap(root=os.path.join(self.store.map.root, path), fs=self.store.fs)
-        else:
-            self.path = path
+            else:
+                self.path = path
 
     def getitems(self, keys, **kwargs):
         if self.path is not None:
@@ -109,5 +108,17 @@ class SubMapping(MutableMapping):
 
     def clear(self):
         raise NotImplemented
+
+    def checksum(self, path: str):
+        if self.path is not None:
+            path = os.path.join(self.path, path)
+
+        if hasattr(self.store, 'checksum'):
+            return self.store.checksum(path)
+
+        if hasattr(self.store, 'fs'):
+            return self.store.fs.checksum(f'{self.store.root}/{path}')
+
+        raise NotImplemented(f'The store that you are using does not have a checksum method or use FSMap class')
 
 

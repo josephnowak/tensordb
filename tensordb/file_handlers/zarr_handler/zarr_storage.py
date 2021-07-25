@@ -3,14 +3,7 @@ import fsspec
 import xarray
 import numpy as np
 import orjson
-
-try:
-    import zarr
-
-    has_module = True
-
-except ModuleNotFoundError:
-    has_module = False
+import zarr
 
 from typing import Dict, List, Union, Any, Literal
 from concurrent.futures import ThreadPoolExecutor
@@ -70,10 +63,8 @@ class ZarrStorage(BaseStorage):
                  name: str = "data",
                  chunks: Dict[str, int] = None,
                  synchronizer: Union[Literal['process', 'thread'], None] = None,
+                 process_synchronizer_path: str = '',
                  **kwargs):
-
-        if not has_module:
-            raise ModuleNotFoundError("No module named 'zarr'")
 
         super().__init__(**kwargs)
         self.name = name
@@ -82,7 +73,7 @@ class ZarrStorage(BaseStorage):
         if synchronizer is None:
             self.synchronizer = None
         elif synchronizer == 'process':
-            self.synchronizer = zarr.ProcessSynchronizer(self.path)
+            self.synchronizer = zarr.ProcessSynchronizer(process_synchronizer_path)
         elif synchronizer == 'thread':
             self.synchronizer = zarr.ThreadSynchronizer()
         else:
