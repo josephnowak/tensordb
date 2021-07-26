@@ -1,0 +1,87 @@
+{
+    "metadata": {
+        ".zattrs": {},
+        ".zgroup": {
+            "zarr_format": 2
+        },
+        "columns/.zarray": {
+            "chunks": [
+                5
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<i4",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                5
+            ],
+            "zarr_format": 2
+        },
+        "columns/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "columns"
+            ]
+        },
+        "data/.zarray": {
+            "chunks": [
+                5,
+                5
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                5,
+                5
+            ],
+            "zarr_format": 2
+        },
+        "data/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "index",
+                "columns"
+            ]
+        },
+        "index/.zarray": {
+            "chunks": [
+                5
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<i4",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                5
+            ],
+            "zarr_format": 2
+        },
+        "index/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "index"
+            ]
+        }
+    },
+    "zarr_consolidated_format": 1
+}

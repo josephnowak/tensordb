@@ -1,7 +1,6 @@
 import loguru
 import xarray
 import os
-import json
 import fsspec
 
 from typing import Dict, List, Any, Union, Tuple
@@ -9,22 +8,23 @@ from numpy import nan, array
 from pandas import Timestamp
 from loguru import logger
 from dask.delayed import Delayed
+from collections.abc import MutableMapping
 
 from tensordb.core.cached_tensor import CachedTensorHandler
 from tensordb.file_handlers import (
-    ZarrStorage,
     BaseStorage,
     JsonStorage
 )
 from tensordb.core.utils import internal_actions
 from tensordb.config.handlers import MAPPING_STORAGES
+from tensordb.utils.sub_mapper import SubMapping
 
 
 class TensorClient:
     """
 
     It's client designed to handle tensor data in a simpler way and it's built with Xarray,
-    it can support the same files than Xarray but those formats need to be implement
+    it can support the same files than Xarray but those formats needs to be implemented
     using the `BaseStorage` interface proposed in this package.
 
     As we can create Tensors with multiple Storage that needs differents settings or parameters we must create
@@ -34,21 +34,26 @@ class TensorClient:
     parameters to use it, you can see some examples in the ``Examples`` section
 
     Additional features:
-        1. Support for any backup system using fsspec package and a specific method to simplify the work (backup).
-        2. Creation or modification of new tensors using dynamic string formulas (even string python code).
+        1. Support for any backup system that implements the MutableMapping interface.
+        2. Creation or modification of new tensors using dynamic string formulas (even python code (string)).
         3. The read method return a lazy Xarray DataArray instead of only retrieve the data.
         4. It's easy to inherit the class and add customized methods.
         5. The backups can be faster and saver because you can modify them as you want, an example of this is the
-           ZarrStorage which has a checksum of every chunk of every tensor stored to
-           avoid uploading or downloading unnecessary data and is useful to check the integrity of the data.
+           ZarrStorage which has a checksum (currently only store a date for debug porpuse) of every chunk of every
+           tensor stored to avoid uploading or downloading unnecessary data and is useful to check
+           the integrity of the data.
+        6. You can use any storage supported by the Zarr protocole to store your data using the ZarrStorage class,
+           so you don't have to always use files, you can even store the tensors in
+           `MongoDB <https://zarr.readthedocs.io/en/stable/api/storage.html.>`_
+
 
     Parameters
     ----------
-    local_base_map: fsspec.FSMap
-       FSMap instaciated with the local path that you want to use to store all tensors.
+    local_base_map: MutableMapping
+       MutableMapping instaciated with the local path that you want to use to store all tensors.
 
-    backup_base_map: fsspec.FSMap
-        FSMap instaciated with the backup path that you want to use to store all tensors.
+    backup_base_map: MutableMapping
+        MutableMapping instaciated with the backup path that you want to use to store all tensors.
 
     synchronizer: str
         Some of the Storages used to handle the files support a synchronizer, this parameter is used as a default
@@ -173,14 +178,14 @@ class TensorClient:
     """
 
     def __init__(self,
-                 local_base_map: fsspec.FSMap,
-                 backup_base_map: fsspec.FSMap,
+                 local_base_map: MutableMapping,
+                 backup_base_map: MutableMapping,
                  max_files_on_disk: int = 0,
                  synchronizer: str = None,
                  **kwargs):
+        self.local_base_map = SubMapping(local_base_map)
+        self.backup_base_map = SubMapping(backup_base_map)
 
-        self.local_base_map = local_base_map
-        self.backup_base_map = backup_base_map
         self.open_base_store: Dict[str, Dict[str, Any]] = {}
         self.max_files_on_disk = max_files_on_disk
         self.synchronizer = synchronizer
@@ -260,7 +265,7 @@ class TensorClient:
 
 
         """
-        json_storage = JsonStorage(path, self.local_base_map, self.backup_base_map)
+        json_storage = JsonStorage(path=path, local_base_map=self.local_base_map, backup_base_map=self.backup_base_map)
         kwargs.update({'definition': tensor_definition})
         json_storage.store(new_data=kwargs, name='tensor_definition.json')
 
@@ -294,7 +299,7 @@ class TensorClient:
         A dict containing all the information of the tensor definition previusly stored.
 
         """
-        json_storage = JsonStorage(path, self.local_base_map, self.backup_base_map)
+        json_storage = JsonStorage(path=path, local_base_map=self.local_base_map, backup_base_map=self.backup_base_map)
         if not json_storage.exist('tensor_definition.json'):
             raise KeyError('You can not use a tensor without first call the create_tensor method')
         tensor_definition = json_storage.read('tensor_definition.json')['definition']
@@ -307,10 +312,7 @@ class TensorClient:
         handler_settings = handler_settings.get('handler', {})
         handler_settings['synchronizer'] = handler_settings.get('synchronizer', self.synchronizer)
 
-        data_handler = ZarrStorage
-        if 'data_handler' in handler_settings:
-            data_handler = MAPPING_STORAGES[handler_settings['data_handler']]
-
+        data_handler = MAPPING_STORAGES[handler_settings.get('data_handler', 'zarr_storage')]
         data_handler = data_handler(
             local_base_map=self.local_base_map,
             backup_base_map=self.backup_base_map,
@@ -374,7 +376,7 @@ class TensorClient:
         (read :meth:`TensorClient.add_tensor_definition` for more info of how to personalize your method).
 
         If you want to know the specific behaviour of the method that you are using,
-        please read the specific documentation of the Storage that you are using or read `BaseStorage`.
+        please read the specific documentation of the Storage that you are using or read `BaseStorage` .
 
         Parameters
         ----------

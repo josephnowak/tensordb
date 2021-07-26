@@ -1,0 +1,1 @@
+{"store":{"data_methods":[["read_from_formula",{"formula":"`data_one`"}],["read_from_formula",{"formula":"new_data * `data_one`"}]]}}

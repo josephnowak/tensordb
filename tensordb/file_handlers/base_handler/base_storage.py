@@ -1,8 +1,10 @@
 import xarray
-import fsspec
 
 from abc import abstractmethod
-from typing import Dict, List, Any, Union, Callable, Generic
+from collections.abc import MutableMapping
+from typing import Dict, List, Union
+
+from tensordb.utils.sub_mapper import SubMapping
 
 
 class BaseStorage:
@@ -16,21 +18,28 @@ class BaseStorage:
     path: str
         Relative path of your tensor, the TensorClient provide this parameter when it create the Storage
 
-    local_base_map: fsspec.FSMap
+    local_base_map: MutableMapping
         It's the same parameter that you send to the :meth:`TensorClient.__init__` (TensorClient send it automatically)
 
-    backup_base_map: fsspec.FSMap
+    backup_base_map: MutableMapping
         It's the same parameter that you send to the :meth:`TensorClient.__init__` (TensorClient send it automatically)
 
     """
     def __init__(self,
                  path: str,
-                 local_base_map: fsspec.FSMap,
-                 backup_base_map: fsspec.FSMap,
+                 local_base_map: MutableMapping,
+                 backup_base_map: MutableMapping,
                  **kwargs):
-        self.path = path
-        self.local_map: fsspec.FSMap = fsspec.FSMap(f'{local_base_map.root}/{path}', local_base_map.fs)
-        self.backup_map: fsspec.FSMap = fsspec.FSMap(f'{backup_base_map.root}/{path}', backup_base_map.fs)
+
+        self.local_map = SubMapping(
+            path=path,
+            store=local_base_map
+        )
+        self.backup_map = SubMapping(
+            path=path,
+            store=backup_base_map
+        )
+        self.path = self.local_map.path
 
     @abstractmethod
     def append(

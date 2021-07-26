@@ -2,11 +2,12 @@ import os
 import fsspec
 import xarray
 import numpy as np
+import orjson
 import zarr
-import json
 
 from typing import Dict, List, Union, Any, Literal
 from concurrent.futures import ThreadPoolExecutor
+
 from loguru import logger
 
 from tensordb.file_handlers import BaseStorage
@@ -61,18 +62,18 @@ class ZarrStorage(BaseStorage):
     def __init__(self,
                  name: str = "data",
                  chunks: Dict[str, int] = None,
-                 group: str = None,
                  synchronizer: Union[Literal['process', 'thread'], None] = None,
+                 process_synchronizer_path: str = '',
                  **kwargs):
+
         super().__init__(**kwargs)
         self.name = name
         self.chunks = chunks
-        self.group = group
         self.max_concurrency = os.cpu_count()
         if synchronizer is None:
             self.synchronizer = None
         elif synchronizer == 'process':
-            self.synchronizer = zarr.ProcessSynchronizer(self.local_map.root)
+            self.synchronizer = zarr.ProcessSynchronizer(process_synchronizer_path)
         elif synchronizer == 'thread':
             self.synchronizer = zarr.ThreadSynchronizer()
         else:
@@ -84,7 +85,7 @@ class ZarrStorage(BaseStorage):
               consolidated: bool = True,
               remote: bool = False,
               encoding: Dict = None,
-              **kwargs) -> xarray.backends.common.AbstractWritableDataStore:
+              **kwargs) -> xarray.backends.ZarrStore:
 
         """
         Store the data in the Zarr file, the dtype and all the details will depend of what you pass in the new_data
@@ -116,15 +117,15 @@ class ZarrStorage(BaseStorage):
         Returns
         -------
 
-        An xarray.backends.common.AbstractWritableDataStore produced by the
+        An xarray.backends.ZarrStore produced by the
         `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
 
         """
         path_map = self.backup_map if remote else self.local_map
         new_data = self._transform_to_dataset(new_data)
         delayed_write = new_data.to_zarr(
-            path_map,
-            group=self.group,
+            path_map.store,
+            group=self.path,
             mode='w',
             encoding=encoding,
             compute=compute,
@@ -144,7 +145,7 @@ class ZarrStorage(BaseStorage):
                remote: bool = False,
                consolidated: bool = True,
                encoding: Dict = None,
-               **kwargs) -> List[xarray.backends.common.AbstractWritableDataStore]:
+               **kwargs) -> List[xarray.backends.ZarrStore]:
 
         """
         Append data at the end of a Zarr file (in case that the file does not exist it will call the store method),
@@ -176,7 +177,7 @@ class ZarrStorage(BaseStorage):
         Returns
         -------
 
-        A list of xarray.backends.common.AbstractWritableDataStore produced by the
+        A list of xarray.backends.ZarrStore produced by the
         `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
         method executed in every dimension
 
@@ -205,10 +206,10 @@ class ZarrStorage(BaseStorage):
             act_coords[dim] = np.concatenate([act_coords[dim], coord_to_append])
             delayed_appends.append(
                 self._transform_to_dataset(data_to_append).to_zarr(
-                    path_map if remote else path_map.root,
+                    path_map.store,
                     append_dim=dim,
                     compute=compute,
-                    group=self.group,
+                    group=self.path,
                     synchronizer=None if remote else self.synchronizer,
                     consolidated=consolidated,
                     encoding=encoding
@@ -229,7 +230,7 @@ class ZarrStorage(BaseStorage):
                compute: bool = True,
                encoding: Dict = None,
                complete_update_dims: Union[List[str], str] = None,
-               **kwargs) -> xarray.backends.common.AbstractWritableDataStore:
+               **kwargs) -> xarray.backends.ZarrStore:
         """
         Replace data on an existing Zarr files based on the new_data, internally calls the
         `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_ using the
@@ -267,13 +268,12 @@ class ZarrStorage(BaseStorage):
         Returns
         -------
 
-        An xarray.backends.common.AbstractWritableDataStore produced by the
+        An xarray.backends.ZarrStore produced by the
         `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
         """
         if not self._exist_download(remote=remote):
             raise OSError(
-                f'There is no file in the local path: {self.local_map.root} '
-                f'and there is no backup in the remote path: {self.backup_map.root}'
+                f'The path {self.path} does not exist neither in the local map or in the backup map'
             )
 
         if isinstance(new_data, xarray.Dataset):
@@ -303,8 +303,8 @@ class ZarrStorage(BaseStorage):
         path_map = self.backup_map if remote else self.local_map
         act_data = self._transform_to_dataset(act_data)
         delayed_write = act_data.to_zarr(
-            path_map,
-            group=self.group,
+            path_map.store,
+            group=self.path,
             compute=compute,
             encoding=encoding,
             synchronizer=None if remote else self.synchronizer,
@@ -318,16 +318,15 @@ class ZarrStorage(BaseStorage):
 
         return delayed_write
 
-    def upsert(
-            self,
-            new_data: Union[xarray.DataArray, xarray.Dataset],
-            **kwargs) -> List[xarray.backends.common.AbstractWritableDataStore]:
+    def upsert(self,
+               new_data: Union[xarray.DataArray, xarray.Dataset],
+               **kwargs) -> List[xarray.backends.ZarrStore]:
         """
         Calls the update and then the append method
 
         Returns
         -------
-        A list of xarray.backends.common.AbstractWritableDataStore produced by the append and update methods
+        A list of xarray.backends.ZarrStore produced by the append and update methods
 
         """
         delayed_writes = [self.update(new_data, **kwargs)]
@@ -364,18 +363,16 @@ class ZarrStorage(BaseStorage):
         with a name
         """
 
-
         if not self._exist_download(remote=remote):
             raise OSError(
-                f'There is no file in the local path: {self.local_map.root} '
-                f'and there is no backup in the remote path: {self.backup_map.root}'
+                f'The path {self.path} does not exist neither in the local map or in the backup map'
             )
 
         path_map = self.backup_map if remote else self.local_map
 
         return xarray.open_zarr(
-            path_map if remote else path_map.root,
-            group=self.group,
+            path_map.store,
+            group=self.path,
             consolidated=consolidated,
             chunks=self.chunks,
             synchronizer=None if remote else self.synchronizer
@@ -420,7 +417,7 @@ class ZarrStorage(BaseStorage):
         else:
             files_names = []
             if 'temp_checksums.json' in self.local_map:
-                files_names.extend(list(json.loads(self.local_map['temp_checksums.json']).keys()))
+                files_names.extend(list(orjson.loads(self.local_map['temp_checksums.json']).keys()))
             files_names.extend([
                 'last_modification_date.json',
                 'checksums.json'
@@ -449,7 +446,7 @@ class ZarrStorage(BaseStorage):
             return False
 
         if not self.exist(on_local=False):
-            raise ValueError(f'There is no backup in the remote path: {self.backup_map.root}')
+            raise ValueError(f'There is no backup in the remote path: {self.path}')
 
         force_update_from_backup = force_update_from_backup | ('last_modification_date.json' not in self.local_map)
 
@@ -459,8 +456,8 @@ class ZarrStorage(BaseStorage):
             if self.local_map['last_modification_date.json'] == self.backup_map['last_modification_date.json']:
                 return False
 
-            backup_checksums = json.loads(self.backup_map['checksums.json'])
-            local_checksums = json.loads(self.local_map['checksums.json'])
+            backup_checksums = orjson.loads(self.backup_map['checksums.json'])
+            local_checksums = orjson.loads(self.local_map['checksums.json'])
             files_to_download = [
                 name
                 for name, checksum in backup_checksums.items()
@@ -489,10 +486,10 @@ class ZarrStorage(BaseStorage):
         True if the tensor exist, False if it not exist
 
         """
-        if on_local and self.local_map.fs.exists(f'{self.local_map.root}/.zattrs'):
+        if on_local and '.zattrs' in self.local_map:
             return True
 
-        if not on_local and self.backup_map.fs.exists(f'{self.backup_map.root}/last_modification_date.json'):
+        if not on_local and 'last_modification_date.json' in self.backup_map:
             return True
 
         return False
@@ -522,8 +519,8 @@ class ZarrStorage(BaseStorage):
         """
         Delete the tensor
 
-        Paramters
-        ---------
+        Parameters
+        ----------
 
         only_local: bool, optional True
 
@@ -531,11 +528,16 @@ class ZarrStorage(BaseStorage):
             True means delete the backup too and False means delete only the local
 
         """
-        if self.local_map.fs.exists(self.local_map.root):
-            self.local_map.fs.rm(self.local_map.root, recursive=True)
+        try:
+            self.local_map.rmdir()
+        except KeyError:
+            pass
 
-        if not only_local and self.backup_map.fs.exists(self.backup_map.root):
-            self.backup_map.fs.rm(self.backup_map.root, recursive=True)
+        if not only_local:
+            try:
+                self.backup_map.rmdir()
+            except KeyError:
+                pass
 
     def set_attrs(self, remote: bool = False, **kwargs):
         """
@@ -551,16 +553,15 @@ class ZarrStorage(BaseStorage):
         """
         if not self._exist_download(remote=remote):
             raise OSError(
-                f'There is no file in the local path: {self.local_map.root} '
-                f'and there is no backup in the remote path: {self.backup_map.root}'
+                f'The path {self.path} does not neither in the local map or in the backup map'
             )
         path_map = self.backup_map if remote else self.local_map
         with get_lock(self.synchronizer, '.zattrs'):
             total_attrs = {}
             if '.zattrs' in path_map:
-                total_attrs = json.loads(path_map['.zattrs'])
+                total_attrs = orjson.loads(path_map['.zattrs'])
             total_attrs.update(kwargs)
-            path_map['.zattrs'] = json.dumps(total_attrs).encode('utf-8')
+            path_map['.zattrs'] = orjson.dumps(total_attrs)
         if remote:
             update_checksums(path_map, ['.zattrs'])
         else:
@@ -578,14 +579,14 @@ class ZarrStorage(BaseStorage):
         """
         if not self._exist_download(remote=remote):
             raise OSError(
-                f'There is no file in the local path: {self.local_map.root} '
-                f'and there is no backup in the remote path: {self.backup_map.root}'
+                f'The path {self.path} does not neither in the local map or in the backup map'
             )
         path_map = self.backup_map if remote else self.local_map
-        return json.loads(path_map['.zattrs'])
+        return orjson.loads(path_map['.zattrs'])
 
     def transfer_files(self, receiver_path_map, sender_path_map, paths):
         paths = [paths] if isinstance(paths, str) else paths
+        paths = list(set(paths))
         if len(paths) == 0:
             return
 
@@ -605,5 +606,3 @@ class ZarrStorage(BaseStorage):
         if self.backup_map is None:
             return
         self.transfer_files(self.local_map, self.backup_map, paths)
-
-

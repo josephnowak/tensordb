@@ -19,11 +19,12 @@ def get_default_zarr_storage():
     )
 
 
-cached_tensor = CachedTensorHandler(
-    file_handler=get_default_zarr_storage(),
-    max_cached_in_dim=3,
-    dim='index'
-)
+def get_cached_tensor():
+    return CachedTensorHandler(
+        file_handler=get_default_zarr_storage(),
+        max_cached_in_dim=3,
+        dim='index'
+    )
 
 
 class TestCachedTensor:
@@ -40,6 +41,7 @@ class TestCachedTensor:
     )
 
     def test_append(self):
+        cached_tensor = get_cached_tensor()
         arr = TestCachedTensor.arr
         cached_tensor.append(arr.isel(index=[0]))
         cached_tensor.append(arr.isel(index=[1]))
@@ -58,9 +60,10 @@ class TestCachedTensor:
         assert len(cached_tensor._cached_operations['append']['new_data']) == 0
 
         assert cached_tensor.read().equals(arr)
-        cached_tensor.delete_file(False)
+        cached_tensor.delete_file(True)
 
     def test_store(self):
+        cached_tensor = get_cached_tensor()
         arr = TestCachedTensor.arr
         cached_tensor.store(arr.isel(index=[0]))
         cached_tensor.append(arr.isel(index=[1]))
@@ -76,7 +79,7 @@ class TestCachedTensor:
         assert len(cached_tensor._cached_operations['store']['new_data']) == 0
 
         assert cached_tensor.read().equals(arr.isel(index=[3, 4]))
-        cached_tensor.delete_file(False)
+        cached_tensor.delete_file(True)
 
 
 if __name__ == "__main__":

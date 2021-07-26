@@ -1,0 +1,1 @@
+{"read":{"customized_method":"read_from_formula"},"read_from_formula":{"formula":"new_data = (`data_one` * `data_two`).rolling({'index': 3}).sum()","use_exec":true}}

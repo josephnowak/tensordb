@@ -1,7 +1,5 @@
 import xarray
-import os
-import fsspec
-import json
+import orjson
 
 from abc import abstractmethod
 from typing import Dict, List, Any, Union, Callable, Generic
@@ -13,7 +11,7 @@ class JsonStorage(BaseStorage):
 
     def store(self, name: str, new_data: Dict, **kwargs):
         new_name = name.replace('\\', '/').replace('/', '_')
-        self.backup_map[new_name] = json.dumps(new_data).encode('utf-8')
+        self.backup_map[new_name] = orjson.dumps(new_data)
 
     def append(self, name: str, new_data: Dict, **kwargs):
         raise NotImplemented('Use upsert')
@@ -27,13 +25,13 @@ class JsonStorage(BaseStorage):
             raise KeyError(f'The file with name {name} does not exist, so you can not upsert data. '
                            f'Use the store method')
 
-        act_data = json.loads(self.backup_map[new_name])
+        act_data = orjson.loads(self.backup_map[new_name])
         act_data.update(new_data)
-        self.backup_map[new_name] = json.dumps(act_data).encode('utf-8')
+        self.backup_map[new_name] = orjson.dumps(act_data)
 
     def read(self, name: str, **kwargs) -> xarray.DataArray:
         new_name = name.replace('\\', '/').replace('/', '_')
-        return json.loads(self.backup_map[new_name])
+        return orjson.loads(self.backup_map[new_name])
 
     def set_attrs(self, **kwargs) -> xarray.DataArray:
         raise NotImplemented('Use the append method inplace of set_attrs')
@@ -54,7 +52,7 @@ class JsonStorage(BaseStorage):
         new_name = name.replace('\\', '/').replace('/', '_')
         return new_name in self.backup_map
 
-    def delete_file(self, **kwargs):
+    def delete_file(self, name: str, **kwargs):
         new_name = name.replace('\\', '/').replace('/', '_')
         del self.backup_map[new_name]
 

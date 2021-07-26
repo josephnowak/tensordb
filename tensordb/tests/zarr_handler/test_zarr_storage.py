@@ -1,16 +1,12 @@
 import xarray
 import numpy as np
-import os
-import shutil
+import zarr
 import fsspec
-import json
-
-from loguru import logger
-from time import time
 
 from tensordb.file_handlers import ZarrStorage
 from tensordb.core.utils import compare_dataset
 from tensordb.config.config_root_dir import TEST_DIR_ZARR
+from tensordb.utils.sub_mapper import SubMapping
 
 
 # TODO: Improve the tests and add the backup test
@@ -57,8 +53,8 @@ class TestZarrStore:
 
     def test_append_data(self):
         a = get_default_zarr_storage()
-        if a.local_map.fs.exists(a.local_map.root):
-            a.local_map.fs.rm(a.local_map.root, recursive=True)
+
+        a.delete_file(only_local=False)
 
         arr = TestZarrStore.arr.to_dataset(name='data_test')
         for i in range(5):
@@ -86,10 +82,23 @@ class TestZarrStore:
         a = get_default_zarr_storage()
         a.store(TestZarrStore.arr)
         a.backup()
-        a.local_map.fs.rm(a.local_map.root, recursive=True)
+        a.delete_file(only_local=True)
         a.update_from_backup()
         data = a.read()
         assert compare_dataset(data, TestZarrStore.arr)
+
+    def test_different_storages(self):
+        # a = ZarrStorage(
+        #     local_base_map=zarr.storage.RedisStore(port=7777),
+        #     backup_base_map=zarr.storage.RedisStore(port=7777),
+        #     path='first_test',
+        #     name='data_test',
+        #     chunks={'index': 3, 'columns': 2},
+        # )
+        # a.store(TestZarrStore.arr)
+        # assert a.read().equals(TestZarrStore.arr)
+        # TODO: The tests should create automatically an instance of redis to run this test
+        pass
 
 
 if __name__ == "__main__":
@@ -97,4 +106,5 @@ if __name__ == "__main__":
     # test.test_store_data()
     # test.test_append_data()
     # test.test_update_data()
-    test.test_backup()
+    # test.test_backup()
+    test.test_different_storages()

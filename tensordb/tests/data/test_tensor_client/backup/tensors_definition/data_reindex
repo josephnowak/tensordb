@@ -1,0 +1,1 @@
+{"store":{"data_methods":["read_from_formula","reindex"]},"read_from_formula":{"formula":"`data_one`"},"reindex":{"coords_to_reindex":["index"],"reindex_path":"data_three","method_fill_value":"ffill"}}

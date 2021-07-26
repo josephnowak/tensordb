@@ -1,5 +1,6 @@
 import fsspec
 import xarray
+import zarr
 import numpy as np
 
 from loguru import logger
@@ -105,7 +106,7 @@ def get_default_tensor_client():
     tensor_client = TensorClient(
         local_base_map=fsspec.get_mapper(TEST_DIR_TENSOR_CLIENT),
         backup_base_map=fsspec.get_mapper(TEST_DIR_TENSOR_CLIENT + '/backup'),
-        synchronizer_definitions='thread'
+        synchronizer='thread'
     )
 
     return tensor_client
@@ -160,6 +161,7 @@ class TestTensorClient:
             assert tensors_definition[tensor_id] == tensor_client.get_tensor_definition(tensor_id)
 
     def test_store(self):
+        self.test_add_tensor_definition()
         tensor_client = get_default_tensor_client()
 
         tensor_client.create_tensor(path='data_one', tensor_definition='data_one')
@@ -282,8 +284,8 @@ if __name__ == "__main__":
     test = TestTensorClient()
     # test.test_add_tensor_definition()
     # test.test_store()
-    test.test_update()
-    # test.test_append()
+    # .test_update()
+    test.test_append()
     # test.test_backup()
     # test.test_read_from_formula()
     # test.test_ffill()
