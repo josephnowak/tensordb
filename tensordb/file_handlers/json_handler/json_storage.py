@@ -1,6 +1,4 @@
 import xarray
-import os
-import fsspec
 import orjson
 
 from abc import abstractmethod

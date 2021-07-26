@@ -88,10 +88,24 @@ class TestZarrStore:
         data = a.read()
         assert compare_dataset(data, TestZarrStore.arr)
 
+    def test_different_storages(self):
+        # a = ZarrStorage(
+        #     local_base_map=zarr.storage.RedisStore(port=7777),
+        #     backup_base_map=zarr.storage.RedisStore(port=7777),
+        #     path='first_test',
+        #     name='data_test',
+        #     chunks={'index': 3, 'columns': 2},
+        # )
+        # a.store(TestZarrStore.arr)
+        # assert a.read().equals(TestZarrStore.arr)
+        # TODO: The tests should create automatically an instance of redis to run this test
+        pass
+
 
 if __name__ == "__main__":
     test = TestZarrStore()
     # test.test_store_data()
     # test.test_append_data()
     # test.test_update_data()
-    test.test_backup()
+    # test.test_backup()
+    test.test_different_storages()

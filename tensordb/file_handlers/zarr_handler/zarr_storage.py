@@ -273,7 +273,7 @@ class ZarrStorage(BaseStorage):
         """
         if not self._exist_download(remote=remote):
             raise OSError(
-                f'The path {self.path} does not neither in the local map or in the backup map'
+                f'The path {self.path} does not exist neither in the local map or in the backup map'
             )
 
         if isinstance(new_data, xarray.Dataset):
@@ -365,7 +365,7 @@ class ZarrStorage(BaseStorage):
 
         if not self._exist_download(remote=remote):
             raise OSError(
-                f'The path {self.path} does not neither in the local map or in the backup map'
+                f'The path {self.path} does not exist neither in the local map or in the backup map'
             )
 
         path_map = self.backup_map if remote else self.local_map
@@ -519,8 +519,8 @@ class ZarrStorage(BaseStorage):
         """
         Delete the tensor
 
-        Paramters
-        ---------
+        Parameters
+        ----------
 
         only_local: bool, optional True
 

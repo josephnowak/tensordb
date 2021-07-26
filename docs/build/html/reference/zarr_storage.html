@@ -1,0 +1,345 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ZarrStorage &#8212; TensorDB 0.1 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tensordb.file_handlers.ZarrStorage" href="api/tensordb.file_handlers.ZarrStorage.html" />
+    <link rel="prev" title="tensordb.core.CachedTensorHandler" href="api/tensordb.core.CachedTensorHandler.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+  <div id="navbar-start">
+    
+    
+<a class="navbar-brand" href="../index.html">
+<p class="title">TensorDB</p>
+</a>
+
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="tensor_client.html">
+  TensorClient
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="base_storage.html">
+  BaseStorage
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="cached_tensor_handler.html">
+  CachedTensorHandler
+ </a>
+</li>
+
+<li class="toctree-l1 current active nav-item">
+ <a class="current reference internal nav-link" href="#">
+  ZarrStorage
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    <ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.html">
+   tensordb.file_handlers.ZarrStorage
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.read.html">
+   tensordb.file_handlers.ZarrStorage.read
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.store.html">
+   tensordb.file_handlers.ZarrStorage.store
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.append.html">
+   tensordb.file_handlers.ZarrStorage.append
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.update.html">
+   tensordb.file_handlers.ZarrStorage.update
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.upsert.html">
+   tensordb.file_handlers.ZarrStorage.upsert
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.backup.html">
+   tensordb.file_handlers.ZarrStorage.backup
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.update_from_backup.html">
+   tensordb.file_handlers.ZarrStorage.update_from_backup
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.set_attrs.html">
+   tensordb.file_handlers.ZarrStorage.set_attrs
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.get_attrs.html">
+   tensordb.file_handlers.ZarrStorage.get_attrs
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.close.html">
+   tensordb.file_handlers.ZarrStorage.close
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.delete_file.html">
+   tensordb.file_handlers.ZarrStorage.delete_file
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.exist.html">
+   tensordb.file_handlers.ZarrStorage.exist
+  </a>
+ </li>
+</ul>
+
+  </div>
+</nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+              
+              <div class="toc-item">
+                
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#constructor">
+   Constructor
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#storage-methods">
+   Storage Methods
+  </a>
+ </li>
+</ul>
+
+</nav>
+              </div>
+              
+              <div class="toc-item">
+                
+              </div>
+              
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="zarrstorage">
+<h1>ZarrStorage<a class="headerlink" href="#zarrstorage" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="constructor">
+<h2>Constructor<a class="headerlink" href="#constructor" title="Permalink to this headline">¶</a></h2>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.html#tensordb.file_handlers.ZarrStorage" title="tensordb.file_handlers.ZarrStorage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage</span></code></a>(name, chunks, int]] = None, …)</p></td>
+<td><p>Storage created for the Zarr files which implement the necessary methods to be used for TensorClient.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="storage-methods">
+<h2>Storage Methods<a class="headerlink" href="#storage-methods" title="Permalink to this headline">¶</a></h2>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.read.html#tensordb.file_handlers.ZarrStorage.read" title="tensordb.file_handlers.ZarrStorage.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.read</span></code></a>([consolidated, remote])</p></td>
+<td><p>Read the tensor stored in the Zarr file, internally it use <a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.open_zarr.html">open_zarr method</a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.store.html#tensordb.file_handlers.ZarrStorage.store" title="tensordb.file_handlers.ZarrStorage.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.store</span></code></a>(new_data[, compute, …])</p></td>
+<td><p>Store the data in the Zarr file, the dtype and all the details will depend of what you pass in the new_data parameter, internally this method calls the <a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html">to_zarr method</a> with a ‘w’ mode using that data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.append.html#tensordb.file_handlers.ZarrStorage.append" title="tensordb.file_handlers.ZarrStorage.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.append</span></code></a>(new_data[, compute, …])</p></td>
+<td><p><p>Append data at the end of a Zarr file (in case that the file does not exist it will call the store method), internally it calls the <a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html">to_zarr method</a> for every dimension of your data</p>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.update.html#tensordb.file_handlers.ZarrStorage.update" title="tensordb.file_handlers.ZarrStorage.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.update</span></code></a>(new_data[, remote, …])</p></td>
+<td><p><p>Replace data on an existing Zarr files based on the new_data, internally calls the <a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html">to_zarr method</a> using the region parameter, so it automatically create this region based on your new_data, in some cases it could even replace all the data in the file even if you only has two coords in your new_data this happend due that Xarray only allows to write in contigous blocks (region) (read carefully how the region parameter works in Xarray)</p>
+</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.upsert.html#tensordb.file_handlers.ZarrStorage.upsert" title="tensordb.file_handlers.ZarrStorage.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.upsert</span></code></a>(new_data, **kwargs)</p></td>
+<td><p>Calls the update and then the append method</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.backup.html#tensordb.file_handlers.ZarrStorage.backup" title="tensordb.file_handlers.ZarrStorage.backup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.backup</span></code></a>([overwrite_backup])</p></td>
+<td><p>Store the changes that you have done in your local path in the backup, it avoid overwrite unmodified chunks based in the checksum stored.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.update_from_backup.html#tensordb.file_handlers.ZarrStorage.update_from_backup" title="tensordb.file_handlers.ZarrStorage.update_from_backup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.update_from_backup</span></code></a>([…])</p></td>
+<td><p>Update the data in your local path using the data in the backup, it will only update the chunks that has a different checksum.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.set_attrs.html#tensordb.file_handlers.ZarrStorage.set_attrs" title="tensordb.file_handlers.ZarrStorage.set_attrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.set_attrs</span></code></a>([remote])</p></td>
+<td><p>This is equivalent to use the .attrs of Xarray, so basically is used to add metadata to the tensors, these are writed in .zattrs file in json format</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.get_attrs.html#tensordb.file_handlers.ZarrStorage.get_attrs" title="tensordb.file_handlers.ZarrStorage.get_attrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.get_attrs</span></code></a>([remote])</p></td>
+<td><p>Read the metadata of a tensor stored using the set_attrs method</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.close.html#tensordb.file_handlers.ZarrStorage.close" title="tensordb.file_handlers.ZarrStorage.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.close</span></code></a>(**kwargs)</p></td>
+<td><p>Close the storage (Zarr does not need this but it will call the backup method automatically)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.delete_file.html#tensordb.file_handlers.ZarrStorage.delete_file" title="tensordb.file_handlers.ZarrStorage.delete_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.delete_file</span></code></a>([only_local])</p></td>
+<td><p>Delete the tensor</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.file_handlers.ZarrStorage.exist.html#tensordb.file_handlers.ZarrStorage.exist" title="tensordb.file_handlers.ZarrStorage.exist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.exist</span></code></a>(on_local, **kwargs)</p></td>
+<td><p>Indicate if the tensor exist or not</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+    <a class='left-prev' id="prev-link" href="api/tensordb.core.CachedTensorHandler.html" title="previous page">tensordb.core.CachedTensorHandler</a>
+    <a class='right-next' id="next-link" href="api/tensordb.file_handlers.ZarrStorage.html" title="next page">tensordb.file_handlers.ZarrStorage</a>
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+  <script src="../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+  <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright 2021, Joseph Nowak.<br/>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.0.2.<br/>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>
