@@ -60,7 +60,7 @@ class TestCachedTensor:
         assert len(cached_tensor._cached_operations['append']['new_data']) == 0
 
         assert cached_tensor.read().equals(arr)
-        cached_tensor.delete_file(False)
+        cached_tensor.delete_file(True)
 
     def test_store(self):
         cached_tensor = get_cached_tensor()
@@ -79,7 +79,7 @@ class TestCachedTensor:
         assert len(cached_tensor._cached_operations['store']['new_data']) == 0
 
         assert cached_tensor.read().equals(arr.isel(index=[3, 4]))
-        cached_tensor.delete_file(False)
+        cached_tensor.delete_file(True)
 
 
 if __name__ == "__main__":

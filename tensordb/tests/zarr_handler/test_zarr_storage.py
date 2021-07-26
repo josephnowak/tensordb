@@ -54,8 +54,7 @@ class TestZarrStore:
     def test_append_data(self):
         a = get_default_zarr_storage()
 
-        a.local_map.rmdir()
-        a.backup_map.rmdir()
+        a.delete_file(only_local=False)
 
         arr = TestZarrStore.arr.to_dataset(name='data_test')
         for i in range(5):
@@ -83,7 +82,7 @@ class TestZarrStore:
         a = get_default_zarr_storage()
         a.store(TestZarrStore.arr)
         a.backup()
-        a.local_map.rmdir()
+        a.delete_file(only_local=True)
         a.update_from_backup()
         data = a.read()
         assert compare_dataset(data, TestZarrStore.arr)
