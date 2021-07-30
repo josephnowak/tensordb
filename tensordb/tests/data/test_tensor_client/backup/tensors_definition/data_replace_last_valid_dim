@@ -1,1 +1,0 @@
-{"store":{"data_methods":["read_from_formula","ffill","replace_last_valid_dim"]},"read_from_formula":{"formula":"`data_one`"},"ffill":{"dim":"index"},"replace_last_valid_dim":{"replace_path":"last_valid_index","dim":"index","calculate_last_valid":false}}
