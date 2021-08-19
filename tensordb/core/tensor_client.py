@@ -203,7 +203,7 @@ class TensorClient:
             handler: This key is used to personalize the Storage used for the tensor, inside it you can use the next
             reserved keywords:
 
-                1.  data_handler: Here you put the name of your storage (default zarr_storage), you can see
+                1. data_handler: Here you put the name of your storage (default zarr_storage), you can see
                 all the names in the variable MAPPING_STORAGES.
 
             You can personalize the way that any Storage method is used specifying it in the tensor_definition,
