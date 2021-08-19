@@ -7,12 +7,11 @@ TensorDB born from the necessity of completely read big time-series matrices to 
 1. Tensors' definitions are highly personalizable and simple, so they provide a good way to organize and treat your datasets.
 2. It uses Xarray to read the tensors, so you have the same options that Xarray provides and It's a really well-supported library.
 3. Fast reads and writes due to the use of Zarr (more formats in the future).
-4. Simple, smart, and efficient backup system that avoids update, not modified data (supported by fsspec).
+4. Simple, smart, and efficient backup system that avoids updates of not modified data.
 5. You can create new tensors using string formulas.
 6. Simple syntax, easy to learn.
 7. You can store or read directly from the backup without download the data.
 
-Probably is better to show a small example of the packages
 # Example
 ```py
 import tensordb
