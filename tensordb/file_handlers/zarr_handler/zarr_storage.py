@@ -336,6 +336,7 @@ class ZarrStorage(BaseStorage):
     def read(self,
              consolidated: bool = True,
              remote: bool = False,
+             as_dataset: bool = False,
              **kwargs) -> xarray.DataArray:
         """
         Read the tensor stored in the Zarr file, internally it use
@@ -351,6 +352,9 @@ class ZarrStorage(BaseStorage):
         consolidated: bool, default True
             Read the doc of `open_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.open_zarr.html>`_
             in the parameter 'consolidated'
+
+        as_dataset: bool, default False
+            If True return the data as a dataset instead of a dataarray, useful in some cases
 
         **kwargs: Dict
             Not used
@@ -369,14 +373,16 @@ class ZarrStorage(BaseStorage):
             )
 
         path_map = self.backup_map if remote else self.local_map
-
-        return xarray.open_zarr(
+        arr = xarray.open_zarr(
             path_map.store,
             group=self.path,
             consolidated=consolidated,
             chunks=self.chunks,
             synchronizer=None if remote else self.synchronizer
-        )[self.name]
+        )
+        if as_dataset:
+            return arr
+        return arr[self.name]
 
     def _transform_to_dataset(self, new_data) -> xarray.Dataset:
 

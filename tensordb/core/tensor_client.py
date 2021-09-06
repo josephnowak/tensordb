@@ -397,7 +397,7 @@ class TensorClient:
         """
         return self._customize_handler_action(path=path, **{**kwargs, **{'action_type': method_name}})
 
-    def read(self, path: str, **kwargs) -> xarray.DataArray:
+    def read(self, path: str, **kwargs) -> Union[xarray.DataArray, xarray.Dataset]:
         """
         Calls :meth:`TensorClient.storage_method_caller` with read as method_name (has the same parameters).
 
@@ -456,7 +456,7 @@ class TensorClient:
         """
         return self.storage_method_caller(path=path, method_name='upsert', **kwargs)
 
-    def backup(self, path: str, **kwargs) -> xarray.DataArray:
+    def backup(self, path: str, **kwargs):
         """
         Calls :meth:`TensorClient.storage_method_caller` with backup as method_name (has the same parameters).
 
