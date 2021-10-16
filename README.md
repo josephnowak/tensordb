@@ -25,16 +25,16 @@ tensor_client = tensordb.TensorClient(
 )
 
 # Adding a default tensor definition
-tensor_client.add_tensor_definition(
-    tensor_id='dummy_tensor_definition', 
+tensor_client.add_definition(
+    definition_id='dummy_tensor_definition', 
     new_data={}
-    )
+)
 
 # to create a tensor you need to specifiy the path 
 # and the tensor definition that it must use
 tensor_client.create_tensor(
     path='dummy_tensor', 
-    tensor_definition='dummy_tensor_definition'
+    definition='dummy_tensor_definition'
 )
 
 # dummy data for the example
@@ -52,13 +52,14 @@ tensor_client.store(path='dummy_tensor', new_data=dummy_tensor)
 tensor_client.read(path='dummy_tensor')
 
 
+
 # Creating a new tensor definition using a formula,
 # you have the same Xarray methods but the tensor path need to be wrapped by ``
-tensor_client.add_tensor_definition(
-    tensor_id='dummy_tensor_formula',
+tensor_client.add_definition(
+    definition_id='dummy_tensor_formula',
     new_data={
        'store': {
-            'data_methods': ['read_from_formula'],
+            'data_transformation': ['read_from_formula'],
         },
         'read_from_formula': {
             'formula': '`dummy_tensor` + 1'
@@ -69,7 +70,7 @@ tensor_client.add_tensor_definition(
 # to create a tensor you need to specifiy the path and the tensor definition that it must use
 tensor_client.create_tensor(
     path='dummy_tensor_formula',
-    tensor_definition='dummy_tensor_formula'
+    definition='dummy_tensor_formula'
 )
 
 # storing the new dummy tensor
