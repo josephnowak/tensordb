@@ -1,4 +1,4 @@
-import tensordb.file_handlers
+import tensordb.storages
 
-from tensordb.core import TensorClient
+from tensordb.tensor_client import TensorClient
 

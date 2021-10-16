@@ -77,8 +77,8 @@
 </li>
 
 <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="reference/cached_tensor_handler.html">
-  CachedTensorHandler
+ <a class="reference internal nav-link" href="reference/cached_storage.html">
+  CachedStorage
  </a>
 </li>
 
@@ -148,7 +148,9 @@
  | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
  | <a href="#E"><strong>E</strong></a>
+ | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#L"><strong>L</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
@@ -159,12 +161,12 @@
 <h2 id="_">_</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.core.CachedTensorHandler.html#tensordb.core.CachedTensorHandler.__init__">__init__() (tensordb.core.CachedTensorHandler method)</a>
+      <li><a href="reference/api/tensordb.storages.BaseStorage.html#tensordb.storages.BaseStorage.__init__">__init__() (tensordb.storages.BaseStorage method)</a>
 
       <ul>
-        <li><a href="reference/api/tensordb.file_handlers.BaseStorage.html#tensordb.file_handlers.BaseStorage.__init__">(tensordb.file_handlers.BaseStorage method)</a>
+        <li><a href="reference/api/tensordb.storages.CachedStorage.html#tensordb.storages.CachedStorage.__init__">(tensordb.storages.CachedStorage method)</a>
 </li>
-        <li><a href="reference/api/tensordb.file_handlers.ZarrStorage.html#tensordb.file_handlers.ZarrStorage.__init__">(tensordb.file_handlers.ZarrStorage method)</a>
+        <li><a href="reference/api/tensordb.storages.ZarrStorage.html#tensordb.storages.ZarrStorage.__init__">(tensordb.storages.ZarrStorage method)</a>
 </li>
         <li><a href="reference/api/tensordb.TensorClient.html#tensordb.TensorClient.__init__">(tensordb.TensorClient method)</a>
 </li>
@@ -175,33 +177,43 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.TensorClient.add_tensor_definition.html#tensordb.TensorClient.add_tensor_definition">add_tensor_definition() (tensordb.TensorClient method)</a>
+      <li><a href="reference/api/tensordb.TensorClient.add_definition.html#tensordb.TensorClient.add_definition">add_definition() (tensordb.TensorClient method)</a>
 </li>
-      <li><a href="reference/api/tensordb.file_handlers.BaseStorage.append.html#tensordb.file_handlers.BaseStorage.append">append() (tensordb.file_handlers.BaseStorage method)</a>
+      <li><a href="reference/api/tensordb.storages.BaseStorage.append.html#tensordb.storages.BaseStorage.append">append() (tensordb.storages.BaseStorage method)</a>
 
       <ul>
-        <li><a href="reference/api/tensordb.file_handlers.ZarrStorage.append.html#tensordb.file_handlers.ZarrStorage.append">(tensordb.file_handlers.ZarrStorage method)</a>
+        <li><a href="reference/api/tensordb.storages.CachedStorage.append.html#tensordb.storages.CachedStorage.append">(tensordb.storages.CachedStorage method)</a>
+</li>
+        <li><a href="reference/api/tensordb.storages.ZarrStorage.append.html#tensordb.storages.ZarrStorage.append">(tensordb.storages.ZarrStorage method)</a>
 </li>
         <li><a href="reference/api/tensordb.TensorClient.append.html#tensordb.TensorClient.append">(tensordb.TensorClient method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api/tensordb.TensorClient.append_ffill.html#tensordb.TensorClient.append_ffill">append_ffill() (tensordb.TensorClient method)</a>
+</li>
+      <li><a href="reference/api/tensordb.TensorClient.append_reindex.html#tensordb.TensorClient.append_reindex">append_reindex() (tensordb.TensorClient method)</a>
+</li>
+      <li><a href="reference/api/tensordb.TensorClient.apply_data_transformation.html#tensordb.TensorClient.apply_data_transformation">apply_data_transformation() (tensordb.TensorClient method)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.file_handlers.BaseStorage.backup.html#tensordb.file_handlers.BaseStorage.backup">backup() (tensordb.file_handlers.BaseStorage method)</a>
+      <li><a href="reference/api/tensordb.storages.BaseStorage.backup.html#tensordb.storages.BaseStorage.backup">backup() (tensordb.storages.BaseStorage method)</a>
 
       <ul>
-        <li><a href="reference/api/tensordb.file_handlers.ZarrStorage.backup.html#tensordb.file_handlers.ZarrStorage.backup">(tensordb.file_handlers.ZarrStorage method)</a>
+        <li><a href="reference/api/tensordb.storages.ZarrStorage.backup.html#tensordb.storages.ZarrStorage.backup">(tensordb.storages.ZarrStorage method)</a>
 </li>
         <li><a href="reference/api/tensordb.TensorClient.backup.html#tensordb.TensorClient.backup">(tensordb.TensorClient method)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.file_handlers.BaseStorage.html#tensordb.file_handlers.BaseStorage">BaseStorage (class in tensordb.file_handlers)</a>
+      <li><a href="reference/api/tensordb.storages.BaseStorage.html#tensordb.storages.BaseStorage">BaseStorage (class in tensordb.storages)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -209,12 +221,14 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.core.CachedTensorHandler.html#tensordb.core.CachedTensorHandler">CachedTensorHandler (class in tensordb.core)</a>
+      <li><a href="reference/api/tensordb.storages.CachedStorage.html#tensordb.storages.CachedStorage">CachedStorage (class in tensordb.storages)</a>
 </li>
-      <li><a href="reference/api/tensordb.file_handlers.BaseStorage.close.html#tensordb.file_handlers.BaseStorage.close">close() (tensordb.file_handlers.BaseStorage method)</a>
+      <li><a href="reference/api/tensordb.storages.BaseStorage.close.html#tensordb.storages.BaseStorage.close">close() (tensordb.storages.BaseStorage method)</a>
 
       <ul>
-        <li><a href="reference/api/tensordb.file_handlers.ZarrStorage.close.html#tensordb.file_handlers.ZarrStorage.close">(tensordb.file_handlers.ZarrStorage method)</a>
+        <li><a href="reference/api/tensordb.storages.CachedStorage.close.html#tensordb.storages.CachedStorage.close">(tensordb.storages.CachedStorage method)</a>
+</li>
+        <li><a href="reference/api/tensordb.storages.ZarrStorage.close.html#tensordb.storages.ZarrStorage.close">(tensordb.storages.ZarrStorage method)</a>
 </li>
         <li><a href="reference/api/tensordb.TensorClient.close.html#tensordb.TensorClient.close">(tensordb.TensorClient method)</a>
 </li>
@@ -229,12 +243,12 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.file_handlers.BaseStorage.delete_file.html#tensordb.file_handlers.BaseStorage.delete_file">delete_file() (tensordb.file_handlers.BaseStorage method)</a>
+      <li><a href="reference/api/tensordb.storages.BaseStorage.delete_tensor.html#tensordb.storages.BaseStorage.delete_tensor">delete_tensor() (tensordb.storages.BaseStorage method)</a>
 
       <ul>
-        <li><a href="reference/api/tensordb.file_handlers.ZarrStorage.delete_file.html#tensordb.file_handlers.ZarrStorage.delete_file">(tensordb.file_handlers.ZarrStorage method)</a>
+        <li><a href="reference/api/tensordb.storages.ZarrStorage.delete_tensor.html#tensordb.storages.ZarrStorage.delete_tensor">(tensordb.storages.ZarrStorage method)</a>
 </li>
-        <li><a href="reference/api/tensordb.TensorClient.delete_file.html#tensordb.TensorClient.delete_file">(tensordb.TensorClient method)</a>
+        <li><a href="reference/api/tensordb.TensorClient.delete_tensor.html#tensordb.TensorClient.delete_tensor">(tensordb.TensorClient method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -243,17 +257,25 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.file_handlers.BaseStorage.exist.html#tensordb.file_handlers.BaseStorage.exist">exist() (tensordb.file_handlers.BaseStorage method)</a>
+      <li><a href="reference/api/tensordb.storages.BaseStorage.exist.html#tensordb.storages.BaseStorage.exist">exist() (tensordb.storages.BaseStorage method)</a>
 
       <ul>
-        <li><a href="reference/api/tensordb.file_handlers.ZarrStorage.exist.html#tensordb.file_handlers.ZarrStorage.exist">(tensordb.file_handlers.ZarrStorage method)</a>
+        <li><a href="reference/api/tensordb.storages.ZarrStorage.exist.html#tensordb.storages.ZarrStorage.exist">(tensordb.storages.ZarrStorage method)</a>
 </li>
         <li><a href="reference/api/tensordb.TensorClient.exist.html#tensordb.TensorClient.exist">(tensordb.TensorClient method)</a>
 </li>
       </ul></li>
   </ul></td>
+</tr></table>
+
+<h2 id="F">F</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.TensorClient.exist_tensor_definition.html#tensordb.TensorClient.exist_tensor_definition">exist_tensor_definition() (tensordb.TensorClient method)</a>
+      <li><a href="reference/api/tensordb.TensorClient.ffill.html#tensordb.TensorClient.ffill">ffill() (tensordb.TensorClient method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api/tensordb.TensorClient.fillna.html#tensordb.TensorClient.fillna">fillna() (tensordb.TensorClient method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -261,21 +283,31 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.file_handlers.BaseStorage.get_attrs.html#tensordb.file_handlers.BaseStorage.get_attrs">get_attrs() (tensordb.file_handlers.BaseStorage method)</a>
+      <li><a href="reference/api/tensordb.storages.BaseStorage.get_attrs.html#tensordb.storages.BaseStorage.get_attrs">get_attrs() (tensordb.storages.BaseStorage method)</a>
 
       <ul>
-        <li><a href="reference/api/tensordb.file_handlers.ZarrStorage.get_attrs.html#tensordb.file_handlers.ZarrStorage.get_attrs">(tensordb.file_handlers.ZarrStorage method)</a>
+        <li><a href="reference/api/tensordb.storages.ZarrStorage.get_attrs.html#tensordb.storages.ZarrStorage.get_attrs">(tensordb.storages.ZarrStorage method)</a>
 </li>
         <li><a href="reference/api/tensordb.TensorClient.get_attrs.html#tensordb.TensorClient.get_attrs">(tensordb.TensorClient method)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.TensorClient.get_cached_tensor_manager.html#tensordb.TensorClient.get_cached_tensor_manager">get_cached_tensor_manager() (tensordb.TensorClient method)</a>
+      <li><a href="reference/api/tensordb.TensorClient.get_cached_storage.html#tensordb.TensorClient.get_cached_storage">get_cached_storage() (tensordb.TensorClient method)</a>
 </li>
-      <li><a href="reference/api/tensordb.TensorClient.get_storage_tensor_definition.html#tensordb.TensorClient.get_storage_tensor_definition">get_storage_tensor_definition() (tensordb.TensorClient method)</a>
+      <li><a href="reference/api/tensordb.TensorClient.get_definition.html#tensordb.TensorClient.get_definition">get_definition() (tensordb.TensorClient method)</a>
+</li>
+      <li><a href="reference/api/tensordb.TensorClient.get_storage.html#tensordb.TensorClient.get_storage">get_storage() (tensordb.TensorClient method)</a>
 </li>
       <li><a href="reference/api/tensordb.TensorClient.get_tensor_definition.html#tensordb.TensorClient.get_tensor_definition">get_tensor_definition() (tensordb.TensorClient method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api/tensordb.TensorClient.last_valid_dim.html#tensordb.TensorClient.last_valid_dim">last_valid_dim() (tensordb.TensorClient method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -283,10 +315,12 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.file_handlers.BaseStorage.read.html#tensordb.file_handlers.BaseStorage.read">read() (tensordb.file_handlers.BaseStorage method)</a>
+      <li><a href="reference/api/tensordb.storages.BaseStorage.read.html#tensordb.storages.BaseStorage.read">read() (tensordb.storages.BaseStorage method)</a>
 
       <ul>
-        <li><a href="reference/api/tensordb.file_handlers.ZarrStorage.read.html#tensordb.file_handlers.ZarrStorage.read">(tensordb.file_handlers.ZarrStorage method)</a>
+        <li><a href="reference/api/tensordb.storages.CachedStorage.read.html#tensordb.storages.CachedStorage.read">(tensordb.storages.CachedStorage method)</a>
+</li>
+        <li><a href="reference/api/tensordb.storages.ZarrStorage.read.html#tensordb.storages.ZarrStorage.read">(tensordb.storages.ZarrStorage method)</a>
 </li>
         <li><a href="reference/api/tensordb.TensorClient.read.html#tensordb.TensorClient.read">(tensordb.TensorClient method)</a>
 </li>
@@ -295,28 +329,32 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api/tensordb.TensorClient.read_from_formula.html#tensordb.TensorClient.read_from_formula">read_from_formula() (tensordb.TensorClient method)</a>
 </li>
+      <li><a href="reference/api/tensordb.TensorClient.reindex.html#tensordb.TensorClient.reindex">reindex() (tensordb.TensorClient method)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.file_handlers.BaseStorage.set_attrs.html#tensordb.file_handlers.BaseStorage.set_attrs">set_attrs() (tensordb.file_handlers.BaseStorage method)</a>
+      <li><a href="reference/api/tensordb.storages.BaseStorage.set_attrs.html#tensordb.storages.BaseStorage.set_attrs">set_attrs() (tensordb.storages.BaseStorage method)</a>
 
       <ul>
-        <li><a href="reference/api/tensordb.file_handlers.ZarrStorage.set_attrs.html#tensordb.file_handlers.ZarrStorage.set_attrs">(tensordb.file_handlers.ZarrStorage method)</a>
+        <li><a href="reference/api/tensordb.storages.ZarrStorage.set_attrs.html#tensordb.storages.ZarrStorage.set_attrs">(tensordb.storages.ZarrStorage method)</a>
 </li>
         <li><a href="reference/api/tensordb.TensorClient.set_attrs.html#tensordb.TensorClient.set_attrs">(tensordb.TensorClient method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api/tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller">storage_method_caller() (tensordb.TensorClient method)</a>
 </li>
-      <li><a href="reference/api/tensordb.file_handlers.BaseStorage.store.html#tensordb.file_handlers.BaseStorage.store">store() (tensordb.file_handlers.BaseStorage method)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api/tensordb.storages.BaseStorage.store.html#tensordb.storages.BaseStorage.store">store() (tensordb.storages.BaseStorage method)</a>
 
       <ul>
-        <li><a href="reference/api/tensordb.file_handlers.ZarrStorage.store.html#tensordb.file_handlers.ZarrStorage.store">(tensordb.file_handlers.ZarrStorage method)</a>
+        <li><a href="reference/api/tensordb.storages.CachedStorage.store.html#tensordb.storages.CachedStorage.store">(tensordb.storages.CachedStorage method)</a>
+</li>
+        <li><a href="reference/api/tensordb.storages.ZarrStorage.store.html#tensordb.storages.ZarrStorage.store">(tensordb.storages.ZarrStorage method)</a>
 </li>
         <li><a href="reference/api/tensordb.TensorClient.store.html#tensordb.TensorClient.store">(tensordb.TensorClient method)</a>
 </li>
@@ -335,28 +373,30 @@
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.file_handlers.BaseStorage.update.html#tensordb.file_handlers.BaseStorage.update">update() (tensordb.file_handlers.BaseStorage method)</a>
+      <li><a href="reference/api/tensordb.storages.BaseStorage.update.html#tensordb.storages.BaseStorage.update">update() (tensordb.storages.BaseStorage method)</a>
 
       <ul>
-        <li><a href="reference/api/tensordb.file_handlers.ZarrStorage.update.html#tensordb.file_handlers.ZarrStorage.update">(tensordb.file_handlers.ZarrStorage method)</a>
+        <li><a href="reference/api/tensordb.storages.CachedStorage.update.html#tensordb.storages.CachedStorage.update">(tensordb.storages.CachedStorage method)</a>
+</li>
+        <li><a href="reference/api/tensordb.storages.ZarrStorage.update.html#tensordb.storages.ZarrStorage.update">(tensordb.storages.ZarrStorage method)</a>
 </li>
         <li><a href="reference/api/tensordb.TensorClient.update.html#tensordb.TensorClient.update">(tensordb.TensorClient method)</a>
 </li>
       </ul></li>
-      <li><a href="reference/api/tensordb.file_handlers.BaseStorage.update_from_backup.html#tensordb.file_handlers.BaseStorage.update_from_backup">update_from_backup() (tensordb.file_handlers.BaseStorage method)</a>
+      <li><a href="reference/api/tensordb.storages.BaseStorage.update_from_backup.html#tensordb.storages.BaseStorage.update_from_backup">update_from_backup() (tensordb.storages.BaseStorage method)</a>
 
       <ul>
-        <li><a href="reference/api/tensordb.file_handlers.ZarrStorage.update_from_backup.html#tensordb.file_handlers.ZarrStorage.update_from_backup">(tensordb.file_handlers.ZarrStorage method)</a>
+        <li><a href="reference/api/tensordb.storages.ZarrStorage.update_from_backup.html#tensordb.storages.ZarrStorage.update_from_backup">(tensordb.storages.ZarrStorage method)</a>
 </li>
         <li><a href="reference/api/tensordb.TensorClient.update_from_backup.html#tensordb.TensorClient.update_from_backup">(tensordb.TensorClient method)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.file_handlers.BaseStorage.upsert.html#tensordb.file_handlers.BaseStorage.upsert">upsert() (tensordb.file_handlers.BaseStorage method)</a>
+      <li><a href="reference/api/tensordb.storages.BaseStorage.upsert.html#tensordb.storages.BaseStorage.upsert">upsert() (tensordb.storages.BaseStorage method)</a>
 
       <ul>
-        <li><a href="reference/api/tensordb.file_handlers.ZarrStorage.upsert.html#tensordb.file_handlers.ZarrStorage.upsert">(tensordb.file_handlers.ZarrStorage method)</a>
+        <li><a href="reference/api/tensordb.storages.ZarrStorage.upsert.html#tensordb.storages.ZarrStorage.upsert">(tensordb.storages.ZarrStorage method)</a>
 </li>
         <li><a href="reference/api/tensordb.TensorClient.upsert.html#tensordb.TensorClient.upsert">(tensordb.TensorClient method)</a>
 </li>
@@ -367,7 +407,7 @@
 <h2 id="Z">Z</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.file_handlers.ZarrStorage.html#tensordb.file_handlers.ZarrStorage">ZarrStorage (class in tensordb.file_handlers)</a>
+      <li><a href="reference/api/tensordb.storages.ZarrStorage.html#tensordb.storages.ZarrStorage">ZarrStorage (class in tensordb.storages)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -401,7 +441,7 @@
     
     <div class="footer-item">
       <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.0.2.<br/>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
 </p>
     </div>
     

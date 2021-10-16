@@ -1,8 +1,8 @@
 
-============
+===========
 ZarrStorage
-============
-.. currentmodule:: tensordb.file_handlers
+===========
+.. currentmodule:: tensordb.storages
 
 
 Constructor
@@ -28,6 +28,6 @@ Storage Methods
    ZarrStorage.set_attrs
    ZarrStorage.get_attrs
    ZarrStorage.close
-   ZarrStorage.delete_file
+   ZarrStorage.delete_tensor
    ZarrStorage.exist
 

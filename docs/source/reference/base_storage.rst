@@ -2,7 +2,7 @@
 ============
 BaseStorage
 ============
-.. currentmodule:: tensordb.file_handlers
+.. currentmodule:: tensordb.storages
 
 
 Constructor
@@ -28,6 +28,6 @@ Storage Methods
    BaseStorage.set_attrs
    BaseStorage.get_attrs
    BaseStorage.close
-   BaseStorage.delete_file
+   BaseStorage.delete_tensor
    BaseStorage.exist
 

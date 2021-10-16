@@ -7,5 +7,7 @@ Welcome to TensorDB's documentation!
 
    reference/tensor_client
    reference/base_storage
-   reference/cached_tensor_handler
+   reference/cached_storage
    reference/zarr_storage
+
+
