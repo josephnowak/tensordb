@@ -1,4 +1,3 @@
-
 ============
 TensorClient
 ============
@@ -19,11 +18,10 @@ Tensor Definition Methods
 .. autosummary::
    :toctree: api/
 
-   TensorClient.add_tensor_definition
+   TensorClient.add_definition
+   TensorClient.get_definition
    TensorClient.create_tensor
    TensorClient.get_tensor_definition
-   TensorClient.get_storage_tensor_definition
-   TensorClient.exist_tensor_definition
 
 
 Storage Methods
@@ -43,9 +41,11 @@ Storage Methods
    TensorClient.set_attrs
    TensorClient.get_attrs
    TensorClient.close
-   TensorClient.delete_file
+   TensorClient.delete_tensor
    TensorClient.exist
-   TensorClient.get_cached_tensor_manager
+   TensorClient.get_cached_storage
+   TensorClient.apply_data_transformation
+   TensorClient.get_storage
 
 
 Tensor Calculation Methods
@@ -54,4 +54,10 @@ Tensor Calculation Methods
 .. autosummary::
    :toctree: api/
 
-   TensorClient.read_from_formula
+    TensorClient.read_from_formula
+    TensorClient.append_reindex
+    TensorClient.reindex
+    TensorClient.fillna
+    TensorClient.append_ffill
+    TensorClient.ffill
+    TensorClient.last_valid_dim

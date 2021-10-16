@@ -4,7 +4,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>BaseStorage &#8212; TensorDB 0.1 documentation</title>
     
   <link href="../_static/css/theme.css" rel="stylesheet" />
@@ -33,8 +34,8 @@
     <script src="../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="tensordb.file_handlers.BaseStorage" href="api/tensordb.file_handlers.BaseStorage.html" />
-    <link rel="prev" title="tensordb.TensorClient.read_from_formula" href="api/tensordb.TensorClient.read_from_formula.html" />
+    <link rel="next" title="tensordb.storages.BaseStorage" href="api/tensordb.storages.BaseStorage.html" />
+    <link rel="prev" title="tensordb.TensorClient.last_valid_dim" href="api/tensordb.TensorClient.last_valid_dim.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
     
@@ -79,8 +80,8 @@
 </li>
 
 <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="cached_tensor_handler.html">
-  CachedTensorHandler
+ <a class="reference internal nav-link" href="cached_storage.html">
+  CachedStorage
  </a>
 </li>
 
@@ -121,70 +122,70 @@
   <div class="bd-toc-item active">
     <ul class="nav bd-sidenav">
  <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.html">
-   tensordb.file_handlers.BaseStorage
+  <a class="reference internal" href="api/tensordb.storages.BaseStorage.html">
+   tensordb.storages.BaseStorage
   </a>
  </li>
 </ul>
 <ul class="nav bd-sidenav">
  <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.read.html">
-   tensordb.file_handlers.BaseStorage.read
+  <a class="reference internal" href="api/tensordb.storages.BaseStorage.read.html">
+   tensordb.storages.BaseStorage.read
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.store.html">
-   tensordb.file_handlers.BaseStorage.store
+  <a class="reference internal" href="api/tensordb.storages.BaseStorage.store.html">
+   tensordb.storages.BaseStorage.store
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.append.html">
-   tensordb.file_handlers.BaseStorage.append
+  <a class="reference internal" href="api/tensordb.storages.BaseStorage.append.html">
+   tensordb.storages.BaseStorage.append
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.update.html">
-   tensordb.file_handlers.BaseStorage.update
+  <a class="reference internal" href="api/tensordb.storages.BaseStorage.update.html">
+   tensordb.storages.BaseStorage.update
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.upsert.html">
-   tensordb.file_handlers.BaseStorage.upsert
+  <a class="reference internal" href="api/tensordb.storages.BaseStorage.upsert.html">
+   tensordb.storages.BaseStorage.upsert
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.backup.html">
-   tensordb.file_handlers.BaseStorage.backup
+  <a class="reference internal" href="api/tensordb.storages.BaseStorage.backup.html">
+   tensordb.storages.BaseStorage.backup
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.update_from_backup.html">
-   tensordb.file_handlers.BaseStorage.update_from_backup
+  <a class="reference internal" href="api/tensordb.storages.BaseStorage.update_from_backup.html">
+   tensordb.storages.BaseStorage.update_from_backup
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.set_attrs.html">
-   tensordb.file_handlers.BaseStorage.set_attrs
+  <a class="reference internal" href="api/tensordb.storages.BaseStorage.set_attrs.html">
+   tensordb.storages.BaseStorage.set_attrs
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.get_attrs.html">
-   tensordb.file_handlers.BaseStorage.get_attrs
+  <a class="reference internal" href="api/tensordb.storages.BaseStorage.get_attrs.html">
+   tensordb.storages.BaseStorage.get_attrs
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.close.html">
-   tensordb.file_handlers.BaseStorage.close
+  <a class="reference internal" href="api/tensordb.storages.BaseStorage.close.html">
+   tensordb.storages.BaseStorage.close
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.delete_file.html">
-   tensordb.file_handlers.BaseStorage.delete_file
+  <a class="reference internal" href="api/tensordb.storages.BaseStorage.delete_tensor.html">
+   tensordb.storages.BaseStorage.delete_tensor
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.exist.html">
-   tensordb.file_handlers.BaseStorage.exist
+  <a class="reference internal" href="api/tensordb.storages.BaseStorage.exist.html">
+   tensordb.storages.BaseStorage.exist
   </a>
  </li>
 </ul>
@@ -238,9 +239,9 @@
               
               <div>
                 
-  <div class="section" id="basestorage">
+  <section id="basestorage">
 <h1>BaseStorage<a class="headerlink" href="#basestorage" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="constructor">
+<section id="constructor">
 <h2>Constructor<a class="headerlink" href="#constructor" title="Permalink to this headline">¶</a></h2>
 <table class="longtable table autosummary">
 <colgroup>
@@ -248,13 +249,13 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.html#tensordb.file_handlers.BaseStorage" title="tensordb.file_handlers.BaseStorage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage</span></code></a>(path, local_base_map, …)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.html#tensordb.storages.BaseStorage" title="tensordb.storages.BaseStorage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage</span></code></a>(path, local_base_map, …)</p></td>
 <td><p>Obligatory interface used for the Storage classes created, this define the abstract methods for every Storage and allow their use with TensorClient.</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="storage-methods">
+</section>
+<section id="storage-methods">
 <h2>Storage Methods<a class="headerlink" href="#storage-methods" title="Permalink to this headline">¶</a></h2>
 <table class="longtable table autosummary">
 <colgroup>
@@ -262,46 +263,46 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.read.html#tensordb.file_handlers.BaseStorage.read" title="tensordb.file_handlers.BaseStorage.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.read</span></code></a>([remote])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.read.html#tensordb.storages.BaseStorage.read" title="tensordb.storages.BaseStorage.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.read</span></code></a>([remote])</p></td>
 <td><p>This abstracmethod must be overwrited to read an existing file.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.store.html#tensordb.file_handlers.BaseStorage.store" title="tensordb.file_handlers.BaseStorage.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.store</span></code></a>(new_data[, remote])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.store.html#tensordb.storages.BaseStorage.store" title="tensordb.storages.BaseStorage.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.store</span></code></a>(new_data[, remote])</p></td>
 <td><p>This abstracmethod must be overwrited to store new_data to an existing file, so it must create the necessaries files, folders and metadata for the corresponding tensor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.append.html#tensordb.file_handlers.BaseStorage.append" title="tensordb.file_handlers.BaseStorage.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.append</span></code></a>(new_data[, remote])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.append.html#tensordb.storages.BaseStorage.append" title="tensordb.storages.BaseStorage.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.append</span></code></a>(new_data[, remote])</p></td>
 <td><p>This abstracmethod must be overwrited to append new_data to an existing file, the way that it append the data will depend of the implementation of the Storage.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.update.html#tensordb.file_handlers.BaseStorage.update" title="tensordb.file_handlers.BaseStorage.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.update</span></code></a>(new_data[, remote])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.update.html#tensordb.storages.BaseStorage.update" title="tensordb.storages.BaseStorage.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.update</span></code></a>(new_data[, remote])</p></td>
 <td><p>This abstracmethod must be overwrited to update new_data to an existing file, so it must not insert any new coords, it must only replace elements inside the stored tensor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.upsert.html#tensordb.file_handlers.BaseStorage.upsert" title="tensordb.file_handlers.BaseStorage.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.upsert</span></code></a>(new_data[, remote])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.upsert.html#tensordb.storages.BaseStorage.upsert" title="tensordb.storages.BaseStorage.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.upsert</span></code></a>(new_data[, remote])</p></td>
 <td><p>This abstracmethod must be overwrited to update and append new_data to an existing file, so basically it must be a combination between update and append.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.backup.html#tensordb.file_handlers.BaseStorage.backup" title="tensordb.file_handlers.BaseStorage.backup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.backup</span></code></a>(**kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.backup.html#tensordb.storages.BaseStorage.backup" title="tensordb.storages.BaseStorage.backup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.backup</span></code></a>(**kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to backup the tensor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.update_from_backup.html#tensordb.file_handlers.BaseStorage.update_from_backup" title="tensordb.file_handlers.BaseStorage.update_from_backup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.update_from_backup</span></code></a>(**kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.update_from_backup.html#tensordb.storages.BaseStorage.update_from_backup" title="tensordb.storages.BaseStorage.update_from_backup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.update_from_backup</span></code></a>(**kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to update the tensor using the backup.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.set_attrs.html#tensordb.file_handlers.BaseStorage.set_attrs" title="tensordb.file_handlers.BaseStorage.set_attrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.set_attrs</span></code></a>([remote])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.set_attrs.html#tensordb.storages.BaseStorage.set_attrs" title="tensordb.storages.BaseStorage.set_attrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.set_attrs</span></code></a>([remote])</p></td>
 <td><p>This abstracmethod must be overwrited to set metadata for a tensor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.get_attrs.html#tensordb.file_handlers.BaseStorage.get_attrs" title="tensordb.file_handlers.BaseStorage.get_attrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.get_attrs</span></code></a>([remote])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.get_attrs.html#tensordb.storages.BaseStorage.get_attrs" title="tensordb.storages.BaseStorage.get_attrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.get_attrs</span></code></a>([remote])</p></td>
 <td><p>This abstracmethod must be overwrited to read the metadata of a tensor.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.close.html#tensordb.file_handlers.BaseStorage.close" title="tensordb.file_handlers.BaseStorage.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.close</span></code></a>(**kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.close.html#tensordb.storages.BaseStorage.close" title="tensordb.storages.BaseStorage.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.close</span></code></a>(**kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to close the tensor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.delete_file.html#tensordb.file_handlers.BaseStorage.delete_file" title="tensordb.file_handlers.BaseStorage.delete_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.delete_file</span></code></a>([only_local])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.delete_tensor.html#tensordb.storages.BaseStorage.delete_tensor" title="tensordb.storages.BaseStorage.delete_tensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.delete_tensor</span></code></a>([only_local])</p></td>
 <td><p>This abstracmethod must be overwrited to delete the tensor.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.file_handlers.BaseStorage.exist.html#tensordb.file_handlers.BaseStorage.exist" title="tensordb.file_handlers.BaseStorage.exist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.exist</span></code></a>(on_local, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.exist.html#tensordb.storages.BaseStorage.exist" title="tensordb.storages.BaseStorage.exist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.exist</span></code></a>(on_local, **kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to check if the tensor exist or not.</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-</div>
+</section>
+</section>
 
 
               </div>
@@ -309,8 +310,8 @@
               
               <div class='prev-next-bottom'>
                 
-    <a class='left-prev' id="prev-link" href="api/tensordb.TensorClient.read_from_formula.html" title="previous page">tensordb.TensorClient.read_from_formula</a>
-    <a class='right-next' id="next-link" href="api/tensordb.file_handlers.BaseStorage.html" title="next page">tensordb.file_handlers.BaseStorage</a>
+    <a class='left-prev' id="prev-link" href="api/tensordb.TensorClient.last_valid_dim.html" title="previous page">tensordb.TensorClient.last_valid_dim</a>
+    <a class='right-next' id="next-link" href="api/tensordb.storages.BaseStorage.html" title="next page">tensordb.storages.BaseStorage</a>
 
               </div>
               
@@ -333,7 +334,7 @@
     
     <div class="footer-item">
       <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.0.2.<br/>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
 </p>
     </div>
     

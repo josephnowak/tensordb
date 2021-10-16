@@ -4,7 +4,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>tensordb.file_handlers.ZarrStorage.append &#8212; TensorDB 0.1 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
@@ -33,8 +34,6 @@
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="tensordb.file_handlers.ZarrStorage.update" href="tensordb.file_handlers.ZarrStorage.update.html" />
-    <link rel="prev" title="tensordb.file_handlers.ZarrStorage.store" href="tensordb.file_handlers.ZarrStorage.store.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
     
@@ -79,12 +78,12 @@
 </li>
 
 <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../cached_tensor_handler.html">
-  CachedTensorHandler
+ <a class="reference internal nav-link" href="../cached_storage.html">
+  CachedStorage
  </a>
 </li>
 
-<li class="toctree-l1 current active nav-item">
+<li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../zarr_storage.html">
   ZarrStorage
  </a>
@@ -119,76 +118,7 @@
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
   <div class="bd-toc-item active">
-    <ul class="nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.ZarrStorage.html">
-   tensordb.file_handlers.ZarrStorage
-  </a>
- </li>
-</ul>
-<ul class="current nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.ZarrStorage.read.html">
-   tensordb.file_handlers.ZarrStorage.read
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.ZarrStorage.store.html">
-   tensordb.file_handlers.ZarrStorage.store
-  </a>
- </li>
- <li class="toctree-l1 current active">
-  <a class="current reference internal" href="#">
-   tensordb.file_handlers.ZarrStorage.append
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.ZarrStorage.update.html">
-   tensordb.file_handlers.ZarrStorage.update
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.ZarrStorage.upsert.html">
-   tensordb.file_handlers.ZarrStorage.upsert
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.ZarrStorage.backup.html">
-   tensordb.file_handlers.ZarrStorage.backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.ZarrStorage.update_from_backup.html">
-   tensordb.file_handlers.ZarrStorage.update_from_backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.ZarrStorage.set_attrs.html">
-   tensordb.file_handlers.ZarrStorage.set_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.ZarrStorage.get_attrs.html">
-   tensordb.file_handlers.ZarrStorage.get_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.ZarrStorage.close.html">
-   tensordb.file_handlers.ZarrStorage.close
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.ZarrStorage.delete_file.html">
-   tensordb.file_handlers.ZarrStorage.delete_file
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.ZarrStorage.exist.html">
-   tensordb.file_handlers.ZarrStorage.exist
-  </a>
- </li>
-</ul>
-
+    
   </div>
 </nav>
             </div>
@@ -223,44 +153,9 @@
               
               <div>
                 
-  <div class="section" id="tensordb-file-handlers-zarrstorage-append">
+  <section id="tensordb-file-handlers-zarrstorage-append">
 <h1>tensordb.file_handlers.ZarrStorage.append<a class="headerlink" href="#tensordb-file-handlers-zarrstorage-append" title="Permalink to this headline">¶</a></h1>
-<dl class="py method">
-<dt class="sig sig-object py" id="tensordb.file_handlers.ZarrStorage.append">
-<span class="sig-prename descclassname"><span class="pre">ZarrStorage.</span></span><span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remote</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consolidated</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.backends.zarr.ZarrStore</span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#tensordb.file_handlers.ZarrStorage.append" title="Permalink to this definition">¶</a></dt>
-<dd><p>Append data at the end of a Zarr file (in case that the file does not exist it will call the store method),
-internally it calls the
-<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html">to_zarr method</a>
-for every dimension of your data</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>new_data: Union[xarray.DataArray, xarray.Dataset]</strong></dt><dd><p>This is the data that want to be appended at the end</p>
-</dd>
-<dt><strong>remote: bool, default False</strong></dt><dd><p>If the value is True indicate that we want to store the data directly in the backup in the other case
-it will store the data in your local path (then you can use the backup method manually)</p>
-</dd>
-<dt><strong>consolidated: bool, default True</strong></dt><dd><p>Read the doc of <a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html">to_zarr method</a>
-in the parameter ‘consolidated’</p>
-</dd>
-<dt><strong>encoding: Dict, default None</strong></dt><dd><p>Read the doc of <a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html">to_zarr method</a>
-in the parameter ‘encoding’</p>
-</dd>
-<dt><strong>**kwargs: Dict</strong></dt><dd><p>Extra parameters used for the read method that is called internally</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><dl class="simple">
-<dt>A list of xarray.backends.ZarrStore produced by the</dt><dd></dd>
-<dt><a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html">to_zarr method</a></dt><dd></dd>
-<dt>method executed in every dimension</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-</div>
+</section>
 
 
               </div>
@@ -268,8 +163,6 @@ in the parameter ‘encoding’</p>
               
               <div class='prev-next-bottom'>
                 
-    <a class='left-prev' id="prev-link" href="tensordb.file_handlers.ZarrStorage.store.html" title="previous page">tensordb.file_handlers.ZarrStorage.store</a>
-    <a class='right-next' id="next-link" href="tensordb.file_handlers.ZarrStorage.update.html" title="next page">tensordb.file_handlers.ZarrStorage.update</a>
 
               </div>
               
@@ -292,7 +185,7 @@ in the parameter ‘encoding’</p>
     
     <div class="footer-item">
       <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.0.2.<br/>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
 </p>
     </div>
     

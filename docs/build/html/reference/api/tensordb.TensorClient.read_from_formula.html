@@ -4,7 +4,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>tensordb.TensorClient.read_from_formula &#8212; TensorDB 0.1 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
@@ -33,8 +34,8 @@
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="BaseStorage" href="../base_storage.html" />
-    <link rel="prev" title="tensordb.TensorClient.get_cached_tensor_manager" href="tensordb.TensorClient.get_cached_tensor_manager.html" />
+    <link rel="next" title="tensordb.TensorClient.append_reindex" href="tensordb.TensorClient.append_reindex.html" />
+    <link rel="prev" title="tensordb.TensorClient.get_storage" href="tensordb.TensorClient.get_storage.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
     
@@ -79,8 +80,8 @@
 </li>
 
 <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../cached_tensor_handler.html">
-  CachedTensorHandler
+ <a class="reference internal nav-link" href="../cached_storage.html">
+  CachedStorage
  </a>
 </li>
 
@@ -128,8 +129,13 @@
 </ul>
 <ul class="nav bd-sidenav">
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.add_tensor_definition.html">
-   tensordb.TensorClient.add_tensor_definition
+  <a class="reference internal" href="tensordb.TensorClient.add_definition.html">
+   tensordb.TensorClient.add_definition
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.get_definition.html">
+   tensordb.TensorClient.get_definition
   </a>
  </li>
  <li class="toctree-l1">
@@ -140,16 +146,6 @@
  <li class="toctree-l1">
   <a class="reference internal" href="tensordb.TensorClient.get_tensor_definition.html">
    tensordb.TensorClient.get_tensor_definition
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.get_storage_tensor_definition.html">
-   tensordb.TensorClient.get_storage_tensor_definition
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.exist_tensor_definition.html">
-   tensordb.TensorClient.exist_tensor_definition
   </a>
  </li>
 </ul>
@@ -210,8 +206,8 @@
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.delete_file.html">
-   tensordb.TensorClient.delete_file
+  <a class="reference internal" href="tensordb.TensorClient.delete_tensor.html">
+   tensordb.TensorClient.delete_tensor
   </a>
  </li>
  <li class="toctree-l1">
@@ -220,8 +216,18 @@
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.get_cached_tensor_manager.html">
-   tensordb.TensorClient.get_cached_tensor_manager
+  <a class="reference internal" href="tensordb.TensorClient.get_cached_storage.html">
+   tensordb.TensorClient.get_cached_storage
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.apply_data_transformation.html">
+   tensordb.TensorClient.apply_data_transformation
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.get_storage.html">
+   tensordb.TensorClient.get_storage
   </a>
  </li>
 </ul>
@@ -229,6 +235,36 @@
  <li class="toctree-l1 current active">
   <a class="current reference internal" href="#">
    tensordb.TensorClient.read_from_formula
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.append_reindex.html">
+   tensordb.TensorClient.append_reindex
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.reindex.html">
+   tensordb.TensorClient.reindex
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.fillna.html">
+   tensordb.TensorClient.fillna
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.append_ffill.html">
+   tensordb.TensorClient.append_ffill
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.ffill.html">
+   tensordb.TensorClient.ffill
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.last_valid_dim.html">
+   tensordb.TensorClient.last_valid_dim
   </a>
  </li>
 </ul>
@@ -267,11 +303,11 @@
               
               <div>
                 
-  <div class="section" id="tensordb-tensorclient-read-from-formula">
+  <section id="tensordb-tensorclient-read-from-formula">
 <h1>tensordb.TensorClient.read_from_formula<a class="headerlink" href="#tensordb-tensorclient-read-from-formula" title="Permalink to this headline">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="tensordb.TensorClient.read_from_formula">
-<span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">read_from_formula</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensor_definition</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formula</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_exec</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.TensorClient.read_from_formula" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">read_from_formula</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">formula</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_exec</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xarray.core.dataarray.DataArray</span></span></span><a class="headerlink" href="#tensordb.TensorClient.read_from_formula" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is one of the most important methods of the <cite>TensorClient</cite> class, basically it allows to define
 formulas that use the tensors stored with a simple strings, so you can create new tensors from this formulas
 (make use of python eval and the same syntax that you use with Xarray).
@@ -283,8 +319,6 @@ read automatically.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>tensor_definition: Dict, optional</strong></dt><dd><p>Definition of your tensor.</p>
-</dd>
 <dt><strong>new_data: xarray.DataArray, optional</strong></dt><dd><p>Sometimes you can use this method in combination with others so you can pass the data that you are
 creating using this parameters (is more for internal use).</p>
 </dd>
@@ -304,12 +338,12 @@ or values.</p>
 <p class="rubric">Examples</p>
 <dl>
 <dt>Reading a tensor directly from a formula, all this is lazy evaluated:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Creating a new tensor definition using an &#39;on the fly&#39; formula</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">add_tensor_definition</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">tensor_id</span><span class="o">=</span><span class="s1">&#39;tensor_formula_on_the_fly&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">add_definition</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">definition_id</span><span class="o">=</span><span class="s1">&#39;tensor_formula_on_the_fly&#39;</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">new_data</span><span class="o">=</span><span class="p">{</span>
 <span class="gp">... </span>        <span class="s1">&#39;read&#39;</span><span class="p">:</span> <span class="p">{</span>
 <span class="gp">... </span>            <span class="c1"># Read the section reserved Keywords</span>
-<span class="gp">... </span>            <span class="s1">&#39;customized_method&#39;</span><span class="p">:</span> <span class="s1">&#39;read_from_formula&#39;</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="s1">&#39;substitute_method&#39;</span><span class="p">:</span> <span class="s1">&#39;read_from_formula&#39;</span><span class="p">,</span>
 <span class="gp">... </span>        <span class="p">},</span>
 <span class="gp">... </span>        <span class="s1">&#39;read_from_formula&#39;</span><span class="p">:</span> <span class="p">{</span>
 <span class="gp">... </span>            <span class="s1">&#39;formula&#39;</span><span class="p">:</span> <span class="s1">&#39;`tensor1` + 1 + `tensor1` * 10&#39;</span>
@@ -318,7 +352,7 @@ or values.</p>
 <span class="gp">... </span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># create a new empty tensor, you must always call this method to start using the tensor.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;tensor_formula_on_the_fly&#39;</span><span class="p">,</span> <span class="n">tensor_definition</span><span class="o">=</span><span class="s1">&#39;tensor_formula_on_the_fly&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;tensor_formula_on_the_fly&#39;</span><span class="p">,</span> <span class="n">definition</span><span class="o">=</span><span class="s1">&#39;tensor_formula_on_the_fly&#39;</span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Now we don&#39;t need to call the store method when we want to read our tensor</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># the good part is that everything is still lazy</span>
@@ -338,7 +372,7 @@ or values.</p>
 constructor section in <cite>TensorClient</cite></p>
 </dd></dl>
 
-</div>
+</section>
 
 
               </div>
@@ -346,8 +380,8 @@ constructor section in <cite>TensorClient</cite></p>
               
               <div class='prev-next-bottom'>
                 
-    <a class='left-prev' id="prev-link" href="tensordb.TensorClient.get_cached_tensor_manager.html" title="previous page">tensordb.TensorClient.get_cached_tensor_manager</a>
-    <a class='right-next' id="next-link" href="../base_storage.html" title="next page">BaseStorage</a>
+    <a class='left-prev' id="prev-link" href="tensordb.TensorClient.get_storage.html" title="previous page">tensordb.TensorClient.get_storage</a>
+    <a class='right-next' id="next-link" href="tensordb.TensorClient.append_reindex.html" title="next page">tensordb.TensorClient.append_reindex</a>
 
               </div>
               
@@ -370,7 +404,7 @@ constructor section in <cite>TensorClient</cite></p>
     
     <div class="footer-item">
       <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.0.2.<br/>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
 </p>
     </div>
     

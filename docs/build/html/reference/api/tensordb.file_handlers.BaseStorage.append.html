@@ -4,7 +4,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>tensordb.file_handlers.BaseStorage.append &#8212; TensorDB 0.1 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
@@ -33,8 +34,6 @@
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="tensordb.file_handlers.BaseStorage.update" href="tensordb.file_handlers.BaseStorage.update.html" />
-    <link rel="prev" title="tensordb.file_handlers.BaseStorage.store" href="tensordb.file_handlers.BaseStorage.store.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
     
@@ -72,15 +71,15 @@
  </a>
 </li>
 
-<li class="toctree-l1 current active nav-item">
+<li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../base_storage.html">
   BaseStorage
  </a>
 </li>
 
 <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../cached_tensor_handler.html">
-  CachedTensorHandler
+ <a class="reference internal nav-link" href="../cached_storage.html">
+  CachedStorage
  </a>
 </li>
 
@@ -119,76 +118,7 @@
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
   <div class="bd-toc-item active">
-    <ul class="nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.BaseStorage.html">
-   tensordb.file_handlers.BaseStorage
-  </a>
- </li>
-</ul>
-<ul class="current nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.BaseStorage.read.html">
-   tensordb.file_handlers.BaseStorage.read
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.BaseStorage.store.html">
-   tensordb.file_handlers.BaseStorage.store
-  </a>
- </li>
- <li class="toctree-l1 current active">
-  <a class="current reference internal" href="#">
-   tensordb.file_handlers.BaseStorage.append
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.BaseStorage.update.html">
-   tensordb.file_handlers.BaseStorage.update
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.BaseStorage.upsert.html">
-   tensordb.file_handlers.BaseStorage.upsert
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.BaseStorage.backup.html">
-   tensordb.file_handlers.BaseStorage.backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.BaseStorage.update_from_backup.html">
-   tensordb.file_handlers.BaseStorage.update_from_backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.BaseStorage.set_attrs.html">
-   tensordb.file_handlers.BaseStorage.set_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.BaseStorage.get_attrs.html">
-   tensordb.file_handlers.BaseStorage.get_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.BaseStorage.close.html">
-   tensordb.file_handlers.BaseStorage.close
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.BaseStorage.delete_file.html">
-   tensordb.file_handlers.BaseStorage.delete_file
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.file_handlers.BaseStorage.exist.html">
-   tensordb.file_handlers.BaseStorage.exist
-  </a>
- </li>
-</ul>
-
+    
   </div>
 </nav>
             </div>
@@ -223,35 +153,9 @@
               
               <div>
                 
-  <div class="section" id="tensordb-file-handlers-basestorage-append">
+  <section id="tensordb-file-handlers-basestorage-append">
 <h1>tensordb.file_handlers.BaseStorage.append<a class="headerlink" href="#tensordb-file-handlers-basestorage-append" title="Permalink to this headline">¶</a></h1>
-<dl class="py method">
-<dt class="sig sig-object py" id="tensordb.file_handlers.BaseStorage.append">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-prename descclassname"><span class="pre">BaseStorage.</span></span><span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remote</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.backends.common.AbstractWritableDataStore</span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#tensordb.file_handlers.BaseStorage.append" title="Permalink to this definition">¶</a></dt>
-<dd><p>This abstracmethod must be overwrited to append new_data to an existing file, the way that it append the data
-will depend of the implementation of the Storage. For example <a class="reference internal" href="tensordb.file_handlers.ZarrStorage.append.html#tensordb.file_handlers.ZarrStorage.append" title="tensordb.file_handlers.ZarrStorage.append"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ZarrStorage.append()</span></code></a>
-only append data at the end of the file (probably there will an insert method in the future)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>new_data: Union[xarray.DataArray, xarray.Dataset]</strong></dt><dd><p>This is the tensor that is going to be appended to the stored tensor, it must have the same dims.</p>
-</dd>
-<dt><strong>remote: bool, default False</strong></dt><dd><p>If the value is True indicate that we want to append the data directly in the backup in the other case
-it will append the data in your local path. Not all the Storage can use this parameter so it is optional</p>
-</dd>
-<dt><strong>**kwargs: Dict</strong></dt><dd><p>Optional parameters for the Storage</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><dl class="simple">
-<dt>A list of xarray.backends.common.AbstractWritableDataStore produced by Xarray</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-</div>
+</section>
 
 
               </div>
@@ -259,8 +163,6 @@ it will append the data in your local path. Not all the Storage can use this par
               
               <div class='prev-next-bottom'>
                 
-    <a class='left-prev' id="prev-link" href="tensordb.file_handlers.BaseStorage.store.html" title="previous page">tensordb.file_handlers.BaseStorage.store</a>
-    <a class='right-next' id="next-link" href="tensordb.file_handlers.BaseStorage.update.html" title="next page">tensordb.file_handlers.BaseStorage.update</a>
 
               </div>
               
@@ -283,7 +185,7 @@ it will append the data in your local path. Not all the Storage can use this par
     
     <div class="footer-item">
       <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.0.2.<br/>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
 </p>
     </div>
     

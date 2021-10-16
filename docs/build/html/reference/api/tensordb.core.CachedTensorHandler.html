@@ -4,7 +4,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>tensordb.core.CachedTensorHandler &#8212; TensorDB 0.1 documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet" />
@@ -33,8 +34,6 @@
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="ZarrStorage" href="../zarr_storage.html" />
-    <link rel="prev" title="CachedTensorHandler" href="../cached_tensor_handler.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
     
@@ -78,9 +77,9 @@
  </a>
 </li>
 
-<li class="toctree-l1 current active nav-item">
- <a class="reference internal nav-link" href="../cached_tensor_handler.html">
-  CachedTensorHandler
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../cached_storage.html">
+  CachedStorage
  </a>
 </li>
 
@@ -119,14 +118,7 @@
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
   <div class="bd-toc-item active">
-    <ul class="current nav bd-sidenav">
- <li class="toctree-l1 current active">
-  <a class="current reference internal" href="#">
-   tensordb.core.CachedTensorHandler
-  </a>
- </li>
-</ul>
-
+    
   </div>
 </nav>
             </div>
@@ -161,82 +153,9 @@
               
               <div>
                 
-  <div class="section" id="tensordb-core-cachedtensorhandler">
+  <section id="tensordb-core-cachedtensorhandler">
 <h1>tensordb.core.CachedTensorHandler<a class="headerlink" href="#tensordb-core-cachedtensorhandler" title="Permalink to this headline">¶</a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="tensordb.core.CachedTensorHandler">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tensordb.core.</span></span><span class="sig-name descname"><span class="pre">CachedTensorHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_handler</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="tensordb.file_handlers.BaseStorage.html#tensordb.file_handlers.BaseStorage" title="tensordb.file_handlers.base_handler.base_storage.BaseStorage"><span class="pre">tensordb.file_handlers.base_handler.base_storage.BaseStorage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cached_in_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.core.CachedTensorHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>CachedTensorHandler only contains the basic methods of the Storages: store, read, update, append,
-close and delete_file, but it was designed to allows two things:</p>
-<blockquote>
-<div><ol class="arabic simple">
-<li><p>Keep open the FileStorage of a tensor, this is useful for multiple writes on
-the same file because TensorClient has to always read the tensor_definition before open a tensor
-so this take a lot of time if you have to do a lot of writes.</p></li>
-<li><p>Cache a fixed number of writes, this allow to reduce the number of small writes to the file.</p></li>
-</ol>
-</div></blockquote>
-<p>You must always call the close method to guaranty that it write all the cached information.</p>
-<p>Internally it calls the corresponding storage method without take care of the tensor_definition, if you want
-to preserve the tensor_definition and you want to do multiples writes use the compute = True option
-that some Storage support (basically use dask.delayed).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>file_handler: BaseStorage</strong></dt><dd><p>Storage of the file.</p>
-</dd>
-<dt><strong>max_cached_in_dim: int</strong></dt><dd><p>Max number of elements of a dim that can be cached</p>
-</dd>
-<dt><strong>dim: str</strong></dt><dd><p>Dimension used to count the number of element for max_cached_in_dim</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="tensordb.core.CachedTensorHandler.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_handler</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="tensordb.file_handlers.BaseStorage.html#tensordb.file_handlers.BaseStorage" title="tensordb.file_handlers.base_handler.base_storage.BaseStorage"><span class="pre">tensordb.file_handlers.base_handler.base_storage.BaseStorage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cached_in_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.core.CachedTensorHandler.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
-</dd></dl>
-
-<p class="rubric">Methods</p>
-<table class="longtable table autosummary">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#tensordb.core.CachedTensorHandler.__init__" title="tensordb.core.CachedTensorHandler.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(file_handler, max_cached_in_dim, dim)</p></td>
-<td><p>Initialize self.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_operation</span></code>(type_operation, new_data, …)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">append</span></code>(new_data, **kwargs)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">close</span></code>()</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">delete_file</span></code>([only_local])</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">execute_operations</span></code>()</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code>(**kwargs)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">store</span></code>(new_data, **kwargs)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code>(new_data, **kwargs)</p></td>
-<td><p></p></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
+</section>
 
 
               </div>
@@ -244,8 +163,6 @@ that some Storage support (basically use dask.delayed).</p>
               
               <div class='prev-next-bottom'>
                 
-    <a class='left-prev' id="prev-link" href="../cached_tensor_handler.html" title="previous page">CachedTensorHandler</a>
-    <a class='right-next' id="next-link" href="../zarr_storage.html" title="next page">ZarrStorage</a>
 
               </div>
               
@@ -268,7 +185,7 @@ that some Storage support (basically use dask.delayed).</p>
     
     <div class="footer-item">
       <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.0.2.<br/>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
 </p>
     </div>
     

@@ -4,7 +4,7 @@
 TensorDB born from the necessity of completely read big time-series matrices to make historical analysis, previous to this project there were a lot of attempts to read the data using databases like Influx, Postgresql, Timescale, Cassandra, or Mongo none of those DBs gave good read times and the memory consumption was really big due to the normalized formats and the required transformations (except for mongo). For solving the aforementioned problem the use of Zarr files was thought as the best solution and combined with Xarray provided a really good, simple, and faster solution but then other problems arrived, organize and treat more than 200 files becomes really problematic, basically, every file needed a daily append of data with a different treat and much of the characteristics that a database provides like triggers were lost, so to solve the problem this package was created as a way to organize and standardize the definition of a tensor.
 
 # Why use TensorDB
-1. Tensors' definitions are highly personalizable and simple, so they provide a good way to organize and treat your datasets.
+1. Tensors' definitions are highly customizable and simple, so they provide a good way to organize and treat your datasets.
 2. It uses Xarray to read the tensors, so you have the same options that Xarray provides and It's a really well-supported library.
 3. Fast reads and writes due to the use of Zarr (more formats in the future).
 4. Simple, smart, and efficient backup system that avoids updates of not modified data.
@@ -12,7 +12,7 @@ TensorDB born from the necessity of completely read big time-series matrices to 
 6. Simple syntax, easy to learn.
 7. You can store or read directly from the backup without download the data.
 
-# Example
+# Examples
 ```py
 import tensordb
 import fsspec
@@ -22,35 +22,55 @@ import xarray
 tensor_client = tensordb.TensorClient(
     local_base_map=fsspec.get_mapper('test_db'),
     backup_base_map=fsspec.get_mapper('test_db' + '/backup'),
-    synchronizer_definitions='thread'
 )
 
+# Adding a default tensor definition
+tensor_client.add_definition(
+    definition_id='dummy_tensor_definition', 
+    new_data={}
+)
+
+# to create a tensor you need to specifiy the path 
+# and the tensor definition that it must use
+tensor_client.create_tensor(
+    path='dummy_tensor', 
+    definition='dummy_tensor_definition'
+)
+
+# dummy data for the example
 dummy_tensor = xarray.DataArray(
     0.,
     coords={'index': list(range(3)), 'columns': list(range(3))},
     dims=['index', 'columns']
 )
 
-# Adding a default tensor definition
-tensor_client.add_tensor_definition(dummy_tensor={})
 
 # Storing the dummy tensor
 tensor_client.store(path='dummy_tensor', new_data=dummy_tensor)
 
-# Reading the dummy tensor (we can avoid the use of path= )
+# Reading the dummy tensor
 tensor_client.read(path='dummy_tensor')
 
 
-# Creating a new tensor definition using a formula, you have the same Xarray methods but the tensor name need to be wrapped by ``
-tensor_client.add_tensor_definition(
-    dummy_tensor_formula={
+
+# Creating a new tensor definition using a formula,
+# you have the same Xarray methods but the tensor path need to be wrapped by ``
+tensor_client.add_definition(
+    definition_id='dummy_tensor_formula',
+    new_data={
        'store': {
-            'data_methods': ['read_from_formula'],
+            'data_transformation': ['read_from_formula'],
         },
         'read_from_formula': {
             'formula': '`dummy_tensor` + 1'
         }
     }
+)
+
+# to create a tensor you need to specifiy the path and the tensor definition that it must use
+tensor_client.create_tensor(
+    path='dummy_tensor_formula',
+    definition='dummy_tensor_formula'
 )
 
 # storing the new dummy tensor
