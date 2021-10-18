@@ -11,6 +11,9 @@ from loguru import logger
 from tensordb.storages import ZarrStorage
 
 
+# TODO: Add more tests for the dataset cases
+
+
 class TestZarrStorage:
 
     @pytest.fixture(autouse=True)
@@ -20,7 +23,14 @@ class TestZarrStorage:
             local_base_map=fsspec.get_mapper(sub_path),
             backup_base_map=fsspec.get_mapper(sub_path + '/backup'),
             path='zarr',
-            dataset_names='data_test',
+            data_names='data_test',
+            chunks={'index': 3, 'columns': 2},
+        )
+        self.storage_dataset = ZarrStorage(
+            local_base_map=fsspec.get_mapper(sub_path),
+            backup_base_map=fsspec.get_mapper(sub_path + '/backup'),
+            path='zarr_dataset',
+            data_names=['a', 'b', 'c'],
             chunks={'index': 3, 'columns': 2},
         )
         self.arr = xarray.DataArray(
@@ -53,7 +63,16 @@ class TestZarrStorage:
             coords={'index': [5], 'columns': [0, 1, 2, 3, 4]},
         )
 
-        self.arr4 = self.arr3.reindex(index=[6], method='ffill') + 1
+        self.arr4 = self.arr.astype(float) + 5
+        self.arr5 = self.arr.astype(np.uint) + 3
+
+        self.dataset = xarray.Dataset(
+            data_vars=dict(
+                a=self.arr,
+                b=self.arr4,
+                c=self.arr5
+            )
+        )
 
     def test_store_data(self):
         self.storage.store(self.arr2, remote=True)
@@ -121,6 +140,31 @@ class TestZarrStorage:
             assert False
         except ValueError:
             assert True
+
+    @pytest.mark.parametrize("remote", (True, False))
+    def test_store_dataset(self, remote):
+        self.storage_dataset.store(self.dataset, remote=remote)
+        assert self.storage_dataset.read(remote=remote).equals(self.dataset)
+
+    @pytest.mark.parametrize("remote", (True, False))
+    def test_append_dataset(self, remote):
+        self.storage_dataset.store(self.dataset, remote=remote)
+        dataset = self.dataset.reindex(
+            index=list(self.dataset.index.values) + [self.dataset.index.values[-1] + 1],
+            fill_value=1
+        )
+        self.storage_dataset.append(dataset.isel(index=[-1]), remote=remote)
+        assert self.storage_dataset.read(remote=remote).equals(dataset)
+
+    @pytest.mark.parametrize("remote", (True, False))
+    def test_update_dataset(self, remote):
+        self.storage_dataset.store(self.dataset, remote=remote)
+        expected = xarray.concat([
+            self.dataset.sel(index=slice(0, 1)),
+            self.dataset.sel(index=slice(2, None)) + 5
+        ], dim='index')
+        self.storage_dataset.update(expected.sel(index=slice(2, None)), remote=remote)
+        assert self.storage_dataset.read(remote=remote).equals(expected)
 
     # @pytest.fixture(scope="session", autouse=True)
     # def cleanup(self, request):

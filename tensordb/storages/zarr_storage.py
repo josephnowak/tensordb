@@ -24,20 +24,10 @@ class ZarrStorage(BaseGridBackupStorage):
     Parameters
     ----------
 
-    name: str, default 'data'
-        Name of the dataset, this is necessary if you want to work with Xarray DataArrays
-        due that Xarray only support writes to Zarr files from datasets.
-        Read the doc of `to_dataset <http://xarray.pydata.org/en/stable/generated/xarray.DataArray.to_dataset.html?highlight=dataset>`_
-
     chunks: Dict[str, int], default None
         Define the chunks of the Zarr files, read the doc of the Xarray method
         `to_zarr <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
         in the parameter 'chunks' for more details.
-
-    group: str, default None
-        read the doc of the Xarray method
-        `to_zarr <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
-        in the parameter 'group' for more details.
 
     synchronizer: {'thread', 'process'}, default None
         Depending on the option send it will create a zarr.sync.ThreadSynchronizer or a zarr.sync.ProcessSynchronizer
@@ -79,8 +69,8 @@ class ZarrStorage(BaseGridBackupStorage):
 
     def get_dims(self, remote: bool = False) -> List:
         path_map = self.get_path_map(remote)
-        dataset_names = self.dataset_names[0] if isinstance(self.dataset_names, list) else self.dataset_names
-        return path_map.get_as_dict('.zmetadata')['metadata'][f'{dataset_names}/.zattrs']['_ARRAY_DIMENSIONS']
+        data_names = self.get_data_names_list()[0]
+        return path_map.get_as_dict('.zmetadata')['metadata'][f'{data_names}/.zattrs']['_ARRAY_DIMENSIONS']
 
     def get_chunks_size(self, path: str, remote: bool = False) -> Tuple:
         path_map = self.get_path_map(remote)
@@ -189,7 +179,6 @@ class ZarrStorage(BaseGridBackupStorage):
                 k: coord_to_append if k == dim else act_coord
                 for k, act_coord in act_coords.items()
             }
-
             data_to_append = new_data.reindex(reindex_coords)
 
             act_coords[dim] = np.concatenate([act_coords[dim], coord_to_append])
@@ -248,10 +237,9 @@ class ZarrStorage(BaseGridBackupStorage):
         An xarray.backends.ZarrStore produced by the
         `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
         """
-        act_data = self.read(remote=remote)
 
-        if isinstance(new_data, xarray.Dataset):
-            new_data = new_data[self.dataset_names]
+        act_data = self._transform_to_dataset(self.read(remote=remote), chunk_data=False)
+        new_data = self._transform_to_dataset(new_data)
 
         act_coords = {k: coord for k, coord in act_data.coords.items()}
         if complete_update_dims is not None:
@@ -274,7 +262,6 @@ class ZarrStorage(BaseGridBackupStorage):
         act_data = act_data.where(~bitmask, new_data)
 
         path_map = self.get_path_map(remote)
-        act_data = self._transform_to_dataset(act_data)
         delayed_write = act_data.to_zarr(
             path_map.fs,
             group=self.path,
@@ -288,7 +275,9 @@ class ZarrStorage(BaseGridBackupStorage):
     def upsert(
             self,
             new_data: Union[xarray.DataArray, xarray.Dataset],
-            **kwargs
+            remote: bool = False,
+            compute: bool = True,
+            complete_update_dims: Union[List[str], str] = None,
     ) -> List[xarray.backends.ZarrStore]:
         """
         Calls the update and then the append method
@@ -298,8 +287,12 @@ class ZarrStorage(BaseGridBackupStorage):
         A list of xarray.backends.ZarrStore produced by the append and update methods
 
         """
-        delayed_writes = [self.update(new_data, **kwargs)]
-        delayed_writes.extend(self.append(new_data, **kwargs))
+        delayed_writes = [
+            self.update(new_data, remote=remote, compute=compute, complete_update_dims=complete_update_dims)
+        ]
+        delayed_writes.extend(
+            self.append(new_data, remote=remote, compute=compute)
+        )
         return delayed_writes
 
     def read(
@@ -341,12 +334,21 @@ class ZarrStorage(BaseGridBackupStorage):
             consolidated=True,
             synchronizer=self.synchronizer
         )
-        return arr[self.dataset_names]
+        return arr[self.data_names]
 
-    def _transform_to_dataset(self, new_data) -> xarray.Dataset:
-        if isinstance(new_data, xarray.DataArray):
-            new_data = new_data.to_dataset(name=self.dataset_names)
-        new_data = new_data if self.chunks is None else new_data.chunk(self.chunks)
+    def _transform_to_dataset(self, new_data, chunk_data: bool = True) -> xarray.Dataset:
+        if isinstance(new_data, xarray.Dataset):
+            new_data = new_data[self.data_names]
+        else:
+            if isinstance(new_data, xarray.DataArray) and isinstance(self.data_names, list):
+                raise ValueError(
+                    f'The expected number of data vars is {len(self.data_names)} '
+                    f'and the new_data has only one (it is an xarray.DataArray)'
+                )
+            new_data = new_data.to_dataset(name=self.data_names)
+
+        if chunk_data:
+            new_data = new_data if self.chunks is None else new_data.chunk(self.chunks)
         return new_data
 
     def exist(self, on_local: bool) -> bool:
@@ -434,10 +436,10 @@ class ZarrStorage(BaseGridBackupStorage):
     ):
         files_names = super().get_modified_files(new_data=new_data, remote=remote, act_data=act_data)
         files_names.extend(['.zattrs', '.zgroup', '.zmetadata'])
-        dataset_names = self.dataset_names if isinstance(self.dataset_names, list) else [self.dataset_names]
+        data_names = self.get_data_names_list()
         files_names.extend([
             path + '/' + extension
-            for path in self.get_dims(remote=remote) + dataset_names
+            for path in self.get_dims(remote=remote) + data_names
             for extension in ['.zattrs', '.zarray']
         ])
         return files_names

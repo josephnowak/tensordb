@@ -28,13 +28,17 @@ class BaseStorage:
     backup_base_map: MutableMapping
         It's the same parameter that you send to the :meth:`TensorClient.__init__` (TensorClient send it automatically)
 
+    data_names: Union[str, List[str]], default "data"
+        Names of the data vars inside your dataset, if the data_names is a str then the system must return an
+        xarray.DataArray when you read it
+
     """
 
     def __init__(self,
                  path: str,
                  local_base_map: MutableMapping,
                  backup_base_map: MutableMapping,
-                 dataset_names: Union[str, List[str]] = "data",
+                 data_names: Union[str, List[str]] = "data",
                  mapper_synchronizer: BaseMapLock = None,
                  **kwargs):
         self._local_map = StorageMapper(
@@ -48,7 +52,7 @@ class BaseStorage:
             mapper_synchronizer=mapper_synchronizer
         )
         self._path = self.local_map.path
-        self.dataset_names = dataset_names
+        self.data_names = data_names
 
     @property
     def local_map(self) -> StorageMapper:
@@ -61,6 +65,9 @@ class BaseStorage:
     @property
     def path(self) -> str:
         return self._path
+
+    def get_data_names_list(self) -> List[str]:
+        return self.data_names if isinstance(self.data_names, list) else [self.data_names]
 
     def get_path_map(self, remote: bool) -> StorageMapper:
         return self.backup_map if remote else self.local_map
@@ -257,7 +264,7 @@ class BaseStorage:
         pass
 
     @abstractmethod
-    def update_from_backup(self, **kwargs):
+    def update_from_backup(self, **kwargs) -> bool:
         """
         This abstracmethod must be overwrited to update the tensor using the backup.
         Reference :meth:`ZarrStorage.update_from_backup`
@@ -276,7 +283,7 @@ class BaseStorage:
         pass
 
     @abstractmethod
-    def backup(self, **kwargs):
+    def backup(self, **kwargs) -> bool:
         """
         This abstracmethod must be overwrited to backup the tensor.
         Reference :meth:`ZarrStorage.backup`
@@ -313,7 +320,7 @@ class BaseStorage:
         pass
 
     @abstractmethod
-    def exist(self, on_local: bool, **kwargs):
+    def exist(self, on_local: bool, **kwargs) -> bool:
         """
         This abstracmethod must be overwrited to check if the tensor exist or not.
         Reference :meth:`ZarrStorage.exist`
@@ -485,9 +492,9 @@ class BaseGridBackupStorage(BaseStorage):
     @abstractmethod
     def get_modified_files(
             self,
-            new_data: xarray.DataArray,
+            new_data: Union[xarray.DataArray, xarray.Dataset],
             remote: bool = False,
-            act_data: xarray.DataArray = None,
+            act_data: Union[xarray.DataArray, xarray.Dataset] = None,
             metadata_extensions: List[str] = None
     ):
         if act_data is None:
@@ -495,7 +502,7 @@ class BaseGridBackupStorage(BaseStorage):
 
         path_map = self.get_path_map(remote)
         dims = self.get_dims(remote)
-        dataset_names = self.dataset_names if isinstance(self.dataset_names, list) else [self.dataset_names]
+        data_names = self.data_names if isinstance(self.data_names, list) else [self.data_names]
 
         affected_positions = [
             self.find_affected_positions(act_data.coords[dim].values, new_data.coords[dim].values)
@@ -503,7 +510,7 @@ class BaseGridBackupStorage(BaseStorage):
         ]
         chunks_names = [
             name
-            for dataset_name in dataset_names
+            for dataset_name in data_names
             for name in self.find_affected_chunks_names(
                 affected_positions,
                 self.get_chunks_size(dataset_name, remote=remote),
