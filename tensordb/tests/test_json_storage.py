@@ -11,9 +11,7 @@ class TestJsonStorage:
     def setup_tests(self, tmpdir):
         sub_path = tmpdir.strpath
         self.storage = JsonStorage(
-            local_base_map=fsspec.get_mapper(sub_path),
-            backup_base_map=fsspec.get_mapper(sub_path + '/backup'),
-            path='json_test',
+            base_map=fsspec.get_mapper(sub_path),
         )
         self.dummy_data = {'a': 0, '1': 2, 'c': {'e': 10}}
 

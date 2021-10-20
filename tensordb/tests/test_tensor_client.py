@@ -129,11 +129,10 @@ def create_dummy_array(n_rows, n_cols, coords=None, dtype=None) -> xarray.DataAr
 
 class TestTensorClient:
     @pytest.fixture(autouse=True)
-    def setup_tests(self, tmpdir):
+    def test_setup_tests(self, tmpdir):
         path = tmpdir.strpath
         self.tensor_client = TensorClient(
-            local_base_map=fsspec.get_mapper(path),
-            backup_base_map=fsspec.get_mapper(path + '/backup'),
+            base_map=fsspec.get_mapper(path),
             synchronizer='thread'
         )
         self.arr = xarray.DataArray(
@@ -213,16 +212,13 @@ class TestTensorClient:
         assert self.tensor_client.read(path='data_one').sel(arr.coords).equals(arr)
         assert self.tensor_client.read(path='data_one').sizes['index'] > arr.sizes['index']
 
-    def test_backup(self):
-        self.tensor_client.store(new_data=self.arr, path='data_one')
+    def test_delete_tensor(self):
+        self.tensor_client.delete_tensor('data_one')
+        assert not self.tensor_client.exist('data_one')
 
-        handler = self.tensor_client.get_storage(path='data_one')
-
-        handler.backup()
-        assert not handler.update_from_backup()
-        assert handler.update_from_backup(force_update=True)
-
-        assert self.tensor_client.read(path='data_one').sel(self.arr.coords).equals(self.arr)
+    def test_delete_definition(self):
+        self.tensor_client.delete_definition('data_one', True)
+        assert not self.tensor_client.exist('data_one')
 
     def test_read_from_formula(self):
         self.tensor_client.create_tensor(path='data_four', definition='data_four')
@@ -268,6 +264,7 @@ class TestTensorClient:
 
 if __name__ == "__main__":
     test = TestTensorClient()
+    test.test_setup_tests()
     # test.test_add_definition()
     # test.test_store()
     # .test_update()

@@ -4,11 +4,11 @@ from typing import Dict, List, Any, Union, Tuple, Literal
 from numpy import nan, array
 from pandas import Timestamp
 from collections.abc import MutableMapping
+from loguru import logger
 
 from tensordb.storages import (
     BaseStorage,
     JsonStorage,
-    StorageMapper,
     CachedStorage,
     MAPPING_STORAGES
 )
@@ -45,11 +45,8 @@ class TensorClient:
 
     Parameters
     ----------
-    local_base_map: MutableMapping
-       MutableMapping instaciated with the local path that you want to use to store all tensors.
-
-    backup_base_map: MutableMapping
-        MutableMapping instaciated with the backup path that you want to use to store all tensors.
+    base_map: MutableMapping (normally fsspec.FSMap)
+       MutableMapping instaciated with the path where you want to store all tensors.
 
     synchronizer: str
         Some of the Storages used to handle the files support a synchronizer, this parameter is used as a default
@@ -173,25 +170,24 @@ class TensorClient:
 
     """
 
-    internal_actions = ['store', 'update', 'append', 'upsert', 'delete', 'backup', 'update_from_backup', 'close']
+    internal_actions = ['store', 'update', 'append', 'upsert']
 
     def __init__(self,
-                 local_base_map: MutableMapping,
-                 backup_base_map: MutableMapping,
-                 max_files_on_disk: int = 0,
+                 base_map: MutableMapping,
                  synchronizer: str = None,
                  **kwargs):
 
-        self.local_base_map = StorageMapper(local_base_map)
-        self.backup_base_map = StorageMapper(backup_base_map)
+        self.base_map = base_map
 
         self.open_base_store: Dict[str, Dict[str, Any]] = {}
-        self.max_files_on_disk = max_files_on_disk
         self.synchronizer = synchronizer
+        self._definitions = JsonStorage(
+            path='tensor_client/definitions',
+            base_map=self.base_map,
+        )
         self._tensors_definition = JsonStorage(
-            path='definitions',
-            local_base_map=self.local_base_map,
-            backup_base_map=self.backup_base_map,
+            path='tensor_client/tensors_definition',
+            base_map=self.base_map,
         )
 
     def add_definition(self, definition_id: str, new_data: Dict) -> Dict:
@@ -237,9 +233,9 @@ class TensorClient:
             Read the :meth:`TensorClient.storage_method_caller` to learn how to personalize your methods
 
         """
-        self._tensors_definition.store(name=definition_id, new_data=new_data)
+        self._definitions.store(name=definition_id, new_data=new_data)
 
-    def create_tensor(self, path: str, definition: Union[str, Dict], metadata: Dict = None):
+    def create_tensor(self, path: str, definition: Union[str, Dict]):
         """
         Create the path and the first file of the tensor which store the necessary metadata to use it,
         this method must always be called before start to write in the tensor.
@@ -253,18 +249,12 @@ class TensorClient:
             This can be an string which allow to read a previously created tensor definition or a completly new
             tensor_definition in case that you pass a Dict.
 
-        metadata: Dict
-            Aditional metadata for the tensor.
-
         See Also:
             If you want to personalize any method of your Storage read the `TensorClient.storage_method_caller` doc
 
 
         """
-        json_storage = JsonStorage(path=path, local_base_map=self.local_base_map, backup_base_map=self.backup_base_map)
-        metadata = {} if metadata is None else metadata
-        metadata.update({'definition': definition})
-        json_storage.store(new_data=metadata, name='definition.json')
+        self._tensors_definition.store(new_data={'definition': definition}, name=path)
 
     def get_definition(self, name: str) -> Dict:
         """
@@ -280,7 +270,7 @@ class TensorClient:
         A dict containing all the information of the tensor definition previusly stored.
 
         """
-        return self._tensors_definition.read(name)
+        return self._definitions.read(name)
 
     def get_tensor_definition(self, path) -> Dict:
         """
@@ -296,10 +286,10 @@ class TensorClient:
         A dict containing all the information of the tensor definition previusly stored.
 
         """
-        json_storage = JsonStorage(path=path, local_base_map=self.local_base_map, backup_base_map=self.backup_base_map)
-        if not json_storage.exist('definition.json'):
+        try:
+            tensor_definition = self._tensors_definition.read(path)['definition']
+        except KeyError:
             raise KeyError('You can not use a tensor without first call the create_tensor method')
-        tensor_definition = json_storage.read('definition.json')['definition']
         if isinstance(tensor_definition, dict):
             return tensor_definition
         return self.get_definition(tensor_definition)
@@ -327,8 +317,7 @@ class TensorClient:
 
         storage = MAPPING_STORAGES[storage_settings.get('storage_name', 'zarr_storage')]
         storage = storage(
-            local_base_map=self.local_base_map,
-            backup_base_map=self.backup_base_map,
+            base_map=self.base_map,
             path=path,
             **storage_settings
         )
@@ -474,60 +463,40 @@ class TensorClient:
         """
         return self.storage_method_caller(path=path, method_name='upsert', parameters=kwargs)
 
-    def backup(self, path: str, **kwargs):
+    def delete_tensor(self, path: str) -> Any:
         """
-        Calls :meth:`TensorClient.storage_method_caller` with backup as method_name (has the same parameters).
-
-        Returns
-        -------
-        Depends of every Storage.
-
+        Delete a tensor
         """
-        return self.storage_method_caller(path=path, method_name='backup', parameters=kwargs)
 
-    def update_from_backup(self, path: str, **kwargs) -> Any:
+        if self._tensors_definition.exist(path):
+            storage = self.get_storage(path)
+            storage.base_map.clear()
+            self.base_map.fs.rmdir(storage.base_map.root)
+            self._tensors_definition.delete_file(path)
+
+    def delete_definition(self, definition_id: str, delete_tensors: bool):
         """
-        Calls :meth:`TensorClient.storage_method_caller` with update_from_backup as
-        method_name (has the same parameters).
+        Delete a definition and all the tensor that use the definition (only if delete_tensors = True)
 
-        Returns
-        -------
-        Depends of every Storage.
+        Parameters
+        ----------
+        definition_id: str
+            name used to identify the tensor definition.
 
-        """
-        return self.storage_method_caller(path=path, method_name='update_from_backup', parameters=kwargs)
-
-    def set_attrs(self, path: str, **kwargs):
-        """
-        Calls :meth:`TensorClient.storage_method_caller` with set_attrs as
-        method_name (has the same parameters).
+        delete_tensors: bool
+            True means delete all the tensors that use the definition, False means don't delete them
 
         """
-        return self.storage_method_caller(path=path, method_name='set_attrs', parameters=kwargs)
-
-    def get_attrs(self, path: str, **kwargs) -> Dict:
-        """
-        Calls :meth:`TensorClient.storage_method_caller` with get_attrs as method_name
-        (has the same parameters).
-
-        Returns
-        -------
-        A dict with the attributes of the tensor (metadata).
-        """
-        return self.storage_method_caller(path=path, method_name='get_attrs', parameters=kwargs)
-
-    def close(self, path: str, **kwargs) -> Any:
-        """
-        Calls :meth:`TensorClient.storage_method_caller` with close as method_name (has the same parameters).
-
-        """
-        return self.storage_method_caller(path=path, method_name='close', parameters=kwargs)
-
-    def delete_tensor(self, path: str, **kwargs) -> Any:
-        """
-        Calls :meth:`TensorClient.storage_method_caller` with delete_tensor as method_name (has the same parameters).
-        """
-        return self.storage_method_caller(path=path, method_name='delete_tensor', parameters=kwargs)
+        if self._definitions.exist(definition_id):
+            if delete_tensors:
+                for name in self._tensors_definition.base_map.keys():
+                    original_path = self._tensors_definition.get_original_path(name)
+                    tensor_definition = self._tensors_definition.read(original_path)['definition']
+                    if not isinstance(tensor_definition, str):
+                        continue
+                    if tensor_definition == definition_id:
+                        self.delete_tensor(original_path)
+            self._definitions.delete_file(definition_id)
 
     def exist(self, path: str, **kwargs) -> bool:
         """
@@ -537,8 +506,10 @@ class TensorClient:
         -------
         A bool indicating if the file exist or not (True means yes).
         """
-        # TODO: this method fail if the tensor was not created, so this must be fixed it should return False
-        return self.get_storage(path).exist(**kwargs)
+        try:
+            return self._tensors_definition.exist(path) and self.get_storage(path).exist(**kwargs)
+        except KeyError:
+            return False
 
     def get_cached_storage(self, path, max_cached_in_dim: int, dim: str, **kwargs):
         """
