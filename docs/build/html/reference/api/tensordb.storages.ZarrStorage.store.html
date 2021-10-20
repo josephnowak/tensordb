@@ -154,36 +154,6 @@
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.backup.html">
-   tensordb.storages.ZarrStorage.backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.update_from_backup.html">
-   tensordb.storages.ZarrStorage.update_from_backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.set_attrs.html">
-   tensordb.storages.ZarrStorage.set_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.get_attrs.html">
-   tensordb.storages.ZarrStorage.get_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.close.html">
-   tensordb.storages.ZarrStorage.close
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.delete_tensor.html">
-   tensordb.storages.ZarrStorage.delete_tensor
-  </a>
- </li>
- <li class="toctree-l1">
   <a class="reference internal" href="tensordb.storages.ZarrStorage.exist.html">
    tensordb.storages.ZarrStorage.exist
   </a>
@@ -228,20 +198,15 @@
 <h1>tensordb.storages.ZarrStorage.store<a class="headerlink" href="#tensordb-storages-zarrstorage-store" title="Permalink to this headline">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="tensordb.storages.ZarrStorage.store">
-<span class="sig-prename descclassname"><span class="pre">ZarrStorage.</span></span><span class="sig-name descname"><span class="pre">store</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remote</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xarray.backends.zarr.ZarrStore</span></span></span><a class="headerlink" href="#tensordb.storages.ZarrStorage.store" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ZarrStorage.</span></span><span class="sig-name descname"><span class="pre">store</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xarray.backends.zarr.ZarrStore</span></span></span><a class="headerlink" href="#tensordb.storages.ZarrStorage.store" title="Permalink to this definition">¶</a></dt>
 <dd><p>Store the data, the dtype and all the details will depend of what you pass in the new_data
 parameter, internally this method calls the
 <a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html">to_zarr method</a>
 with a ‘w’ mode using that data.</p>
-<p>This method must be always called first to completly modify the tensor and the backup, once this method
-is used non of the other method will modify the tensor using the backup</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>new_data: Union[xarray.DataArray, xarray.Dataset]</strong></dt><dd><p>This is the data that want to be stored</p>
-</dd>
-<dt><strong>remote: bool, default False</strong></dt><dd><p>If the value is True indicate that we want to store the data directly in the backup in the other case
-it will store the data in your local path (then you can use the backup method manually)</p>
 </dd>
 </dl>
 </dd>

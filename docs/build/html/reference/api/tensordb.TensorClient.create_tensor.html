@@ -181,33 +181,13 @@
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.backup.html">
-   tensordb.TensorClient.backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.update_from_backup.html">
-   tensordb.TensorClient.update_from_backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.set_attrs.html">
-   tensordb.TensorClient.set_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.get_attrs.html">
-   tensordb.TensorClient.get_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.close.html">
-   tensordb.TensorClient.close
-  </a>
- </li>
- <li class="toctree-l1">
   <a class="reference internal" href="tensordb.TensorClient.delete_tensor.html">
    tensordb.TensorClient.delete_tensor
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.delete_definition.html">
+   tensordb.TensorClient.delete_definition
   </a>
  </li>
  <li class="toctree-l1">
@@ -307,7 +287,7 @@
 <h1>tensordb.TensorClient.create_tensor<a class="headerlink" href="#tensordb-tensorclient-create-tensor" title="Permalink to this headline">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="tensordb.TensorClient.create_tensor">
-<span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">create_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">definition</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.TensorClient.create_tensor" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">create_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">definition</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.TensorClient.create_tensor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create the path and the first file of the tensor which store the necessary metadata to use it,
 this method must always be called before start to write in the tensor.</p>
 <dl class="field-list simple">
@@ -317,8 +297,6 @@ this method must always be called before start to write in the tensor.</p>
 </dd>
 <dt><strong>definition: str, Dict</strong></dt><dd><p>This can be an string which allow to read a previously created tensor definition or a completly new
 tensor_definition in case that you pass a Dict.</p>
-</dd>
-<dt><strong>metadata: Dict</strong></dt><dd><p>Aditional metadata for the tensor.</p>
 </dd>
 <dt><strong>See Also:</strong></dt><dd><p>If you want to personalize any method of your Storage read the <cite>TensorClient.storage_method_caller</cite> doc</p>
 </dd>

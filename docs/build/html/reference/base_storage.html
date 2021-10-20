@@ -154,36 +154,6 @@
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.storages.BaseStorage.backup.html">
-   tensordb.storages.BaseStorage.backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.storages.BaseStorage.update_from_backup.html">
-   tensordb.storages.BaseStorage.update_from_backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.storages.BaseStorage.set_attrs.html">
-   tensordb.storages.BaseStorage.set_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.storages.BaseStorage.get_attrs.html">
-   tensordb.storages.BaseStorage.get_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.storages.BaseStorage.close.html">
-   tensordb.storages.BaseStorage.close
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.storages.BaseStorage.delete_tensor.html">
-   tensordb.storages.BaseStorage.delete_tensor
-  </a>
- </li>
- <li class="toctree-l1">
   <a class="reference internal" href="api/tensordb.storages.BaseStorage.exist.html">
    tensordb.storages.BaseStorage.exist
   </a>
@@ -249,7 +219,7 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.html#tensordb.storages.BaseStorage" title="tensordb.storages.BaseStorage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage</span></code></a>(path, local_base_map, …)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.html#tensordb.storages.BaseStorage" title="tensordb.storages.BaseStorage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage</span></code></a>(base_map, data_names, …)</p></td>
 <td><p>Obligatory interface used for the Storage classes created, this define the abstract methods for every Storage and allow their use with TensorClient.</p></td>
 </tr>
 </tbody>
@@ -263,40 +233,22 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.read.html#tensordb.storages.BaseStorage.read" title="tensordb.storages.BaseStorage.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.read</span></code></a>([remote])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.read.html#tensordb.storages.BaseStorage.read" title="tensordb.storages.BaseStorage.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.read</span></code></a>(**kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to read an existing file.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.store.html#tensordb.storages.BaseStorage.store" title="tensordb.storages.BaseStorage.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.store</span></code></a>(new_data[, remote])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.store.html#tensordb.storages.BaseStorage.store" title="tensordb.storages.BaseStorage.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.store</span></code></a>(new_data, **kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to store new_data to an existing file, so it must create the necessaries files, folders and metadata for the corresponding tensor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.append.html#tensordb.storages.BaseStorage.append" title="tensordb.storages.BaseStorage.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.append</span></code></a>(new_data[, remote])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.append.html#tensordb.storages.BaseStorage.append" title="tensordb.storages.BaseStorage.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.append</span></code></a>(new_data, **kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to append new_data to an existing file, the way that it append the data will depend of the implementation of the Storage.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.update.html#tensordb.storages.BaseStorage.update" title="tensordb.storages.BaseStorage.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.update</span></code></a>(new_data[, remote])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.update.html#tensordb.storages.BaseStorage.update" title="tensordb.storages.BaseStorage.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.update</span></code></a>(new_data, **kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to update new_data to an existing file, so it must not insert any new coords, it must only replace elements inside the stored tensor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.upsert.html#tensordb.storages.BaseStorage.upsert" title="tensordb.storages.BaseStorage.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.upsert</span></code></a>(new_data[, remote])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.upsert.html#tensordb.storages.BaseStorage.upsert" title="tensordb.storages.BaseStorage.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.upsert</span></code></a>(new_data, **kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to update and append new_data to an existing file, so basically it must be a combination between update and append.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.backup.html#tensordb.storages.BaseStorage.backup" title="tensordb.storages.BaseStorage.backup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.backup</span></code></a>(**kwargs)</p></td>
-<td><p>This abstracmethod must be overwrited to backup the tensor.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.update_from_backup.html#tensordb.storages.BaseStorage.update_from_backup" title="tensordb.storages.BaseStorage.update_from_backup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.update_from_backup</span></code></a>(**kwargs)</p></td>
-<td><p>This abstracmethod must be overwrited to update the tensor using the backup.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.set_attrs.html#tensordb.storages.BaseStorage.set_attrs" title="tensordb.storages.BaseStorage.set_attrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.set_attrs</span></code></a>([remote])</p></td>
-<td><p>This abstracmethod must be overwrited to set metadata for a tensor.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.get_attrs.html#tensordb.storages.BaseStorage.get_attrs" title="tensordb.storages.BaseStorage.get_attrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.get_attrs</span></code></a>([remote])</p></td>
-<td><p>This abstracmethod must be overwrited to read the metadata of a tensor.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.close.html#tensordb.storages.BaseStorage.close" title="tensordb.storages.BaseStorage.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.close</span></code></a>(**kwargs)</p></td>
-<td><p>This abstracmethod must be overwrited to close the tensor.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.delete_tensor.html#tensordb.storages.BaseStorage.delete_tensor" title="tensordb.storages.BaseStorage.delete_tensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.delete_tensor</span></code></a>([only_local])</p></td>
-<td><p>This abstracmethod must be overwrited to delete the tensor.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.exist.html#tensordb.storages.BaseStorage.exist" title="tensordb.storages.BaseStorage.exist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.exist</span></code></a>(on_local, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.exist.html#tensordb.storages.BaseStorage.exist" title="tensordb.storages.BaseStorage.exist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.exist</span></code></a>(**kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to check if the tensor exist or not.</p></td>
 </tr>
 </tbody>

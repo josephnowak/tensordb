@@ -226,29 +226,6 @@
                 
   <section id="tensordb-storages-zarrstorage-backup">
 <h1>tensordb.storages.ZarrStorage.backup<a class="headerlink" href="#tensordb-storages-zarrstorage-backup" title="Permalink to this headline">¶</a></h1>
-<dl class="py method">
-<dt class="sig sig-object py" id="tensordb.storages.ZarrStorage.backup">
-<span class="sig-prename descclassname"><span class="pre">ZarrStorage.</span></span><span class="sig-name descname"><span class="pre">backup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force_backup</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.storages.ZarrStorage.backup" title="Permalink to this definition">¶</a></dt>
-<dd><p>Store the changes that you have done in your local path in the backup, it avoid overwrite unmodified chunks
-based in the checksum stored.</p>
-<p>If you do all your tensor modifications with remote = True, you do not need to call this method.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>force_backup: bool, default False</strong></dt><dd><p>Indicate if you want to overwrite or not the entiere backup using the data in your local path</p>
-</dd>
-<dt><strong>**kwargs: Dict</strong></dt><dd><p>Not used for this method</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><dl class="simple">
-<dt>True if the backup was executed correctly and False if there is no backup_map</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 
 

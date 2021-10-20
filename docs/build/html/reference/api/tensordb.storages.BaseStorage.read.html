@@ -154,36 +154,6 @@
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.BaseStorage.backup.html">
-   tensordb.storages.BaseStorage.backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.BaseStorage.update_from_backup.html">
-   tensordb.storages.BaseStorage.update_from_backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.BaseStorage.set_attrs.html">
-   tensordb.storages.BaseStorage.set_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.BaseStorage.get_attrs.html">
-   tensordb.storages.BaseStorage.get_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.BaseStorage.close.html">
-   tensordb.storages.BaseStorage.close
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.BaseStorage.delete_tensor.html">
-   tensordb.storages.BaseStorage.delete_tensor
-  </a>
- </li>
- <li class="toctree-l1">
   <a class="reference internal" href="tensordb.storages.BaseStorage.exist.html">
    tensordb.storages.BaseStorage.exist
   </a>
@@ -228,14 +198,11 @@
 <h1>tensordb.storages.BaseStorage.read<a class="headerlink" href="#tensordb-storages-basestorage-read" title="Permalink to this headline">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="tensordb.storages.BaseStorage.read">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-prename descclassname"><span class="pre">BaseStorage.</span></span><span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remote</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tensordb.storages.BaseStorage.read" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-prename descclassname"><span class="pre">BaseStorage.</span></span><span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tensordb.storages.BaseStorage.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>This abstracmethod must be overwrited to read an existing file. Reference <a class="reference internal" href="tensordb.storages.ZarrStorage.read.html#tensordb.storages.ZarrStorage.read" title="tensordb.storages.ZarrStorage.read"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ZarrStorage.read()</span></code></a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>remote: bool, default False</strong></dt><dd><p>If the value is True indicate that we want to read the data directly from the backup in the other case
-it will read the data from your local path. Not all the Storage can use this parameter so it is optional</p>
-</dd>
 <dt><strong>**kwargs: Dict</strong></dt><dd><p>Optional parameters for the Storage</p>
 </dd>
 </dl>

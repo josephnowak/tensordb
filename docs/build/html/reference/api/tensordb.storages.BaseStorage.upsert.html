@@ -34,7 +34,7 @@
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="tensordb.storages.BaseStorage.backup" href="tensordb.storages.BaseStorage.backup.html" />
+    <link rel="next" title="tensordb.storages.BaseStorage.exist" href="tensordb.storages.BaseStorage.exist.html" />
     <link rel="prev" title="tensordb.storages.BaseStorage.update" href="tensordb.storages.BaseStorage.update.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
@@ -154,36 +154,6 @@
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.BaseStorage.backup.html">
-   tensordb.storages.BaseStorage.backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.BaseStorage.update_from_backup.html">
-   tensordb.storages.BaseStorage.update_from_backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.BaseStorage.set_attrs.html">
-   tensordb.storages.BaseStorage.set_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.BaseStorage.get_attrs.html">
-   tensordb.storages.BaseStorage.get_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.BaseStorage.close.html">
-   tensordb.storages.BaseStorage.close
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.BaseStorage.delete_tensor.html">
-   tensordb.storages.BaseStorage.delete_tensor
-  </a>
- </li>
- <li class="toctree-l1">
   <a class="reference internal" href="tensordb.storages.BaseStorage.exist.html">
    tensordb.storages.BaseStorage.exist
   </a>
@@ -228,16 +198,13 @@
 <h1>tensordb.storages.BaseStorage.upsert<a class="headerlink" href="#tensordb-storages-basestorage-upsert" title="Permalink to this headline">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="tensordb.storages.BaseStorage.upsert">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-prename descclassname"><span class="pre">BaseStorage.</span></span><span class="sig-name descname"><span class="pre">upsert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remote</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.backends.common.AbstractWritableDataStore</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tensordb.storages.BaseStorage.upsert" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-prename descclassname"><span class="pre">BaseStorage.</span></span><span class="sig-name descname"><span class="pre">upsert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.backends.common.AbstractWritableDataStore</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tensordb.storages.BaseStorage.upsert" title="Permalink to this definition">¶</a></dt>
 <dd><p>This abstracmethod must be overwrited to update and append new_data to an existing file,
 so basically it must be a combination between update and append. Reference <a class="reference internal" href="tensordb.storages.ZarrStorage.upsert.html#tensordb.storages.ZarrStorage.upsert" title="tensordb.storages.ZarrStorage.upsert"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ZarrStorage.upsert()</span></code></a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>new_data: Union[xarray.DataArray, xarray.Dataset]</strong></dt><dd><p>This is the tensor that is going to be upserted in the stored tensor, it must have the same dims.</p>
-</dd>
-<dt><strong>remote: bool, default False</strong></dt><dd><p>If the value is True indicate that we want to upsert the data directly in the backup in the other case
-it will upsert the data in your local path. Not all the Storage can use this parameter so it is optional</p>
 </dd>
 <dt><strong>**kwargs: Dict</strong></dt><dd><p>Optional parameters for the Storage</p>
 </dd>
@@ -260,7 +227,7 @@ it will upsert the data in your local path. Not all the Storage can use this par
               <div class='prev-next-bottom'>
                 
     <a class='left-prev' id="prev-link" href="tensordb.storages.BaseStorage.update.html" title="previous page">tensordb.storages.BaseStorage.update</a>
-    <a class='right-next' id="next-link" href="tensordb.storages.BaseStorage.backup.html" title="next page">tensordb.storages.BaseStorage.backup</a>
+    <a class='right-next' id="next-link" href="tensordb.storages.BaseStorage.exist.html" title="next page">tensordb.storages.BaseStorage.exist</a>
 
               </div>
               

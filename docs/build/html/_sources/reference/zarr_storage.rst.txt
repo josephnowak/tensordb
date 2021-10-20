@@ -23,11 +23,5 @@ Storage Methods
    ZarrStorage.append
    ZarrStorage.update
    ZarrStorage.upsert
-   ZarrStorage.backup
-   ZarrStorage.update_from_backup
-   ZarrStorage.set_attrs
-   ZarrStorage.get_attrs
-   ZarrStorage.close
-   ZarrStorage.delete_tensor
    ZarrStorage.exist
 

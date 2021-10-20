@@ -17,7 +17,6 @@
       ~CachedStorage.add_operation
       ~CachedStorage.append
       ~CachedStorage.close
-      ~CachedStorage.delete_tensor
       ~CachedStorage.execute_operations
       ~CachedStorage.read
       ~CachedStorage.store

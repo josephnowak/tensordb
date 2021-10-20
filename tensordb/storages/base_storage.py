@@ -36,14 +36,20 @@ class BaseStorage:
                  path: str = None,
                  **kwargs):
         self._base_map = base_map
-
+        self.group = None
         if path is not None:
             root = ""
             try:
                 root = self._base_map.root
             except AttributeError:
-                root = self._base_map.map.root
-            self._base_map = base_map.fs.get_mapper(root + '/' + path)
+                try:
+                    root = self._base_map.map.root
+                except AttributeError:
+                    pass
+            if root == "":
+                self.group = path
+            else:
+                self._base_map = base_map.fs.get_mapper(root + '/' + path)
 
         self.data_names = data_names
 

@@ -19,15 +19,13 @@
       ~TensorClient.append_ffill
       ~TensorClient.append_reindex
       ~TensorClient.apply_data_transformation
-      ~TensorClient.backup
-      ~TensorClient.close
       ~TensorClient.create_tensor
       ~TensorClient.customize_storage_method
+      ~TensorClient.delete_definition
       ~TensorClient.delete_tensor
       ~TensorClient.exist
       ~TensorClient.ffill
       ~TensorClient.fillna
-      ~TensorClient.get_attrs
       ~TensorClient.get_cached_storage
       ~TensorClient.get_definition
       ~TensorClient.get_storage
@@ -38,11 +36,9 @@
       ~TensorClient.reindex
       ~TensorClient.replace_by_last_valid
       ~TensorClient.replace_where
-      ~TensorClient.set_attrs
       ~TensorClient.storage_method_caller
       ~TensorClient.store
       ~TensorClient.update
-      ~TensorClient.update_from_backup
       ~TensorClient.upsert
    
    

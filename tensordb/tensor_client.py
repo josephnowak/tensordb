@@ -30,15 +30,11 @@ class TensorClient:
     parameters to use it, you can see some examples in the ``Examples`` section
 
     Additional features:
-        1. Support for any backup system that implements the MutableMapping interface.
+        1. Support for any file system that implements the MutableMapping interface.
         2. Creation or modification of new tensors using dynamic string formulas (even python code (string)).
-        3. The read method return a lazy Xarray DataArray instead of only retrieve the data.
+        3. The read method return a lazy Xarray DataArray or Dataset instead of only retrieve the data.
         4. It's easy to inherit the class and add customized methods.
-        5. The backups can be faster and saver because you can modify them as you want, an example of this is the
-           ZarrStorage which has a checksum (currently only store a date for debug porpuse) of every chunk of every
-           tensor stored to avoid uploading or downloading unnecessary data and is useful to check
-           the integrity of the data.
-        6. You can use any storage supported by the Zarr protocole to store your data using the ZarrStorage class,
+        5. You can use any storage supported by the Zarr protocole to store your data using the ZarrStorage class,
            so you don't have to always use files, you can even store the tensors in
            `MongoDB <https://zarr.readthedocs.io/en/stable/api/storage.html.>`_
 

@@ -83,7 +83,8 @@ class ZarrStorage(BaseStorage):
             mode='w',
             compute=compute,
             consolidated=True,
-            synchronizer=self.synchronizer
+            synchronizer=self.synchronizer,
+            group=self.group
         )
         return delayed_write
 
@@ -138,6 +139,7 @@ class ZarrStorage(BaseStorage):
                     compute=compute,
                     synchronizer=self.synchronizer,
                     consolidated=True,
+                    group=self.group,
                 )
             )
 
@@ -200,6 +202,7 @@ class ZarrStorage(BaseStorage):
 
         delayed_write = act_data.to_zarr(
             self.base_map,
+            group=self.group,
             compute=compute,
             synchronizer=self.synchronizer,
             region=regions
@@ -247,7 +250,8 @@ class ZarrStorage(BaseStorage):
         arr = xarray.open_zarr(
             self.base_map,
             consolidated=True,
-            synchronizer=self.synchronizer
+            synchronizer=self.synchronizer,
+            group=self.group
         )
         return arr[self.data_names]
 

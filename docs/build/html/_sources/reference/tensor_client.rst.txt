@@ -36,12 +36,8 @@ Storage Methods
    TensorClient.append
    TensorClient.update
    TensorClient.upsert
-   TensorClient.backup
-   TensorClient.update_from_backup
-   TensorClient.set_attrs
-   TensorClient.get_attrs
-   TensorClient.close
    TensorClient.delete_tensor
+   TensorClient.delete_definition
    TensorClient.exist
    TensorClient.get_cached_storage
    TensorClient.apply_data_transformation

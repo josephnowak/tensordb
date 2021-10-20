@@ -34,7 +34,7 @@
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="tensordb.storages.ZarrStorage.backup" href="tensordb.storages.ZarrStorage.backup.html" />
+    <link rel="next" title="tensordb.storages.ZarrStorage.exist" href="tensordb.storages.ZarrStorage.exist.html" />
     <link rel="prev" title="tensordb.storages.ZarrStorage.update" href="tensordb.storages.ZarrStorage.update.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
@@ -154,36 +154,6 @@
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.backup.html">
-   tensordb.storages.ZarrStorage.backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.update_from_backup.html">
-   tensordb.storages.ZarrStorage.update_from_backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.set_attrs.html">
-   tensordb.storages.ZarrStorage.set_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.get_attrs.html">
-   tensordb.storages.ZarrStorage.get_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.close.html">
-   tensordb.storages.ZarrStorage.close
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.delete_tensor.html">
-   tensordb.storages.ZarrStorage.delete_tensor
-  </a>
- </li>
- <li class="toctree-l1">
   <a class="reference internal" href="tensordb.storages.ZarrStorage.exist.html">
    tensordb.storages.ZarrStorage.exist
   </a>
@@ -228,7 +198,7 @@
 <h1>tensordb.storages.ZarrStorage.upsert<a class="headerlink" href="#tensordb-storages-zarrstorage-upsert" title="Permalink to this headline">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="tensordb.storages.ZarrStorage.upsert">
-<span class="sig-prename descclassname"><span class="pre">ZarrStorage.</span></span><span class="sig-name descname"><span class="pre">upsert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.backends.zarr.ZarrStore</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tensordb.storages.ZarrStorage.upsert" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ZarrStorage.</span></span><span class="sig-name descname"><span class="pre">upsert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">complete_update_dims</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.backends.zarr.ZarrStore</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tensordb.storages.ZarrStorage.upsert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calls the update and then the append method</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -248,7 +218,7 @@
               <div class='prev-next-bottom'>
                 
     <a class='left-prev' id="prev-link" href="tensordb.storages.ZarrStorage.update.html" title="previous page">tensordb.storages.ZarrStorage.update</a>
-    <a class='right-next' id="next-link" href="tensordb.storages.ZarrStorage.backup.html" title="next page">tensordb.storages.ZarrStorage.backup</a>
+    <a class='right-next' id="next-link" href="tensordb.storages.ZarrStorage.exist.html" title="next page">tensordb.storages.ZarrStorage.exist</a>
 
               </div>
               

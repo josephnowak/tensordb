@@ -34,7 +34,7 @@
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="prev" title="tensordb.storages.ZarrStorage.delete_tensor" href="tensordb.storages.ZarrStorage.delete_tensor.html" />
+    <link rel="prev" title="tensordb.storages.ZarrStorage.upsert" href="tensordb.storages.ZarrStorage.upsert.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
     
@@ -152,36 +152,6 @@
    tensordb.storages.ZarrStorage.upsert
   </a>
  </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.backup.html">
-   tensordb.storages.ZarrStorage.backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.update_from_backup.html">
-   tensordb.storages.ZarrStorage.update_from_backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.set_attrs.html">
-   tensordb.storages.ZarrStorage.set_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.get_attrs.html">
-   tensordb.storages.ZarrStorage.get_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.close.html">
-   tensordb.storages.ZarrStorage.close
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.delete_tensor.html">
-   tensordb.storages.ZarrStorage.delete_tensor
-  </a>
- </li>
  <li class="toctree-l1 current active">
   <a class="current reference internal" href="#">
    tensordb.storages.ZarrStorage.exist
@@ -227,18 +197,11 @@
 <h1>tensordb.storages.ZarrStorage.exist<a class="headerlink" href="#tensordb-storages-zarrstorage-exist" title="Permalink to this headline">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="tensordb.storages.ZarrStorage.exist">
-<span class="sig-prename descclassname"><span class="pre">ZarrStorage.</span></span><span class="sig-name descname"><span class="pre">exist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">on_local</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#tensordb.storages.ZarrStorage.exist" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ZarrStorage.</span></span><span class="sig-name descname"><span class="pre">exist</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#tensordb.storages.ZarrStorage.exist" title="Permalink to this definition">¶</a></dt>
 <dd><p>Indicate if the tensor exist or not</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Returns</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>on_local: bool</strong></dt><dd><p>True if you want to check if the tensor exist on the local path, False if you want to check
-if exist in the backup</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><dl class="simple">
 <dt>True if the tensor exist, False if it not exist</dt><dd></dd>
 </dl>
 </dd>
@@ -253,7 +216,7 @@ if exist in the backup</p>
               
               <div class='prev-next-bottom'>
                 
-    <a class='left-prev' id="prev-link" href="tensordb.storages.ZarrStorage.delete_tensor.html" title="previous page">tensordb.storages.ZarrStorage.delete_tensor</a>
+    <a class='left-prev' id="prev-link" href="tensordb.storages.ZarrStorage.upsert.html" title="previous page">tensordb.storages.ZarrStorage.upsert</a>
 
               </div>
               

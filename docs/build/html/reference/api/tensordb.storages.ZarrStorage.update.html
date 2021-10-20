@@ -154,36 +154,6 @@
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.backup.html">
-   tensordb.storages.ZarrStorage.backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.update_from_backup.html">
-   tensordb.storages.ZarrStorage.update_from_backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.set_attrs.html">
-   tensordb.storages.ZarrStorage.set_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.get_attrs.html">
-   tensordb.storages.ZarrStorage.get_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.close.html">
-   tensordb.storages.ZarrStorage.close
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.storages.ZarrStorage.delete_tensor.html">
-   tensordb.storages.ZarrStorage.delete_tensor
-  </a>
- </li>
- <li class="toctree-l1">
   <a class="reference internal" href="tensordb.storages.ZarrStorage.exist.html">
    tensordb.storages.ZarrStorage.exist
   </a>
@@ -228,24 +198,17 @@
 <h1>tensordb.storages.ZarrStorage.update<a class="headerlink" href="#tensordb-storages-zarrstorage-update" title="Permalink to this headline">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="tensordb.storages.ZarrStorage.update">
-<span class="sig-prename descclassname"><span class="pre">ZarrStorage.</span></span><span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remote</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">complete_update_dims</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xarray.backends.zarr.ZarrStore</span></span></span><a class="headerlink" href="#tensordb.storages.ZarrStorage.update" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ZarrStorage.</span></span><span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">complete_update_dims</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xarray.backends.zarr.ZarrStore</span></span></span><a class="headerlink" href="#tensordb.storages.ZarrStorage.update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Replace data on an existing Zarr files based on the new_data, internally calls the
 <a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html">to_zarr method</a> using the
 region parameter, so it automatically create this region based on your new_data, in some
 cases it could even replace all the data in the file even if you only has two coords in your new_data
 this happend due that Xarray only allows to write in contigous blocks (region)
 (read carefully how the region parameter works in Xarray)</p>
-<p>The tensor is not automatically updated using the backup only in three cases:
-1. The remote parameter is equal to True
-2. The tensor was previously stored using the store method.
-3. The tensor is updated.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>new_data: Union[xarray.DataArray, xarray.Dataset]</strong></dt><dd><p>This is the data that want</p>
-</dd>
-<dt><strong>remote: bool, default False</strong></dt><dd><p>If the value is True indicate that we want to store the data directly in the backup in the other case
-it will store the data in your local path (then you can use the backup method manually)</p>
 </dd>
 <dt><strong>complete_update_dims: Union[List, str], default = None</strong></dt><dd><p>Modify the coords of your new_data based in the coords of the stored array, basically the dims in the
 complete_update_dims are used to reindex new_data and put NaN whenever there are coords of the original

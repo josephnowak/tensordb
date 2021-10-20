@@ -154,36 +154,6 @@
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.storages.ZarrStorage.backup.html">
-   tensordb.storages.ZarrStorage.backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.storages.ZarrStorage.update_from_backup.html">
-   tensordb.storages.ZarrStorage.update_from_backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.storages.ZarrStorage.set_attrs.html">
-   tensordb.storages.ZarrStorage.set_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.storages.ZarrStorage.get_attrs.html">
-   tensordb.storages.ZarrStorage.get_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.storages.ZarrStorage.close.html">
-   tensordb.storages.ZarrStorage.close
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.storages.ZarrStorage.delete_tensor.html">
-   tensordb.storages.ZarrStorage.delete_tensor
-  </a>
- </li>
- <li class="toctree-l1">
   <a class="reference internal" href="api/tensordb.storages.ZarrStorage.exist.html">
    tensordb.storages.ZarrStorage.exist
   </a>
@@ -250,7 +220,7 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.html#tensordb.storages.ZarrStorage" title="tensordb.storages.ZarrStorage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage</span></code></a>(chunks, int]] = None, …)</p></td>
-<td><p></p></td>
+<td><p>Storage created for the Zarr files which implement the necessary methods to be used by the TensorClient.</p></td>
 </tr>
 </tbody>
 </table>
@@ -263,42 +233,24 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.read.html#tensordb.storages.ZarrStorage.read" title="tensordb.storages.ZarrStorage.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.read</span></code></a>([remote])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.read.html#tensordb.storages.ZarrStorage.read" title="tensordb.storages.ZarrStorage.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.read</span></code></a>()</p></td>
 <td><p>Read a tensor stored, internally it use <a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.open_zarr.html">open_zarr method</a>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.store.html#tensordb.storages.ZarrStorage.store" title="tensordb.storages.ZarrStorage.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.store</span></code></a>(new_data[, compute, remote])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.store.html#tensordb.storages.ZarrStorage.store" title="tensordb.storages.ZarrStorage.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.store</span></code></a>(new_data[, compute])</p></td>
 <td><p>Store the data, the dtype and all the details will depend of what you pass in the new_data parameter, internally this method calls the <a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html">to_zarr method</a> with a ‘w’ mode using that data.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.append.html#tensordb.storages.ZarrStorage.append" title="tensordb.storages.ZarrStorage.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.append</span></code></a>(new_data[, compute, remote])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.append.html#tensordb.storages.ZarrStorage.append" title="tensordb.storages.ZarrStorage.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.append</span></code></a>(new_data[, compute])</p></td>
 <td><p><p>Append data at the end of a Zarr file (in case that the file does not exist it will call the store method), internally it calls the <a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html">to_zarr method</a> for every dimension of your data.</p>
 </p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.update.html#tensordb.storages.ZarrStorage.update" title="tensordb.storages.ZarrStorage.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.update</span></code></a>(new_data[, remote, …])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.update.html#tensordb.storages.ZarrStorage.update" title="tensordb.storages.ZarrStorage.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.update</span></code></a>(new_data[, compute, …])</p></td>
 <td><p><p>Replace data on an existing Zarr files based on the new_data, internally calls the <a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html">to_zarr method</a> using the region parameter, so it automatically create this region based on your new_data, in some cases it could even replace all the data in the file even if you only has two coords in your new_data this happend due that Xarray only allows to write in contigous blocks (region) (read carefully how the region parameter works in Xarray)</p>
 </p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.upsert.html#tensordb.storages.ZarrStorage.upsert" title="tensordb.storages.ZarrStorage.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.upsert</span></code></a>(new_data, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.upsert.html#tensordb.storages.ZarrStorage.upsert" title="tensordb.storages.ZarrStorage.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.upsert</span></code></a>(new_data[, compute, …])</p></td>
 <td><p>Calls the update and then the append method</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.backup.html#tensordb.storages.ZarrStorage.backup" title="tensordb.storages.ZarrStorage.backup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.backup</span></code></a>([force_backup])</p></td>
-<td><p>Store the changes that you have done in your local path in the backup, it avoid overwrite unmodified chunks based in the checksum stored.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.update_from_backup.html#tensordb.storages.ZarrStorage.update_from_backup" title="tensordb.storages.ZarrStorage.update_from_backup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.update_from_backup</span></code></a>([force_update])</p></td>
-<td><p>Update the data in your local path using the data in the backup, it will only update the chunks that has a different checksum.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.set_attrs.html#tensordb.storages.ZarrStorage.set_attrs" title="tensordb.storages.ZarrStorage.set_attrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.set_attrs</span></code></a>([remote])</p></td>
-<td><p>This is equivalent to use the .attrs of Xarray, so basically is used to add metadata to the tensors, these are writed in .zattrs file in json format</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.get_attrs.html#tensordb.storages.ZarrStorage.get_attrs" title="tensordb.storages.ZarrStorage.get_attrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.get_attrs</span></code></a>([remote])</p></td>
-<td><p>Read the metadata of a tensor stored using the set_attrs method</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.close.html#tensordb.storages.ZarrStorage.close" title="tensordb.storages.ZarrStorage.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.close</span></code></a>(**kwargs)</p></td>
-<td><p>Close the storage (Zarr does not need this but it will call the backup method automatically)</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.delete_tensor.html#tensordb.storages.ZarrStorage.delete_tensor" title="tensordb.storages.ZarrStorage.delete_tensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.delete_tensor</span></code></a>([only_local])</p></td>
-<td><p>Delete the tensor</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.exist.html#tensordb.storages.ZarrStorage.exist" title="tensordb.storages.ZarrStorage.exist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.exist</span></code></a>(on_local, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.exist.html#tensordb.storages.ZarrStorage.exist" title="tensordb.storages.ZarrStorage.exist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.exist</span></code></a>()</p></td>
 <td><p>Indicate if the tensor exist or not</p></td>
 </tr>
 </tbody>
