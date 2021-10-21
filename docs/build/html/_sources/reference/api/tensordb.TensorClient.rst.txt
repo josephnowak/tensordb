@@ -14,20 +14,17 @@
    .. autosummary::
    
       ~TensorClient.__init__
-      ~TensorClient.add_definition
       ~TensorClient.append
       ~TensorClient.append_ffill
       ~TensorClient.append_reindex
       ~TensorClient.apply_data_transformation
       ~TensorClient.create_tensor
       ~TensorClient.customize_storage_method
-      ~TensorClient.delete_definition
       ~TensorClient.delete_tensor
       ~TensorClient.exist
       ~TensorClient.ffill
       ~TensorClient.fillna
       ~TensorClient.get_cached_storage
-      ~TensorClient.get_definition
       ~TensorClient.get_storage
       ~TensorClient.get_tensor_definition
       ~TensorClient.last_valid_dim

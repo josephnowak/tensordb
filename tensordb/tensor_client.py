@@ -41,8 +41,8 @@ class TensorClient:
 
     Parameters
     ----------
-    base_map: MutableMapping (normally fsspec.FSMap)
-       MutableMapping instaciated with the path where you want to store all tensors.
+    base_map: fsspec.FSMap (or any File System that implement the MutabbleMapping Interface)
+       File system to store all tensors.
 
     synchronizer: str
         Some of the Storages used to handle the files support a synchronizer, this parameter is used as a default
@@ -61,26 +61,22 @@ class TensorClient:
         >>> import fsspec
         >>>
         >>> tensor_client = TensorClient(
-        ...     local_base_map=fsspec.get_mapper('test_db'),
-        ...     backup_base_map=fsspec.get_mapper('test_db' + '/backup'),
+        ...     base_map=fsspec.get_mapper('test_db'),
         ...     synchronizer='thread'
         ... )
         >>>
-        >>> # Adding an empty tensor definition (there is no personalization)
-        >>> tensor_client.add_definition(
-        ...     definition_id='dummy_tensor_definition',
-        ...     new_data={
+        >>> # create a new empty tensor, you must always call this method to start using the tensor.
+        >>> tensor_client.create_tensor(
+        ...     path='tensor1',
+        ...     definition={
         ...         # This key is used for modify options of the Storage constructor
         ...         # (documented on the reserved keys section of this method)
-        ...         'handler': {
+        ...         'storage': {
         ...             # modify the default Storage for the zarr_storage
-        ...             'data_handler': 'zarr_storage'
+        ...             'storage_name': 'zarr_storage'
         ...         }
         ...     }
         ... )
-        >>>
-        >>> # create a new empty tensor, you must always call this method to start using the tensor.
-        >>> tensor_client.create_tensor(path='tensor1', definition='dummy_tensor_definition')
         >>>
         >>> new_data = xarray.DataArray(
         ...     0.0,
@@ -90,25 +86,26 @@ class TensorClient:
         >>>
         >>> # Storing tensor1 on disk
         >>> tensor_client.store(path='tensor1', new_data=new_data)
-        <xarray.backends.zarr.ZarrStore object at 0x000001FFBE9ADB80>
+        <xarray.backends.zarr.ZarrStore object at 0x000002C54E787CF0>
         >>>
         >>> # Reading the tensor1 (normally you will get a lazy Xarray (use dask in the backend))
-        >>> tensor_client.read(path='tensor1')
+        >>> tensor_client.read(path='tensor1').compute()
         <xarray.DataArray 'data' (index: 3, columns: 3)>
         array([[0., 0., 0.],
-               [0., 0., 0.],
-               [0., 0., 0.]])
+                [0., 0., 0.],
+                [0., 0., 0.]])
         Coordinates:
-          * columns  (columns) int32 0 1 2
-          * index    (index) int32 0 1 2
+            * columns  (columns) int32 0 1 2
+            * index    (index) int32 0 1 2
 
     Storing a tensor from a string formula (if you want to create an 'on the fly' tensor using formula see
     the docs :meth:`TensorClient.read_from_formula`:
 
-        >>> # Creating a new tensor definition using a formula that depend on the previous stored tensor
-        >>> tensor_client.add_definition(
-        ...     definition_id='tensor_formula',
-        ...     new_data={
+        >>> # create a new tensor using a formula that depend on the previous stored tensor
+        >>> # Note: The tensor is not calculated or stored when you create the tensor
+        >>> tensor_client.create_tensor(
+        ...     path='tensor_formula',
+        ...     definition={
         ...         'store': {
         ...             # read the docs of this method to understand the behaviour of the data_transformation key
         ...             'data_transformation': ['read_from_formula'],
@@ -119,16 +116,13 @@ class TensorClient:
         ...     }
         ... )
         >>>
-        >>> # create a new empty tensor, you must always call this method to start using the tensor.
-        >>> tensor_client.create_tensor(path='tensor_formula', definition='tensor_formula')
-        >>>
         >>> # Storing tensor_formula on disk, check that now we do not need to send the new_data parameter, because it is generated
         >>> # from the formula that we create previously
         >>> tensor_client.store(path='tensor_formula')
-        <xarray.backends.zarr.ZarrStore object at 0x000001FFBEA93C40>
+        <xarray.backends.zarr.ZarrStore object at 0x000002C54E849200>
         >>>
         >>> # Reading the tensor_formula (normally you will get a lazy Xarray (use dask in the backend))
-        >>> tensor_client.read(path='tensor_formula')
+        >>> tensor_client.read(path='tensor_formula').compute()
         <xarray.DataArray 'data' (index: 3, columns: 3)>
         array([[1., 1., 1.],
                [1., 1., 1.],
@@ -148,10 +142,10 @@ class TensorClient:
         >>>
         >>> # Appending the data, you can use the compute=False parameter if you dont want to execute this immediately
         >>> tensor_client.append('tensor_formula', new_data=new_data)
-        [<xarray.backends.zarr.ZarrStore object at 0x000001FFBEB77AC0>, <xarray.backends.zarr.ZarrStore object at 0x000001FFBEB779A0>]
+        [<xarray.backends.zarr.ZarrStore object at 0x000002C54E92CF20>, <xarray.backends.zarr.ZarrStore object at 0x000002C54E92CE40>]
         >>>
         >>> # Reading the tensor_formula (normally you will get a lazy Xarray (use dask in the backend))
-        >>> tensor_client.read('tensor_formula')
+        >>> tensor_client.read('tensor_formula').compute()
         <xarray.DataArray 'data' (index: 4, columns: 4)>
         array([[ 1.,  1.,  1., nan],
                [ 1.,  1.,  1., nan],
@@ -160,11 +154,9 @@ class TensorClient:
         Coordinates:
           * columns  (columns) int32 0 1 2 3
           * index    (index) int32 0 1 2 3
-
-    TODO:
-        1. Add more examples to the documentation
-
     """
+
+    # TODO: Add more examples to the documentation
 
     internal_actions = ['store', 'update', 'append', 'upsert']
 
@@ -177,61 +169,12 @@ class TensorClient:
 
         self.open_base_store: Dict[str, Dict[str, Any]] = {}
         self.synchronizer = synchronizer
-        self._definitions = JsonStorage(
-            path='tensor_client/definitions',
-            base_map=self.base_map,
-        )
         self._tensors_definition = JsonStorage(
-            path='tensor_client/tensors_definition',
+            path='_tensors_definition',
             base_map=self.base_map,
         )
 
-    def add_definition(self, definition_id: str, new_data: Dict) -> Dict:
-        """
-        Add (store) a new definition for a tensor (internally is stored as a JSON file).
-
-        Reserved Keywords:
-            storage: This key is used to personalize the Storage used for the tensor,
-            inside it you can use the next reserved keywords:
-
-                1. storage_name: Here you put the name of your storage (default zarr_storage), you can see
-                all the names in the variable MAPPING_STORAGES.
-
-            You can personalize the way that any Storage method is used specifying it in the tensor_definition,
-            this is basically add a key with the name of the method and inside of it you can add any kind of parameters,
-            but there are some reserved words that are used by the Tensorclient to add specific functionalities,
-            these are described here:
-
-                1. data_transformation:
-                    Receive a list where every position can be a name of a method of the client or the storage or
-                    a list containing two elements, the first is the name of the method and the second the parameters
-                    of the method that you want to sent
-
-                2. substitute_method:
-                    Modify the method called, this is useful if you want to overwrite the defaults
-                    methods of storage, read, etc for some specific tensors, this is normally used when you want to read
-                    a tensor on the fly with a formula.
-
-
-        Parameters
-        ----------
-        definition_id: str
-            name used to identify the tensor definition.
-
-        new_data: Dict
-            Description of the definition, find an example of the format here.
-
-        Examples
-        --------
-        Add examples.
-
-        See Also:
-            Read the :meth:`TensorClient.storage_method_caller` to learn how to personalize your methods
-
-        """
-        self._definitions.store(name=definition_id, new_data=new_data)
-
-    def create_tensor(self, path: str, definition: Union[str, Dict]):
+    def create_tensor(self, path: str, definition: Dict):
         """
         Create the path and the first file of the tensor which store the necessary metadata to use it,
         this method must always be called before start to write in the tensor.
@@ -242,31 +185,37 @@ class TensorClient:
             Indicate the location where your tensor is going to be allocated.
 
         definition: str, Dict
-            This can be an string which allow to read a previously created tensor definition or a completly new
-            tensor_definition in case that you pass a Dict.
+            Inside the definition you can store any kind of metadata or use the reserved keywords detailed below:
+
+                storage: This key is used to personalize the Storage used for the tensor,
+                inside it you can use the next reserved keywords (or use any other parameter of the storage):
+
+                    1. storage_name: Here you put the name of your storage (default zarr_storage), you can see
+                    all the names in the variable MAPPING_STORAGES.
+
+                You can personalize the way that any Storage method is used specifying it in the definition,
+                this is basically add a key with the name of the method and inside of it you can add any kind of parameters,
+                but there are some reserved words that are used by the Tensorclient to add specific functionalities,
+                these are described below:
+
+                    1. data_transformation:
+                        Receive a list where every position can be a name of a method of the client or the storage or
+                        a list containing two elements, the first is the name of the method and the second the parameters
+                        of the method that you want to sent
+
+                    2. substitute_method:
+                        Modify the method called, this is useful if you want to overwrite the defaults
+                        methods of storage, read, etc for some specific tensors, this is normally used when you want to read
+                        a tensor on the fly with a formula.
 
         See Also:
             If you want to personalize any method of your Storage read the `TensorClient.storage_method_caller` doc
 
 
         """
-        self._tensors_definition.store(new_data={'definition': definition}, name=path)
-
-    def get_definition(self, name: str) -> Dict:
-        """
-        Retrieve a definition.
-
-        Parameters
-        ----------
-        name: str
-            name of the tensor definition.
-
-        Returns
-        -------
-        A dict containing all the information of the tensor definition previusly stored.
-
-        """
-        return self._definitions.read(name)
+        if 'definition' not in definition:
+            definition = {'definition': definition}
+        self._tensors_definition.store(new_data=definition, name=path)
 
     def get_tensor_definition(self, path) -> Dict:
         """
@@ -286,9 +235,7 @@ class TensorClient:
             tensor_definition = self._tensors_definition.read(path)['definition']
         except KeyError:
             raise KeyError('You can not use a tensor without first call the create_tensor method')
-        if isinstance(tensor_definition, dict):
-            return tensor_definition
-        return self.get_definition(tensor_definition)
+        return tensor_definition
 
     def get_storage(self, path: str, definition: Dict = None) -> BaseStorage:
         """
@@ -469,30 +416,6 @@ class TensorClient:
             storage.base_map.clear()
             self.base_map.fs.rmdir(storage.base_map.root)
             self._tensors_definition.delete_file(path)
-
-    def delete_definition(self, definition_id: str, delete_tensors: bool):
-        """
-        Delete a definition and all the tensor that use the definition (only if delete_tensors = True)
-
-        Parameters
-        ----------
-        definition_id: str
-            name used to identify the tensor definition.
-
-        delete_tensors: bool
-            True means delete all the tensors that use the definition, False means don't delete them
-
-        """
-        if self._definitions.exist(definition_id):
-            if delete_tensors:
-                for name in self._tensors_definition.base_map.keys():
-                    original_path = self._tensors_definition.get_original_path(name)
-                    tensor_definition = self._tensors_definition.read(original_path)['definition']
-                    if not isinstance(tensor_definition, str):
-                        continue
-                    if tensor_definition == definition_id:
-                        self.delete_tensor(original_path)
-            self._definitions.delete_file(definition_id)
 
     def exist(self, path: str, **kwargs) -> bool:
         """

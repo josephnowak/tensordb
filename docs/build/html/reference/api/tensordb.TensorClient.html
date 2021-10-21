@@ -34,7 +34,7 @@
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="tensordb.TensorClient.add_definition" href="tensordb.TensorClient.add_definition.html" />
+    <link rel="next" title="tensordb.TensorClient.create_tensor" href="tensordb.TensorClient.create_tensor.html" />
     <link rel="prev" title="TensorClient" href="../tensor_client.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
@@ -129,16 +129,6 @@
 </ul>
 <ul class="nav bd-sidenav">
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.add_definition.html">
-   tensordb.TensorClient.add_definition
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.get_definition.html">
-   tensordb.TensorClient.get_definition
-  </a>
- </li>
- <li class="toctree-l1">
   <a class="reference internal" href="tensordb.TensorClient.create_tensor.html">
    tensordb.TensorClient.create_tensor
   </a>
@@ -183,11 +173,6 @@
  <li class="toctree-l1">
   <a class="reference internal" href="tensordb.TensorClient.delete_tensor.html">
    tensordb.TensorClient.delete_tensor
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.delete_definition.html">
-   tensordb.TensorClient.delete_definition
   </a>
  </li>
  <li class="toctree-l1">
@@ -311,7 +296,7 @@ so you don’t have to always use files, you can even store the tensors in
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>base_map: MutableMapping (normally fsspec.FSMap)</strong></dt><dd><p>MutableMapping instaciated with the path where you want to store all tensors.</p>
+<dt><strong>base_map: fsspec.FSMap (or any File System that implement the MutabbleMapping Interface)</strong></dt><dd><p>File system to store all tensors.</p>
 </dd>
 <dt><strong>synchronizer: str</strong></dt><dd><p>Some of the Storages used to handle the files support a synchronizer, this parameter is used as a default
 synchronizer option for everyone of them (you can pass different synchronizer to every tensor).</p>
@@ -328,26 +313,22 @@ synchronizer option for everyone of them (you can pass different synchronizer to
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">fsspec</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span> <span class="o">=</span> <span class="n">TensorClient</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">local_base_map</span><span class="o">=</span><span class="n">fsspec</span><span class="o">.</span><span class="n">get_mapper</span><span class="p">(</span><span class="s1">&#39;test_db&#39;</span><span class="p">),</span>
-<span class="gp">... </span>    <span class="n">backup_base_map</span><span class="o">=</span><span class="n">fsspec</span><span class="o">.</span><span class="n">get_mapper</span><span class="p">(</span><span class="s1">&#39;test_db&#39;</span> <span class="o">+</span> <span class="s1">&#39;/backup&#39;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">base_map</span><span class="o">=</span><span class="n">fsspec</span><span class="o">.</span><span class="n">get_mapper</span><span class="p">(</span><span class="s1">&#39;test_db&#39;</span><span class="p">),</span>
 <span class="gp">... </span>    <span class="n">synchronizer</span><span class="o">=</span><span class="s1">&#39;thread&#39;</span>
 <span class="gp">... </span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Adding an empty tensor definition (there is no personalization)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">add_definition</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">definition_id</span><span class="o">=</span><span class="s1">&#39;dummy_tensor_definition&#39;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">new_data</span><span class="o">=</span><span class="p">{</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># create a new empty tensor, you must always call this method to start using the tensor.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">path</span><span class="o">=</span><span class="s1">&#39;tensor1&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">definition</span><span class="o">=</span><span class="p">{</span>
 <span class="gp">... </span>        <span class="c1"># This key is used for modify options of the Storage constructor</span>
 <span class="gp">... </span>        <span class="c1"># (documented on the reserved keys section of this method)</span>
-<span class="gp">... </span>        <span class="s1">&#39;handler&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="gp">... </span>        <span class="s1">&#39;storage&#39;</span><span class="p">:</span> <span class="p">{</span>
 <span class="gp">... </span>            <span class="c1"># modify the default Storage for the zarr_storage</span>
-<span class="gp">... </span>            <span class="s1">&#39;data_handler&#39;</span><span class="p">:</span> <span class="s1">&#39;zarr_storage&#39;</span>
+<span class="gp">... </span>            <span class="s1">&#39;storage_name&#39;</span><span class="p">:</span> <span class="s1">&#39;zarr_storage&#39;</span>
 <span class="gp">... </span>        <span class="p">}</span>
 <span class="gp">... </span>    <span class="p">}</span>
 <span class="gp">... </span><span class="p">)</span>
-<span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># create a new empty tensor, you must always call this method to start using the tensor.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;tensor1&#39;</span><span class="p">,</span> <span class="n">definition</span><span class="o">=</span><span class="s1">&#39;dummy_tensor_definition&#39;</span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">new_data</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="mf">0.0</span><span class="p">,</span>
@@ -357,25 +338,26 @@ synchronizer option for everyone of them (you can pass different synchronizer to
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Storing tensor1 on disk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;tensor1&#39;</span><span class="p">,</span> <span class="n">new_data</span><span class="o">=</span><span class="n">new_data</span><span class="p">)</span>
-<span class="go">&lt;xarray.backends.zarr.ZarrStore object at 0x000001FFBE9ADB80&gt;</span>
+<span class="go">&lt;xarray.backends.zarr.ZarrStore object at 0x000002C54E787CF0&gt;</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Reading the tensor1 (normally you will get a lazy Xarray (use dask in the backend))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;tensor1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;tensor1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
 <span class="go">&lt;xarray.DataArray &#39;data&#39; (index: 3, columns: 3)&gt;</span>
 <span class="go">array([[0., 0., 0.],</span>
-<span class="go">       [0., 0., 0.],</span>
-<span class="go">       [0., 0., 0.]])</span>
+<span class="go">        [0., 0., 0.],</span>
+<span class="go">        [0., 0., 0.]])</span>
 <span class="go">Coordinates:</span>
-<span class="go">  * columns  (columns) int32 0 1 2</span>
-<span class="go">  * index    (index) int32 0 1 2</span>
+<span class="go">    * columns  (columns) int32 0 1 2</span>
+<span class="go">    * index    (index) int32 0 1 2</span>
 </pre></div>
 </div>
 <p>Storing a tensor from a string formula (if you want to create an ‘on the fly’ tensor using formula see
 the docs <a class="reference internal" href="tensordb.TensorClient.read_from_formula.html#tensordb.TensorClient.read_from_formula" title="tensordb.TensorClient.read_from_formula"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.read_from_formula()</span></code></a>:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Creating a new tensor definition using a formula that depend on the previous stored tensor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">add_definition</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">definition_id</span><span class="o">=</span><span class="s1">&#39;tensor_formula&#39;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">new_data</span><span class="o">=</span><span class="p">{</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># create a new tensor using a formula that depend on the previous stored tensor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Note: The tensor is not calculated or stored when you create the tensor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">path</span><span class="o">=</span><span class="s1">&#39;tensor_formula&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">definition</span><span class="o">=</span><span class="p">{</span>
 <span class="gp">... </span>        <span class="s1">&#39;store&#39;</span><span class="p">:</span> <span class="p">{</span>
 <span class="gp">... </span>            <span class="c1"># read the docs of this method to understand the behaviour of the data_transformation key</span>
 <span class="gp">... </span>            <span class="s1">&#39;data_transformation&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;read_from_formula&#39;</span><span class="p">],</span>
@@ -386,16 +368,13 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
 <span class="gp">... </span>    <span class="p">}</span>
 <span class="gp">... </span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># create a new empty tensor, you must always call this method to start using the tensor.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;tensor_formula&#39;</span><span class="p">,</span> <span class="n">definition</span><span class="o">=</span><span class="s1">&#39;tensor_formula&#39;</span><span class="p">)</span>
-<span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Storing tensor_formula on disk, check that now we do not need to send the new_data parameter, because it is generated</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># from the formula that we create previously</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;tensor_formula&#39;</span><span class="p">)</span>
-<span class="go">&lt;xarray.backends.zarr.ZarrStore object at 0x000001FFBEA93C40&gt;</span>
+<span class="go">&lt;xarray.backends.zarr.ZarrStore object at 0x000002C54E849200&gt;</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Reading the tensor_formula (normally you will get a lazy Xarray (use dask in the backend))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;tensor_formula&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;tensor_formula&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
 <span class="go">&lt;xarray.DataArray &#39;data&#39; (index: 3, columns: 3)&gt;</span>
 <span class="go">array([[1., 1., 1.],</span>
 <span class="go">       [1., 1., 1.],</span>
@@ -415,10 +394,10 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Appending the data, you can use the compute=False parameter if you dont want to execute this immediately</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;tensor_formula&#39;</span><span class="p">,</span> <span class="n">new_data</span><span class="o">=</span><span class="n">new_data</span><span class="p">)</span>
-<span class="go">[&lt;xarray.backends.zarr.ZarrStore object at 0x000001FFBEB77AC0&gt;, &lt;xarray.backends.zarr.ZarrStore object at 0x000001FFBEB779A0&gt;]</span>
+<span class="go">[&lt;xarray.backends.zarr.ZarrStore object at 0x000002C54E92CF20&gt;, &lt;xarray.backends.zarr.ZarrStore object at 0x000002C54E92CE40&gt;]</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Reading the tensor_formula (normally you will get a lazy Xarray (use dask in the backend))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;tensor_formula&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;tensor_formula&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
 <span class="go">&lt;xarray.DataArray &#39;data&#39; (index: 4, columns: 4)&gt;</span>
 <span class="go">array([[ 1.,  1.,  1., nan],</span>
 <span class="go">       [ 1.,  1.,  1., nan],</span>
@@ -429,12 +408,6 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
 <span class="go">  * index    (index) int32 0 1 2 3</span>
 </pre></div>
 </div>
-<dl class="simple">
-<dt>TODO:</dt><dd><ol class="arabic simple">
-<li><p>Add more examples to the documentation</p></li>
-</ol>
-</dd>
-</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="tensordb.TensorClient.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_map</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">collections.abc.MutableMapping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synchronizer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.TensorClient.__init__" title="Permalink to this definition">¶</a></dt>
@@ -450,29 +423,23 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
 <tr class="row-odd"><td><p><a class="reference internal" href="#tensordb.TensorClient.__init__" title="tensordb.TensorClient.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(base_map[, synchronizer])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.add_definition.html#tensordb.TensorClient.add_definition" title="tensordb.TensorClient.add_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_definition</span></code></a>(definition_id, new_data)</p></td>
-<td><p>Add (store) a new definition for a tensor (internally is stored as a JSON file).</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.append.html#tensordb.TensorClient.append" title="tensordb.TensorClient.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">append</span></code></a>(path, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.append.html#tensordb.TensorClient.append" title="tensordb.TensorClient.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">append</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with append as method_name (has the same parameters).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.append_ffill.html#tensordb.TensorClient.append_ffill" title="tensordb.TensorClient.append_ffill"><code class="xref py py-obj docutils literal notranslate"><span class="pre">append_ffill</span></code></a>(storage, new_data, dim[, …])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.append_ffill.html#tensordb.TensorClient.append_ffill" title="tensordb.TensorClient.append_ffill"><code class="xref py py-obj docutils literal notranslate"><span class="pre">append_ffill</span></code></a>(storage, new_data, dim[, …])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.append_reindex.html#tensordb.TensorClient.append_reindex" title="tensordb.TensorClient.append_reindex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">append_reindex</span></code></a>(new_data, reindex_data, …)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.append_reindex.html#tensordb.TensorClient.append_reindex" title="tensordb.TensorClient.append_reindex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">append_reindex</span></code></a>(new_data, reindex_data, …)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.apply_data_transformation.html#tensordb.TensorClient.apply_data_transformation" title="tensordb.TensorClient.apply_data_transformation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_data_transformation</span></code></a>(…)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.apply_data_transformation.html#tensordb.TensorClient.apply_data_transformation" title="tensordb.TensorClient.apply_data_transformation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_data_transformation</span></code></a>(…)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.create_tensor.html#tensordb.TensorClient.create_tensor" title="tensordb.TensorClient.create_tensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_tensor</span></code></a>(path, definition)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.create_tensor.html#tensordb.TensorClient.create_tensor" title="tensordb.TensorClient.create_tensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_tensor</span></code></a>(path, definition)</p></td>
 <td><p>Create the path and the first file of the tensor which store the necessary metadata to use it, this method must always be called before start to write in the tensor.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">customize_storage_method</span></code>(path, method_name, …)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">customize_storage_method</span></code>(path, method_name, …)</p></td>
 <td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.delete_definition.html#tensordb.TensorClient.delete_definition" title="tensordb.TensorClient.delete_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">delete_definition</span></code></a>(definition_id, delete_tensors)</p></td>
-<td><p>Delete a definition and all the tensor that use the definition (only if delete_tensors = True)</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.delete_tensor.html#tensordb.TensorClient.delete_tensor" title="tensordb.TensorClient.delete_tensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">delete_tensor</span></code></a>(path)</p></td>
 <td><p>Delete a tensor</p></td>
@@ -489,43 +456,40 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
 <tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.get_cached_storage.html#tensordb.TensorClient.get_cached_storage" title="tensordb.TensorClient.get_cached_storage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cached_storage</span></code></a>(path, max_cached_in_dim, …)</p></td>
 <td><p>Create a <cite>CachedStorage</cite> object which is used for multiples writes of the same file.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.get_definition.html#tensordb.TensorClient.get_definition" title="tensordb.TensorClient.get_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_definition</span></code></a>(name)</p></td>
-<td><p>Retrieve a definition.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.get_storage.html#tensordb.TensorClient.get_storage" title="tensordb.TensorClient.get_storage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_storage</span></code></a>(path[, definition])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.get_storage.html#tensordb.TensorClient.get_storage" title="tensordb.TensorClient.get_storage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_storage</span></code></a>(path[, definition])</p></td>
 <td><p>Get the storage of the tensor, by default it try to read the stored definition of the tensor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.get_tensor_definition.html#tensordb.TensorClient.get_tensor_definition" title="tensordb.TensorClient.get_tensor_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_tensor_definition</span></code></a>(path)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.get_tensor_definition.html#tensordb.TensorClient.get_tensor_definition" title="tensordb.TensorClient.get_tensor_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_tensor_definition</span></code></a>(path)</p></td>
 <td><p>Retrieve the tensor definition of an specific tensor.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.last_valid_dim.html#tensordb.TensorClient.last_valid_dim" title="tensordb.TensorClient.last_valid_dim"><code class="xref py py-obj docutils literal notranslate"><span class="pre">last_valid_dim</span></code></a>(new_data, dim)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.last_valid_dim.html#tensordb.TensorClient.last_valid_dim" title="tensordb.TensorClient.last_valid_dim"><code class="xref py py-obj docutils literal notranslate"><span class="pre">last_valid_dim</span></code></a>(new_data, dim)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.read.html#tensordb.TensorClient.read" title="tensordb.TensorClient.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(path, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.read.html#tensordb.TensorClient.read" title="tensordb.TensorClient.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with read as method_name (has the same parameters).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.read_from_formula.html#tensordb.TensorClient.read_from_formula" title="tensordb.TensorClient.read_from_formula"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_from_formula</span></code></a>(formula[, new_data, use_exec])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.read_from_formula.html#tensordb.TensorClient.read_from_formula" title="tensordb.TensorClient.read_from_formula"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_from_formula</span></code></a>(formula[, new_data, use_exec])</p></td>
 <td><p>This is one of the most important methods of the <cite>TensorClient</cite> class, basically it allows to define formulas that use the tensors stored with a simple strings, so you can create new tensors from this formulas (make use of python eval and the same syntax that you use with Xarray).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.reindex.html#tensordb.TensorClient.reindex" title="tensordb.TensorClient.reindex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reindex</span></code></a>(new_data, reindex_data, dims_to_reindex)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.reindex.html#tensordb.TensorClient.reindex" title="tensordb.TensorClient.reindex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reindex</span></code></a>(new_data, reindex_data, dims_to_reindex)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">replace_by_last_valid</span></code>(new_data, …[, …])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">replace_by_last_valid</span></code>(new_data, …[, …])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">replace_where</span></code>(new_data, bitmask[, value])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">replace_where</span></code>(new_data, bitmask[, value])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-obj docutils literal notranslate"><span class="pre">storage_method_caller</span></code></a>(path, method_name, …)</p></td>
-<td><p>Calls an specific method of a Storage, this include send the parameters specified in the tensor_definition or modifying the behaviour of the method based in your tensor_definition (read <a class="reference internal" href="tensordb.TensorClient.add_definition.html#tensordb.TensorClient.add_definition" title="tensordb.TensorClient.add_definition"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.add_definition()</span></code></a> for more info of how to personalize your method).</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-obj docutils literal notranslate"><span class="pre">storage_method_caller</span></code></a>(path, method_name, …)</p></td>
+<td><p>Calls an specific method of a Storage, this include send the parameters specified in the tensor_definition or modifying the behaviour of the method based in your tensor_definition (read <code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.add_definition()</span></code> for more info of how to personalize your method).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.store.html#tensordb.TensorClient.store" title="tensordb.TensorClient.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">store</span></code></a>(path, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.store.html#tensordb.TensorClient.store" title="tensordb.TensorClient.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">store</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with store as method_name (has the same parameters).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.update.html#tensordb.TensorClient.update" title="tensordb.TensorClient.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(path, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.update.html#tensordb.TensorClient.update" title="tensordb.TensorClient.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with update as method_name (has the same parameters).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.upsert.html#tensordb.TensorClient.upsert" title="tensordb.TensorClient.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">upsert</span></code></a>(path, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.upsert.html#tensordb.TensorClient.upsert" title="tensordb.TensorClient.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">upsert</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with upsert as method_name (has the same parameters).</p></td>
 </tr>
 </tbody>
@@ -553,7 +517,7 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
               <div class='prev-next-bottom'>
                 
     <a class='left-prev' id="prev-link" href="../tensor_client.html" title="previous page">TensorClient</a>
-    <a class='right-next' id="next-link" href="tensordb.TensorClient.add_definition.html" title="next page">tensordb.TensorClient.add_definition</a>
+    <a class='right-next' id="next-link" href="tensordb.TensorClient.create_tensor.html" title="next page">tensordb.TensorClient.create_tensor</a>
 
               </div>
               
