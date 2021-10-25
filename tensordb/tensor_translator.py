@@ -49,7 +49,7 @@ def defined_translation(
     dims: List[Hashable]
         Dimensions of your dataset or data array (read the docs of Xarray DataArray or Dataset for more info)
 
-    coords: Dict[Hashable, Iterable]
+    coords: Dict[Hashable, Union[List, np.ndarray]]
         Coords of your dataset or data array (read the docs of Xarray DataArray or Dataset for more info).
 
         For relational databases is useful to use a query with a Distinct over the columns to get the coords.
