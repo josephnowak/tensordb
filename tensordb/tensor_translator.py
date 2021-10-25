@@ -9,20 +9,7 @@ from typing import Iterable, Callable, Union, Dict, Any, List, Tuple, Optional, 
 from pydantic import validate_arguments
 from loguru import logger
 
-
-def get_func_parameters(func: Callable, parameters: Dict[str, Any]):
-    signature = inspect.signature(func)
-    inspect_parameters = list(signature.parameters.keys())
-    default_parameters = {
-        k: v.default
-        for k, v in signature.parameters.items()
-        if v.default is not inspect.Parameter.empty
-    }
-    # return {'parameters': parameters, 'default_parameters': default_parameters}
-    return {
-        **default_parameters,
-        **{parameter: parameters[parameter] for parameter in inspect_parameters if parameter in parameters}
-    }
+from tensordb.utils.method_inspector import get_parameters
 
 
 @validate_arguments(config=dict(arbitrary_types_allowed=True))
@@ -88,7 +75,7 @@ def defined_translation(
     # TODO: Add examples to this method
 
     kwargs.update({'coords': None, 'dims': dims, 'dtypes': dtypes, 'data_names': data_names})
-    parameters = get_func_parameters(func, kwargs)
+    parameters = get_parameters(func, kwargs)
 
     as_data_array = False
     if data_names is None:
