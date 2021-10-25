@@ -16,7 +16,7 @@ from tensordb.utils.method_inspector import get_parameters
 def defined_translation(
         func: Callable,
         dims: List[Hashable],
-        coords: Dict[Hashable, Union[List, np.ndarray]],
+        coords: Dict[Hashable, Iterable],
         chunks: List[int],
         dtypes: Union[List[Any], Any],
         data_names: List[Hashable] = None,
@@ -51,7 +51,7 @@ def defined_translation(
     dims: List[Hashable]
         Dimensions of your dataset or data array (read the docs of Xarray DataArray or Dataset for more info)
 
-    coords: Dict[Hashable, List]
+    coords: Dict[Hashable, Iterable]
         Coords of your dataset or data array (read the docs of Xarray DataArray or Dataset for more info).
 
         For relational databases is useful to use a query with a Distinct over the columns to get the coords.
