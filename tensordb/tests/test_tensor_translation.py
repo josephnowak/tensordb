@@ -37,7 +37,7 @@ class TestTensorTranslation:
         data = defined_translation(
             self.read_by_coords,
             dims=['a', 'b'],
-            coords={'a': list(range(6)), 'b': list(range(8))},
+            coords={'a': np.array(list(range(6))), 'b': list(range(8))},
             chunks=[2, 3],
             dtypes=np.float64,
             data=self.data_array

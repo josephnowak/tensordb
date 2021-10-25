@@ -1,5 +1,6 @@
 import xarray
 import dask
+import numpy as np
 import itertools
 
 from typing import Iterable, Callable, Union, Dict, Any, List, Tuple, Optional, Literal, Hashable
@@ -13,7 +14,7 @@ from tensordb.utils.method_inspector import get_parameters
 def defined_translation(
         func: Callable,
         dims: List[Hashable],
-        coords: Dict[Hashable, Iterable],
+        coords: Dict[Hashable, Union[List, np.ndarray]],
         chunks: List[int],
         dtypes: Union[List[Any], Any],
         data_names: List[Hashable] = None,
