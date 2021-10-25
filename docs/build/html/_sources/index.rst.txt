@@ -9,5 +9,6 @@ Welcome to TensorDB's documentation!
    reference/base_storage
    reference/cached_storage
    reference/zarr_storage
+   reference/tensor_translator
 
 
