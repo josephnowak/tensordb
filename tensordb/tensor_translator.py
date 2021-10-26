@@ -18,7 +18,7 @@ def defined_translation(
         chunks: List[int],
         dtypes: Union[List[Any], Any],
         data_names: List[Hashable] = None,
-        **kwargs
+        func_parameters: Dict[str, Any] = None,
 ) -> Union[xarray.DataArray, xarray.Dataset]:
     """
     Translate any kind of format that allow slice or indexing (ideal for normalized formats like the one used by
@@ -33,11 +33,8 @@ def defined_translation(
     but the function in fact will be only doing a pivot of a chunk with a known shape (an small portion of the data)
     and with dask the chunks are processed in parallel, which is ideal for cases when you have to query an slow DB.
 
-    This function can send the next default parameters to your function:
-        1. coords (obligatory)
-        2. dims (optional)
-        3. dtypes (optional)
-        4. data_names (optional)
+    This function will send the next parameters to your function:
+        1. coords
 
     Parameters
     ----------
@@ -68,12 +65,10 @@ def defined_translation(
         Indicate the names of the different DataArray inside your Dataset.
         The data_names must be aligned with dtypes, in other case it will raise an Error.
 
+    func_parameters: Dict[str, Any], default None
+        Extra parameters for the function
+
     """
-
-    # TODO: Add examples to this method
-
-    kwargs.update({'coords': None, 'dims': dims, 'dtypes': dtypes, 'data_names': data_names})
-    parameters = get_parameters(func, kwargs)
 
     as_data_array = False
     if data_names is None:
@@ -95,15 +90,17 @@ def defined_translation(
         chunk = len(coord) if chunk is None else chunk
         total_chunk_coords.append([coord[i: i + chunk] for i in range(0, len(coord), chunk)])
 
+    func_parameters = {} if func_parameters is None else func_parameters
+
     chunked_arrays = []
     for chunk_coords in itertools.product(*total_chunk_coords):
         chunk_coords = {dim: coord for dim, coord in zip(dims, chunk_coords)}
-        parameters['coords'] = chunk_coords
+        func_parameters['coords'] = chunk_coords
         shape = list(len(chunk_coords[dim]) for dim in dims)
         if as_data_array:
-            delayed_func = [dask.delayed(func)(**parameters)]
+            delayed_func = [dask.delayed(func)(**func_parameters)]
         else:
-            delayed_func = dask.delayed(func, nout=len(data_names))(**parameters)
+            delayed_func = dask.delayed(func, nout=len(data_names))(**func_parameters)
         dataset = xarray.Dataset({
             name: xarray.DataArray(
                 dask.array.from_delayed(

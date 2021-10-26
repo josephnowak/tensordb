@@ -40,7 +40,7 @@ class TestTensorTranslation:
             coords={'a': np.array(list(range(6))), 'b': list(range(8))},
             chunks=[2, 3],
             dtypes=np.float64,
-            data=self.data_array
+            func_parameters={'data': self.data_array}
         )
         assert data.equals(self.data_array.sel(**data.coords))
 
@@ -51,8 +51,8 @@ class TestTensorTranslation:
             coords={'a': list(range(6)), 'b': list(range(8))},
             chunks=[2, 3],
             dtypes=[np.float64, np.float64],
-            dataset=self.dataset,
-            data_names=['first', 'second']
+            data_names=['first', 'second'],
+            func_parameters={'dataset': self.dataset},
         )
         assert data.equals(self.dataset.sel(**data.coords))
 
