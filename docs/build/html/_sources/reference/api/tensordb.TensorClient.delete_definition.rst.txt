@@ -1,0 +1,6 @@
+﻿tensordb.TensorClient.delete\_definition
+========================================
+
+.. currentmodule:: tensordb
+
+.. automethod:: TensorClient.delete_definition

@@ -94,7 +94,3 @@ class CachedStorage:
     def close(self):
         self.execute_operations()
 
-    def delete_tensor(self, only_local: bool = True, **kwargs):
-        self.storage.delete_tensor(only_local=only_local, **kwargs)
-        self._cached_count = 0
-        self._cached_operations = []

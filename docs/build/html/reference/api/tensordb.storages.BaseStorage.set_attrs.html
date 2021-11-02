@@ -226,24 +226,6 @@
                 
   <section id="tensordb-storages-basestorage-set-attrs">
 <h1>tensordb.storages.BaseStorage.set_attrs<a class="headerlink" href="#tensordb-storages-basestorage-set-attrs" title="Permalink to this headline">¶</a></h1>
-<dl class="py method">
-<dt class="sig sig-object py" id="tensordb.storages.BaseStorage.set_attrs">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-prename descclassname"><span class="pre">BaseStorage.</span></span><span class="sig-name descname"><span class="pre">set_attrs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remote</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.storages.BaseStorage.set_attrs" title="Permalink to this definition">¶</a></dt>
-<dd><p>This abstracmethod must be overwrited to set metadata for a tensor. Reference <a class="reference internal" href="tensordb.storages.ZarrStorage.set_attrs.html#tensordb.storages.ZarrStorage.set_attrs" title="tensordb.storages.ZarrStorage.set_attrs"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ZarrStorage.set_attrs()</span></code></a></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>remote: bool, default False</strong></dt><dd><p>If the value is True indicate that we want to store the metadata directly in the backup in the other case
-it will store the metadata data in your local path.
-Not all the Storage can use this parameter so it is optional</p>
-</dd>
-<dt><strong>**kwargs: Dict</strong></dt><dd><p>Optional parameters for the Storage</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 
 

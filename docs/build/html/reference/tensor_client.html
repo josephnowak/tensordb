@@ -91,6 +91,12 @@
  </a>
 </li>
 
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="tensor_translator.html">
+  Tensor Translator
+ </a>
+</li>
+
     
 </ul>
       </div>
@@ -128,16 +134,6 @@
  </li>
 </ul>
 <ul class="nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.TensorClient.add_definition.html">
-   tensordb.TensorClient.add_definition
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.TensorClient.get_definition.html">
-   tensordb.TensorClient.get_definition
-  </a>
- </li>
  <li class="toctree-l1">
   <a class="reference internal" href="api/tensordb.TensorClient.create_tensor.html">
    tensordb.TensorClient.create_tensor
@@ -178,31 +174,6 @@
  <li class="toctree-l1">
   <a class="reference internal" href="api/tensordb.TensorClient.upsert.html">
    tensordb.TensorClient.upsert
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.TensorClient.backup.html">
-   tensordb.TensorClient.backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.TensorClient.update_from_backup.html">
-   tensordb.TensorClient.update_from_backup
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.TensorClient.set_attrs.html">
-   tensordb.TensorClient.set_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.TensorClient.get_attrs.html">
-   tensordb.TensorClient.get_attrs
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="api/tensordb.TensorClient.close.html">
-   tensordb.TensorClient.close
   </a>
  </li>
  <li class="toctree-l1">
@@ -338,8 +309,8 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.TensorClient.html#tensordb.TensorClient" title="tensordb.TensorClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient</span></code></a>(local_base_map, …)</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.TensorClient.html#tensordb.TensorClient" title="tensordb.TensorClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient</span></code></a>(base_map, synchronizer, **kwargs)</p></td>
+<td><p>The client was designed to handle multiple tensor data in a simpler way using Xarray in the background, it can support the same files than Xarray but those formats needs to be implemented using the <cite>BaseStorage</cite> interface proposed in this package.</p></td>
 </tr>
 </tbody>
 </table>
@@ -352,12 +323,6 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.TensorClient.add_definition.html#tensordb.TensorClient.add_definition" title="tensordb.TensorClient.add_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.add_definition</span></code></a>(definition_id, …)</p></td>
-<td><p>Add (store) a new definition for a tensor (internally is stored as a JSON file).</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.TensorClient.get_definition.html#tensordb.TensorClient.get_definition" title="tensordb.TensorClient.get_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.get_definition</span></code></a>(name)</p></td>
-<td><p>Retrieve a definition.</p></td>
-</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.TensorClient.create_tensor.html#tensordb.TensorClient.create_tensor" title="tensordb.TensorClient.create_tensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.create_tensor</span></code></a>(path, definition)</p></td>
 <td><p>Create the path and the first file of the tensor which store the necessary metadata to use it, this method must always be called before start to write in the tensor.</p></td>
 </tr>
@@ -376,7 +341,7 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller</span></code></a>(path, …)</p></td>
-<td><p>Calls an specific method of a Storage, this include send the parameters specified in the tensor_definition or modifying the behaviour of the method based in your tensor_definition (read <a class="reference internal" href="api/tensordb.TensorClient.add_definition.html#tensordb.TensorClient.add_definition" title="tensordb.TensorClient.add_definition"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.add_definition()</span></code></a> for more info of how to personalize your method).</p></td>
+<td><p>Calls an specific method of a Storage, this include send the parameters specified in the tensor_definition or modifying the behaviour of the method based in your tensor_definition (read <code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.add_definition()</span></code> for more info of how to personalize your method).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.TensorClient.read.html#tensordb.TensorClient.read" title="tensordb.TensorClient.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.read</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="api/tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with read as method_name (has the same parameters).</p></td>
@@ -393,34 +358,19 @@
 <tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.TensorClient.upsert.html#tensordb.TensorClient.upsert" title="tensordb.TensorClient.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.upsert</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="api/tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with upsert as method_name (has the same parameters).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.TensorClient.backup.html#tensordb.TensorClient.backup" title="tensordb.TensorClient.backup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.backup</span></code></a>(path, **kwargs)</p></td>
-<td><p>Calls <a class="reference internal" href="api/tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with backup as method_name (has the same parameters).</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.TensorClient.delete_tensor.html#tensordb.TensorClient.delete_tensor" title="tensordb.TensorClient.delete_tensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.delete_tensor</span></code></a>(path)</p></td>
+<td><p>Delete a tensor</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.TensorClient.update_from_backup.html#tensordb.TensorClient.update_from_backup" title="tensordb.TensorClient.update_from_backup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.update_from_backup</span></code></a>(path, **kwargs)</p></td>
-<td><p>Calls <a class="reference internal" href="api/tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with update_from_backup as method_name (has the same parameters).</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.TensorClient.set_attrs.html#tensordb.TensorClient.set_attrs" title="tensordb.TensorClient.set_attrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.set_attrs</span></code></a>(path, **kwargs)</p></td>
-<td><p>Calls <a class="reference internal" href="api/tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with set_attrs as method_name (has the same parameters).</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.TensorClient.get_attrs.html#tensordb.TensorClient.get_attrs" title="tensordb.TensorClient.get_attrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.get_attrs</span></code></a>(path, **kwargs)</p></td>
-<td><p>Calls <a class="reference internal" href="api/tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with get_attrs as method_name (has the same parameters).</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.TensorClient.close.html#tensordb.TensorClient.close" title="tensordb.TensorClient.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.close</span></code></a>(path, **kwargs)</p></td>
-<td><p>Calls <a class="reference internal" href="api/tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with close as method_name (has the same parameters).</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.TensorClient.delete_tensor.html#tensordb.TensorClient.delete_tensor" title="tensordb.TensorClient.delete_tensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.delete_tensor</span></code></a>(path, **kwargs)</p></td>
-<td><p>Calls <a class="reference internal" href="api/tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with delete_tensor as method_name (has the same parameters).</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.TensorClient.exist.html#tensordb.TensorClient.exist" title="tensordb.TensorClient.exist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.exist</span></code></a>(path, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.TensorClient.exist.html#tensordb.TensorClient.exist" title="tensordb.TensorClient.exist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.exist</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="api/tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with exist as method_name (has the same parameters).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.TensorClient.get_cached_storage.html#tensordb.TensorClient.get_cached_storage" title="tensordb.TensorClient.get_cached_storage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.get_cached_storage</span></code></a>(path, …)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.TensorClient.get_cached_storage.html#tensordb.TensorClient.get_cached_storage" title="tensordb.TensorClient.get_cached_storage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.get_cached_storage</span></code></a>(path, …)</p></td>
 <td><p>Create a <cite>CachedStorage</cite> object which is used for multiples writes of the same file.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.TensorClient.apply_data_transformation.html#tensordb.TensorClient.apply_data_transformation" title="tensordb.TensorClient.apply_data_transformation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.apply_data_transformation</span></code></a>(…)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.TensorClient.apply_data_transformation.html#tensordb.TensorClient.apply_data_transformation" title="tensordb.TensorClient.apply_data_transformation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.apply_data_transformation</span></code></a>(…)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.TensorClient.get_storage.html#tensordb.TensorClient.get_storage" title="tensordb.TensorClient.get_storage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.get_storage</span></code></a>(path[, definition])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.TensorClient.get_storage.html#tensordb.TensorClient.get_storage" title="tensordb.TensorClient.get_storage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.get_storage</span></code></a>(path[, definition])</p></td>
 <td><p>Get the storage of the tensor, by default it try to read the stored definition of the tensor.</p></td>
 </tr>
 </tbody>

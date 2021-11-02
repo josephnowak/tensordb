@@ -12,8 +12,7 @@ class TestCachedTensor:
     def setup_tests(self, tmpdir):
         sub_path = tmpdir.strpath
         storage = ZarrStorage(
-            local_base_map=fsspec.get_mapper(sub_path),
-            backup_base_map=fsspec.get_mapper(sub_path + '/backup'),
+            base_map=fsspec.get_mapper(sub_path),
             path='zarr',
             dataset_names='cached_test',
             chunks={'index': 3, 'columns': 2},
@@ -54,7 +53,6 @@ class TestCachedTensor:
         assert len(self.cached_storage._cached_operations['append']['new_data']) == 0
 
         assert self.cached_storage.read().equals(self.arr)
-        self.cached_storage.delete_tensor(True)
 
     def test_store(self):
         self.cached_storage.store(self.arr.isel(index=[0]))
@@ -71,7 +69,6 @@ class TestCachedTensor:
         assert len(self.cached_storage._cached_operations['store']['new_data']) == 0
 
         assert self.cached_storage.read().equals(self.arr.isel(index=[3, 4]))
-        self.cached_storage.delete_tensor(True)
 
 
 if __name__ == "__main__":

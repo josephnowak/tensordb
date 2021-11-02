@@ -11,9 +11,6 @@ from tensordb import TensorClient
 # TODO: Add more tests that validate the internal behaviour of the storage settings
 
 tensors_definition = {
-    'data_one': {},
-    'data_two': {},
-    'data_three': {},
     'data_four': {
         'read': {
             'substitute_method': 'read_from_formula',
@@ -129,11 +126,10 @@ def create_dummy_array(n_rows, n_cols, coords=None, dtype=None) -> xarray.DataAr
 
 class TestTensorClient:
     @pytest.fixture(autouse=True)
-    def setup_tests(self, tmpdir):
+    def test_setup_tests(self, tmpdir):
         path = tmpdir.strpath
         self.tensor_client = TensorClient(
-            local_base_map=fsspec.get_mapper(path),
-            backup_base_map=fsspec.get_mapper(path + '/backup'),
+            base_map=fsspec.get_mapper(path),
             synchronizer='thread'
         )
         self.arr = xarray.DataArray(
@@ -172,17 +168,12 @@ class TestTensorClient:
         )
 
         for definition_id, data in tensors_definition.items():
-            self.tensor_client.add_definition(definition_id=definition_id, new_data=data)
-            self.tensor_client.create_tensor(path=definition_id, definition=definition_id)
+            self.tensor_client.create_tensor(path=definition_id, definition=data)
 
         # store the data, so all the tests of append or update avoid running the test_store multiple times
         for path, data in [('data_one', self.arr), ('data_two', self.arr2), ('data_three', self.arr3)]:
-            self.tensor_client.create_tensor(path=path, definition=path)
+            self.tensor_client.create_tensor(path=path, definition={})
             self.tensor_client.store(new_data=data, path=path)
-
-    def test_add_definition(self):
-        for definition_id, data in tensors_definition.items():
-            assert tensors_definition[definition_id] == self.tensor_client.get_definition(definition_id)
 
     def test_create_tensor(self):
         pass
@@ -213,19 +204,12 @@ class TestTensorClient:
         assert self.tensor_client.read(path='data_one').sel(arr.coords).equals(arr)
         assert self.tensor_client.read(path='data_one').sizes['index'] > arr.sizes['index']
 
-    def test_backup(self):
-        self.tensor_client.store(new_data=self.arr, path='data_one')
-
-        handler = self.tensor_client.get_storage(path='data_one')
-
-        handler.backup()
-        assert not handler.update_from_backup()
-        assert handler.update_from_backup(force_update=True)
-
-        assert self.tensor_client.read(path='data_one').sel(self.arr.coords).equals(self.arr)
+    def test_delete_tensor(self):
+        self.tensor_client.delete_tensor('data_one')
+        assert not self.tensor_client.exist('data_one')
 
     def test_read_from_formula(self):
-        self.tensor_client.create_tensor(path='data_four', definition='data_four')
+        self.tensor_client.create_tensor(path='data_four', definition=tensors_definition['data_four'])
 
         data_four = self.tensor_client.read(path='data_four')
         data_one = self.tensor_client.read(path='data_one')
@@ -233,12 +217,16 @@ class TestTensorClient:
         assert data_four.equals((data_one * data_two).rolling({'index': 3}).sum())
 
     def test_ffill(self):
-        self.tensor_client.create_tensor(path='data_ffill', definition='data_ffill')
+        self.tensor_client.create_tensor(path='data_ffill', definition=tensors_definition['data_ffill'])
         self.tensor_client.store(path='data_ffill')
-        assert self.tensor_client.read(path='data_ffill').equals(self.tensor_client.read(path='data_one').ffill('index'))
+        assert self.tensor_client.read(
+            path='data_ffill'
+        ).equals(
+            self.tensor_client.read(path='data_one').ffill('index')
+        )
 
     def test_last_valid_dim(self):
-        self.tensor_client.create_tensor(path='last_valid_dim', definition='last_valid_dim')
+        self.tensor_client.create_tensor(path='last_valid_dim', definition=tensors_definition['last_valid_dim'])
         self.tensor_client.store(path='last_valid_dim')
         assert np.array_equal(self.tensor_client.read(path='last_valid_dim').values, [2, 4, 4, 4, 4])
 
@@ -268,6 +256,7 @@ class TestTensorClient:
 
 if __name__ == "__main__":
     test = TestTensorClient()
+    test.test_setup_tests()
     # test.test_add_definition()
     # test.test_store()
     # .test_update()

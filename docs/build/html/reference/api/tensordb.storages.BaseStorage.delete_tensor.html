@@ -226,29 +226,6 @@
                 
   <section id="tensordb-storages-basestorage-delete-tensor">
 <h1>tensordb.storages.BaseStorage.delete_tensor<a class="headerlink" href="#tensordb-storages-basestorage-delete-tensor" title="Permalink to this headline">¶</a></h1>
-<dl class="py method">
-<dt class="sig sig-object py" id="tensordb.storages.BaseStorage.delete_tensor">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-prename descclassname"><span class="pre">BaseStorage.</span></span><span class="sig-name descname"><span class="pre">delete_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">only_local</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.storages.BaseStorage.delete_tensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>This abstracmethod must be overwrited to delete the tensor.
-Reference <a class="reference internal" href="tensordb.storages.ZarrStorage.delete_tensor.html#tensordb.storages.ZarrStorage.delete_tensor" title="tensordb.storages.ZarrStorage.delete_tensor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ZarrStorage.delete_tensor()</span></code></a></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>only_local: bool, optional True</strong></dt><dd><p>Indicate if we want to delete the local path and the backup or only the local,
-True means delete the backup too and False means delete only the local</p>
-</dd>
-<dt><strong>**kwargs: Dict</strong></dt><dd><p>Optional parameters for the Storage</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><dl class="simple">
-<dt>Depeneds of the Storage</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 
 

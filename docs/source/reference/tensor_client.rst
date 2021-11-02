@@ -18,8 +18,6 @@ Tensor Definition Methods
 .. autosummary::
    :toctree: api/
 
-   TensorClient.add_definition
-   TensorClient.get_definition
    TensorClient.create_tensor
    TensorClient.get_tensor_definition
 
@@ -36,11 +34,6 @@ Storage Methods
    TensorClient.append
    TensorClient.update
    TensorClient.upsert
-   TensorClient.backup
-   TensorClient.update_from_backup
-   TensorClient.set_attrs
-   TensorClient.get_attrs
-   TensorClient.close
    TensorClient.delete_tensor
    TensorClient.exist
    TensorClient.get_cached_storage

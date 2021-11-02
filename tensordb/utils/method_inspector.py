@@ -3,7 +3,7 @@ import inspect
 from typing import List, Callable, Dict, Any
 
 
-def get_parameters(func: Callable, *args: List[Dict[str, Any]]):
+def get_parameters(func: Callable, *args: Dict[str, Any]):
     signature = inspect.signature(func)
     func_parameters = list(signature.parameters.keys())
 
