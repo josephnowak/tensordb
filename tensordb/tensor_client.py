@@ -314,8 +314,10 @@ class TensorClient:
                 func = getattr(self, method_name)
 
             result = func(**get_parameters(func, method_parameters, parameters))
-            default_result_name = method_parameters.get('result_name', 'new_data')
-            parameters.update(result if isinstance(result, dict) else {default_result_name: result})
+            if 'result_name' in method_parameters:
+                parameters.update({method_parameters['result_name']: result})
+            else:
+                parameters.update(result if isinstance(result, dict) else {'new_data': result})
 
         return parameters['new_data']
 
