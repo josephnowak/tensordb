@@ -5,6 +5,7 @@ from numpy import nan, array
 from pandas import Timestamp
 from collections.abc import MutableMapping
 from loguru import logger
+from pydantic import validate_arguments
 
 from tensordb.storages import (
     BaseStorage,
@@ -19,7 +20,7 @@ class TensorClient:
 
     """
 
-    The client was designed to handle multiple tensor data in a simpler way using Xarray in the background,
+    The client was designed to handle multiple tensors data in a simpler way using Xarray in the background,
     it can support the same files than Xarray but those formats needs to be implemented
     using the `BaseStorage` interface proposed in this package.
 
@@ -166,14 +167,13 @@ class TensorClient:
                  **kwargs):
 
         self.base_map = base_map
-
-        self.open_base_store: Dict[str, Dict[str, Any]] = {}
         self.synchronizer = synchronizer
         self._tensors_definition = JsonStorage(
             path='_tensors_definition',
             base_map=self.base_map,
         )
 
+    @validate_arguments
     def create_tensor(self, path: str, definition: Dict):
         """
         Create the path and the first file of the tensor which store the necessary metadata to use it,
@@ -217,7 +217,8 @@ class TensorClient:
             definition = {'definition': definition}
         self._tensors_definition.store(new_data=definition, name=path)
 
-    def get_tensor_definition(self, path) -> Dict:
+    @validate_arguments
+    def get_tensor_definition(self, path: str) -> Dict:
         """
         Retrieve the tensor definition of an specific tensor.
 
@@ -237,6 +238,26 @@ class TensorClient:
             raise KeyError('You can not use a tensor without first call the create_tensor method')
         return tensor_definition
 
+    @validate_arguments
+    def delete_tensor(self, path: str, only_data: bool = False) -> Any:
+        """
+        Delete the tensor
+
+        Parameters
+        ----------
+
+        only_data: bool, default False
+            If this option is marked as True only the data will be erased and not the definition
+
+        """
+
+        storage = self.get_storage(path)
+        storage.base_map.clear()
+        self.base_map.fs.rmdir(storage.base_map.root)
+        if not only_data:
+            self._tensors_definition.delete_file(path)
+
+    @validate_arguments
     def get_storage(self, path: str, definition: Dict = None) -> BaseStorage:
         """
         Get the storage of the tensor, by default it try to read the stored definition of the tensor.
@@ -264,15 +285,9 @@ class TensorClient:
             path=path,
             **storage_settings
         )
-        if path not in self.open_base_store:
-            self.open_base_store[path] = {
-                'first_read_date': Timestamp.now(),
-                'num_use': 0
-            }
-        self.open_base_store[path]['storage'] = storage
-        self.open_base_store[path]['num_use'] += 1
-        return self.open_base_store[path]['storage']
+        return storage
 
+    @validate_arguments
     def customize_storage_method(self, path: str, method_name: str, parameters: Dict[str, Any]):
         definition = self.get_tensor_definition(path)
         method_settings = definition.get(method_name, {})
@@ -321,6 +336,7 @@ class TensorClient:
 
         return parameters['new_data']
 
+    @validate_arguments
     def storage_method_caller(self, path: str, method_name: str, parameters: Dict[str, Any]) -> Any:
         """
         Calls an specific method of a Storage, this include send the parameters specified in the tensor_definition
@@ -407,17 +423,6 @@ class TensorClient:
 
         """
         return self.storage_method_caller(path=path, method_name='upsert', parameters=kwargs)
-
-    def delete_tensor(self, path: str) -> Any:
-        """
-        Delete a tensor
-        """
-
-        if self._tensors_definition.exist(path):
-            storage = self.get_storage(path)
-            storage.base_map.clear()
-            self.base_map.fs.rmdir(storage.base_map.root)
-            self._tensors_definition.delete_file(path)
 
     def exist(self, path: str, **kwargs) -> bool:
         """
