@@ -26,10 +26,11 @@ tensors_definition = {
             'data_transformation': ['read_from_formula', 'ffill'],
         },
         'read_from_formula': {
-            'formula': "`data_one`",
+            'formula': "`data_one`.chunk({'index': 3, 'columns': 2})",
         },
         'ffill': {
-            'dim': 'index'
+            'dim': 'index',
+            'limit': 2
         }
     },
     'last_valid_dim': {
@@ -134,10 +135,10 @@ class TestTensorClient:
         )
         self.arr = xarray.DataArray(
             data=np.array([
-                [1, 2, 7, 4, 5],
-                [np.nan, 3, 5, 5, 6],
-                [3, 3, np.nan, 5, 6],
-                [np.nan, 3, 10, 5, 6],
+                [1, 2, 7, 4, np.nan],
+                [np.nan, 3, 5, np.nan, 6],
+                [3, 3, np.nan, np.nan, 6],
+                [np.nan, 3, 10, np.nan, 6],
                 [np.nan, 7, 8, 5, 6],
             ], dtype=float),
             dims=['index', 'columns'],
@@ -222,7 +223,7 @@ class TestTensorClient:
         assert self.tensor_client.read(
             path='data_ffill'
         ).equals(
-            self.tensor_client.read(path='data_one').ffill('index')
+            self.tensor_client.read(path='data_one').ffill('index', limit=2)
         )
 
     def test_last_valid_dim(self):
@@ -236,11 +237,6 @@ class TestTensorClient:
         data_ffill = self.tensor_client.read(path='data_one').ffill(dim='index').compute()
         data_ffill.loc[[3, 4], 0] = np.nan
         assert self.tensor_client.read(path='data_replace_by_last_valid').equals(data_ffill)
-
-    def test_append_reindex(self):
-        self.tensor_client.store(path='reindex_data')
-        reindex_data = self.tensor_client.read(path='reindex_data')
-        assert reindex_data.sel(index=5, drop=True).equals(reindex_data.sel(index=4, drop=True))
 
     def test_overwrite_append_data(self):
         self.tensor_client.append(path='overwrite_append_data')

@@ -1,3 +1,4 @@
+import dask.array
 import xarray
 
 from typing import Dict, List, Any, Union, Tuple, Literal
@@ -552,35 +553,9 @@ class TensorClient:
             return d['new_data']
         return eval(formula)
 
-    def append_reindex(
-            self,
-            new_data: xarray.DataArray,
-            reindex_data: Union[str, xarray.DataArray],
-            dims_to_reindex: List[str],
-            method_fill_value: str = None
-    ) -> Union[xarray.DataArray, None]:
-        if isinstance(reindex_data, str):
-            reindex_data = self.read(path=reindex_data)
-        coords_to_reindex = {
-            coord: reindex_data.coords[coord][reindex_data.coords[coord] >= new_data.coords[coord][-1].values]
-            for coord in dims_to_reindex
-        }
-        return new_data.reindex(coords_to_reindex, method=method_fill_value)
-
-    def reindex(
-            self,
-            new_data: xarray.DataArray,
-            reindex_data: Union[str, xarray.DataArray],
-            dims_to_reindex: List[str],
-            method_fill_value: str = None
-    ) -> Union[xarray.DataArray, None]:
-        if isinstance(reindex_data, str):
-            reindex_data = self.read(path=reindex_data)
-        coords_to_reindex = {dim: reindex_data.coords[dim] for dim in dims_to_reindex}
-        return new_data.reindex(coords_to_reindex, method=method_fill_value)
-
+    @classmethod
     def last_valid_dim(
-            self,
+            cls,
             new_data: xarray.DataArray,
             dim: str
     ) -> Union[xarray.DataArray, None]:
@@ -588,60 +563,43 @@ class TensorClient:
             return new_data.cumsum(dim=dim).idxmax(dim=dim)
         return new_data.notnull().cumsum(dim=dim).idxmax(dim=dim)
 
+    @classmethod
     def replace_by_last_valid(
-            self,
+            cls,
             new_data: xarray.DataArray,
-            last_valid_data: Union[str, xarray.DataArray],
+            last_valid_data: xarray.DataArray,
             dim: str,
             value: Any = nan,
             replace_method: Literal['after', 'before'] = 'after',
     ) -> Union[xarray.DataArray, None]:
-        if isinstance(last_valid_data, str):
-            last_valid_data = self.read(last_valid_data)
         if replace_method == 'after':
             last_valid_data = new_data.coords[dim] <= last_valid_data.fillna(new_data.coords[dim][-1])
         else:
             last_valid_data = new_data.coords[dim] >= last_valid_data.fillna(new_data.coords[dim][-1])
         return new_data.where(last_valid_data.sel(new_data.coords), value)
 
-    def replace_where(
-            self,
-            new_data: xarray.DataArray,
-            bitmask: Union[str, xarray.DataArray],
-            value: Any = nan
-    ) -> Union[xarray.DataArray, None]:
-        if isinstance(bitmask, str):
-            bitmask = self.read(bitmask)
-        return new_data.where(bitmask.sel(new_data.coords), value)
-
-    def fillna(
-            self,
-            new_data: xarray.DataArray,
-            value: Any
-    ) -> Union[xarray.DataArray, None]:
-        return new_data.fillna(value)
-
+    @classmethod
     def ffill(
-            self,
+            cls,
             new_data: xarray.DataArray,
             dim: str,
             limit: int = None,
     ):
-        return new_data.ffill(dim=dim, limit=limit)
+        try:
+            return new_data.ffill(dim=dim, limit=limit)
+        except NotImplementedError:
+            arange = xarray.DataArray(
+                dask.array.arange(new_data.sizes[dim]),
+                dims=[dim],
+                coords={dim: new_data.coords[dim]}
+            )
+            zeros = xarray.DataArray(
+                dask.array.zeros([new_data.sizes[dim] for dim in new_data.dims], chunks=new_data.chunks),
+                dims=new_data.dims,
+                coords=new_data.coords
+            )
+            narange = zeros.where(zeros, arange)
+            where_narange = narange.where(new_data.notnull(), nan)
+            valid_limits = (narange - where_narange.ffill(dim)) <= limit
+            return new_data.ffill(dim=dim).where(valid_limits, nan)
 
-    def append_ffill(
-            self,
-            storage: BaseStorage,
-            new_data: xarray.DataArray,
-            dim: str,
-            limit: int = None,
-            remote: bool = False,
-    ) -> Union[xarray.DataArray, None]:
-
-        data_concat = new_data
-        act_data = storage.read(remote=remote)
-        data = data.sel({dim: data.coords[dim] < new_data.coords[dim][0]})
-        if data.sizes[dim] > 0:
-            data_concat = xarray.concat([data.isel({dim: [-1]}), new_data], dim=dim)
-
-        return data_concat.ffill(dim=dim, limit=limit).sel(new_data.coords)

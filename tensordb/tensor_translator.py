@@ -7,8 +7,6 @@ from typing import Iterable, Callable, Union, Dict, Any, List, Tuple, Optional, 
 from pydantic import validate_arguments
 from loguru import logger
 
-from tensordb.utils.method_inspector import get_parameters
-
 
 @validate_arguments(config=dict(arbitrary_types_allowed=True))
 def defined_translation(
