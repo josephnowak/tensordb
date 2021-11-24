@@ -1,4 +1,4 @@
-import xarray
+import xarray as xr
 
 from typing import Dict, List, Any, Union, Tuple
 from loguru import logger
@@ -53,7 +53,7 @@ class CachedStorage:
         }
         self._cached_count = 0
 
-    def add_operation(self, type_operation: str, new_data: xarray.DataArray, parameters: Dict[str, Any]):
+    def add_operation(self, type_operation: str, new_data: xr.DataArray, parameters: Dict[str, Any]):
         self._cached_count += new_data.sizes[self.dim]
         if type_operation == 'append' and self._cached_operations['store']['new_data']:
             type_operation = 'store'
@@ -69,7 +69,7 @@ class CachedStorage:
             operation = self._cached_operations[type_operation]
             if not operation['new_data']:
                 continue
-            operation['new_data'] = xarray.concat(
+            operation['new_data'] = xr.concat(
                 operation['new_data'],
                 dim=self.dim
             )
@@ -77,17 +77,17 @@ class CachedStorage:
 
         self._clean_cached_operations()
 
-    def read(self, **kwargs) -> xarray.DataArray:
+    def read(self, **kwargs) -> xr.DataArray:
         self.execute_operations()
         return self.storage.read(**kwargs)
 
-    def append(self, new_data: xarray.DataArray, **kwargs):
+    def append(self, new_data: xr.DataArray, **kwargs):
         self.add_operation('append', new_data, kwargs)
 
-    def update(self, new_data: xarray.DataArray, **kwargs):
+    def update(self, new_data: xr.DataArray, **kwargs):
         self.add_operation('update', new_data, kwargs)
 
-    def store(self, new_data: xarray.DataArray, **kwargs):
+    def store(self, new_data: xr.DataArray, **kwargs):
         self._clean_cached_operations()
         self.add_operation('store', new_data, kwargs)
 

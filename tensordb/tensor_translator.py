@@ -1,4 +1,4 @@
-import xarray
+import xarray as xr
 import dask
 import numpy as np
 import itertools
@@ -17,7 +17,7 @@ def defined_translation(
         dtypes: Union[List[Any], Any],
         data_names: List[Hashable] = None,
         func_parameters: Dict[str, Any] = None,
-) -> Union[xarray.DataArray, xarray.Dataset]:
+) -> Union[xr.DataArray, xr.Dataset]:
     """
     Translate any kind of format that allow slice or indexing (ideal for normalized formats like the one used by
     relational databases) to Xarray.
@@ -99,8 +99,8 @@ def defined_translation(
             delayed_func = [dask.delayed(func)(**func_parameters)]
         else:
             delayed_func = dask.delayed(func, nout=len(data_names))(**func_parameters)
-        dataset = xarray.Dataset({
-            name: xarray.DataArray(
+        dataset = xr.Dataset({
+            name: xr.DataArray(
                 dask.array.from_delayed(
                     delayed,
                     shape=shape,
@@ -113,7 +113,7 @@ def defined_translation(
         })
         chunked_arrays.append(dataset)
 
-    dataset = xarray.combine_by_coords(chunked_arrays)
+    dataset = xr.combine_by_coords(chunked_arrays)
     if as_data_array:
         return dataset[data_names[0]]
     return dataset

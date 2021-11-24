@@ -97,6 +97,12 @@
  </a>
 </li>
 
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../tensor_definition.html">
+  Tensor Definition
+ </a>
+</li>
+
     
 </ul>
       </div>
@@ -210,7 +216,7 @@ the necessaries files, folders and metadata for the corresponding tensor. Refere
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>new_data: Union[xarray.DataArray, xarray.Dataset]</strong></dt><dd><p>This is the tensor that is going to be stored, the dtypes supported can change depending on the Storage.</p>
+<dt><strong>new_data: Union[xr.DataArray, xr.Dataset]</strong></dt><dd><p>This is the tensor that is going to be stored, the dtypes supported can change depending on the Storage.</p>
 </dd>
 <dt><strong>**kwargs: Dict</strong></dt><dd><p>Optional parameters for the Storage</p>
 </dd>
@@ -218,7 +224,7 @@ the necessaries files, folders and metadata for the corresponding tensor. Refere
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
-<dt>An xarray.backends.common.AbstractWritableDataStore produced by Xarray</dt><dd></dd>
+<dt>An xr.backends.common.AbstractWritableDataStore produced by Xarray</dt><dd></dd>
 </dl>
 </dd>
 </dl>

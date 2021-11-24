@@ -1,5 +1,5 @@
 import fsspec
-import xarray
+import xarray as xr
 import numpy as np
 import pytest
 
@@ -23,7 +23,7 @@ class TestCachedTensor:
             dim='index'
         )
 
-        self.arr = xarray.DataArray(
+        self.arr = xr.DataArray(
             data=np.array([
                 [1, 2, 7, 4, 5],
                 [np.nan, 3, 5, 5, 6],

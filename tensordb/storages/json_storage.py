@@ -1,4 +1,4 @@
-import xarray
+import xarray as xr
 import orjson
 
 from typing import Dict
@@ -32,7 +32,7 @@ class JsonStorage(BaseStorage):
         d.update(new_data)
         self.store(name=name, new_data=d)
 
-    def read(self, name: str) -> xarray.DataArray:
+    def read(self, name: str) -> xr.DataArray:
         new_name = name.replace('\\', '/').replace('/', self.default_chracter)
         return orjson.loads(self.base_map[new_name])
 

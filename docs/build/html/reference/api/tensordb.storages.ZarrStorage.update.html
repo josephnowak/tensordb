@@ -97,6 +97,12 @@
  </a>
 </li>
 
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../tensor_definition.html">
+  Tensor Definition
+ </a>
+</li>
+
     
 </ul>
       </div>
@@ -206,7 +212,7 @@
 <dt class="sig sig-object py" id="tensordb.storages.ZarrStorage.update">
 <span class="sig-prename descclassname"><span class="pre">ZarrStorage.</span></span><span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">complete_update_dims</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xarray.backends.zarr.ZarrStore</span></span></span><a class="headerlink" href="#tensordb.storages.ZarrStorage.update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Replace data on an existing Zarr files based on the new_data, internally calls the
-<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html">to_zarr method</a> using the
+<a class="reference external" href="http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a> using the
 region parameter, so it automatically create this region based on your new_data, in some
 cases it could even replace all the data in the file even if you only has two coords in your new_data
 this happend due that Xarray only allows to write in contigous blocks (region)
@@ -214,7 +220,7 @@ this happend due that Xarray only allows to write in contigous blocks (region)
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>new_data: Union[xarray.DataArray, xarray.Dataset]</strong></dt><dd><p>This is the data that want</p>
+<dt><strong>new_data: Union[xr.DataArray, xr.Dataset]</strong></dt><dd><p>This is the data that want</p>
 </dd>
 <dt><strong>complete_update_dims: Union[List, str], default = None</strong></dt><dd><p>Modify the coords of your new_data based in the coords of the stored array, basically the dims in the
 complete_update_dims are used to reindex new_data and put NaN whenever there are coords of the original
@@ -224,8 +230,8 @@ array that are not in the coords of new_data.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
-<dt>An xarray.backends.ZarrStore produced by the</dt><dd></dd>
-<dt><a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html">to_zarr method</a></dt><dd></dd>
+<dt>An xr.backends.ZarrStore produced by the</dt><dd></dd>
+<dt><a class="reference external" href="http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a></dt><dd></dd>
 </dl>
 </dd>
 </dl>

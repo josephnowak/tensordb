@@ -94,6 +94,12 @@
  </a>
 </li>
 
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="reference/tensor_definition.html">
+  Tensor Definition
+ </a>
+</li>
+
     
 </ul>
       </div>
@@ -156,7 +162,7 @@
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
- | <a href="#L"><strong>L</strong></a>
+ | <a href="#M"><strong>M</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
@@ -173,6 +179,16 @@
         <li><a href="reference/api/tensordb.storages.CachedStorage.html#tensordb.storages.CachedStorage.__init__">(tensordb.storages.CachedStorage method)</a>
 </li>
         <li><a href="reference/api/tensordb.storages.ZarrStorage.html#tensordb.storages.ZarrStorage.__init__">(tensordb.storages.ZarrStorage method)</a>
+</li>
+        <li><a href="reference/api/tensordb.tensor_definition.DAGOrder.html#tensordb.tensor_definition.DAGOrder.__init__">(tensordb.tensor_definition.DAGOrder method)</a>
+</li>
+        <li><a href="reference/api/tensordb.tensor_definition.Definition.html#tensordb.tensor_definition.Definition.__init__">(tensordb.tensor_definition.Definition method)</a>
+</li>
+        <li><a href="reference/api/tensordb.tensor_definition.MethodDescriptor.html#tensordb.tensor_definition.MethodDescriptor.__init__">(tensordb.tensor_definition.MethodDescriptor method)</a>
+</li>
+        <li><a href="reference/api/tensordb.tensor_definition.StorageDefinition.html#tensordb.tensor_definition.StorageDefinition.__init__">(tensordb.tensor_definition.StorageDefinition method)</a>
+</li>
+        <li><a href="reference/api/tensordb.tensor_definition.TensorDefinition.html#tensordb.tensor_definition.TensorDefinition.__init__">(tensordb.tensor_definition.TensorDefinition method)</a>
 </li>
         <li><a href="reference/api/tensordb.TensorClient.html#tensordb.TensorClient.__init__">(tensordb.TensorClient method)</a>
 </li>
@@ -195,10 +211,6 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.TensorClient.append_ffill.html#tensordb.TensorClient.append_ffill">append_ffill() (tensordb.TensorClient method)</a>
-</li>
-      <li><a href="reference/api/tensordb.TensorClient.append_reindex.html#tensordb.TensorClient.append_reindex">append_reindex() (tensordb.TensorClient method)</a>
-</li>
       <li><a href="reference/api/tensordb.TensorClient.apply_data_transformation.html#tensordb.TensorClient.apply_data_transformation">apply_data_transformation() (tensordb.TensorClient method)</a>
 </li>
   </ul></td>
@@ -229,10 +241,14 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api/tensordb.tensor_definition.DAGOrder.html#tensordb.tensor_definition.DAGOrder">DAGOrder (class in tensordb.tensor_definition)</a>
+</li>
       <li><a href="reference/api/tensordb.tensor_translator.defined_translation.html#tensordb.tensor_translator.defined_translation">defined_translation() (in module tensordb.tensor_translator)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api/tensordb.tensor_definition.Definition.html#tensordb.tensor_definition.Definition">Definition (class in tensordb.tensor_definition)</a>
+</li>
       <li><a href="reference/api/tensordb.TensorClient.delete_tensor.html#tensordb.TensorClient.delete_tensor">delete_tensor() (tensordb.TensorClient method)</a>
 </li>
   </ul></td>
@@ -255,11 +271,7 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.TensorClient.ffill.html#tensordb.TensorClient.ffill">ffill() (tensordb.TensorClient method)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.TensorClient.fillna.html#tensordb.TensorClient.fillna">fillna() (tensordb.TensorClient method)</a>
+      <li><a href="reference/api/tensordb.TensorClient.ffill.html#tensordb.TensorClient.ffill">ffill() (tensordb.TensorClient class method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -278,10 +290,10 @@
   </ul></td>
 </tr></table>
 
-<h2 id="L">L</h2>
+<h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api/tensordb.TensorClient.last_valid_dim.html#tensordb.TensorClient.last_valid_dim">last_valid_dim() (tensordb.TensorClient method)</a>
+      <li><a href="reference/api/tensordb.tensor_definition.MethodDescriptor.html#tensordb.tensor_definition.MethodDescriptor">MethodDescriptor (class in tensordb.tensor_definition)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -289,6 +301,8 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api/tensordb.TensorClient.rank.html#tensordb.TensorClient.rank">rank() (tensordb.TensorClient class method)</a>
+</li>
       <li><a href="reference/api/tensordb.storages.BaseStorage.read.html#tensordb.storages.BaseStorage.read">read() (tensordb.storages.BaseStorage method)</a>
 
       <ul>
@@ -303,8 +317,6 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api/tensordb.TensorClient.read_from_formula.html#tensordb.TensorClient.read_from_formula">read_from_formula() (tensordb.TensorClient method)</a>
 </li>
-      <li><a href="reference/api/tensordb.TensorClient.reindex.html#tensordb.TensorClient.reindex">reindex() (tensordb.TensorClient method)</a>
-</li>
   </ul></td>
 </tr></table>
 
@@ -312,6 +324,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api/tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller">storage_method_caller() (tensordb.TensorClient method)</a>
+</li>
+      <li><a href="reference/api/tensordb.tensor_definition.StorageDefinition.html#tensordb.tensor_definition.StorageDefinition">StorageDefinition (class in tensordb.tensor_definition)</a>
 </li>
       <li><a href="reference/api/tensordb.storages.BaseStorage.store.html#tensordb.storages.BaseStorage.store">store() (tensordb.storages.BaseStorage method)</a>
 
@@ -330,6 +344,10 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api/tensordb.TensorClient.html#tensordb.TensorClient">TensorClient (class in tensordb)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api/tensordb.tensor_definition.TensorDefinition.html#tensordb.tensor_definition.TensorDefinition">TensorDefinition (class in tensordb.tensor_definition)</a>
 </li>
   </ul></td>
 </tr></table>

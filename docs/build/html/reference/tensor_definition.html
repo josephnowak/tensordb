@@ -1,0 +1,276 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Tensor Definition &#8212; TensorDB 0.1 documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet" />
+  <link href="../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tensordb.tensor_definition.StorageDefinition" href="api/tensordb.tensor_definition.StorageDefinition.html" />
+    <link rel="prev" title="tensordb.tensor_translator.defined_translation" href="api/tensordb.tensor_translator.defined_translation.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+  <div id="navbar-start">
+    
+    
+<a class="navbar-brand" href="../index.html">
+<p class="title">TensorDB</p>
+</a>
+
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="tensor_client.html">
+  TensorClient
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="base_storage.html">
+  BaseStorage
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="cached_storage.html">
+  CachedStorage
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="zarr_storage.html">
+  ZarrStorage
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="tensor_translator.html">
+  Tensor Translator
+ </a>
+</li>
+
+<li class="toctree-l1 current active nav-item">
+ <a class="current reference internal nav-link" href="#">
+  Tensor Definition
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    <ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.tensor_definition.StorageDefinition.html">
+   tensordb.tensor_definition.StorageDefinition
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.tensor_definition.DAGOrder.html">
+   tensordb.tensor_definition.DAGOrder
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.tensor_definition.MethodDescriptor.html">
+   tensordb.tensor_definition.MethodDescriptor
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.tensor_definition.Definition.html">
+   tensordb.tensor_definition.Definition
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.tensor_definition.TensorDefinition.html">
+   tensordb.tensor_definition.TensorDefinition
+  </a>
+ </li>
+</ul>
+
+  </div>
+</nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+              
+              <div class="toc-item">
+                
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#definitions">
+   Definitions
+  </a>
+ </li>
+</ul>
+
+</nav>
+              </div>
+              
+              <div class="toc-item">
+                
+              </div>
+              
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <section id="tensor-definition">
+<h1>Tensor Definition<a class="headerlink" href="#tensor-definition" title="Permalink to this headline">¶</a></h1>
+<p>The tensor definition is one of the most important part, due that it allows to modify the default behaviours of
+any tensor using the tensor_client class</p>
+<section id="definitions">
+<h2>Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.StorageDefinition.html#tensordb.tensor_definition.StorageDefinition" title="tensordb.tensor_definition.StorageDefinition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StorageDefinition</span></code></a>(*, storage_name, ] =, …)</p></td>
+<td><p>Definition of the storage of the tensor</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.DAGOrder.html#tensordb.tensor_definition.DAGOrder" title="tensordb.tensor_definition.DAGOrder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DAGOrder</span></code></a>(*, depends)</p></td>
+<td><p>As the tensor has relations between them it is possible to create a DAG that facilities the process of updating everyone of them, so the idea is that this class keep the necessary information for sorting the tensor execution.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.MethodDescriptor.html#tensordb.tensor_definition.MethodDescriptor" title="tensordb.tensor_definition.MethodDescriptor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MethodDescriptor</span></code></a>(*, method, parameters, …)</p></td>
+<td><p>This class is used to indicate the method that want to be transformed during the data_transformation process</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.Definition.html#tensordb.tensor_definition.Definition" title="tensordb.tensor_definition.Definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Definition</span></code></a>(*, data_transformation, …)</p></td>
+<td><p>The definition allows to modify/extend the default behaviour of every method on the tensor_client, this is useful because you can create a pipeline that transform or read your data from other sources.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.TensorDefinition.html#tensordb.tensor_definition.TensorDefinition" title="tensordb.tensor_definition.TensorDefinition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorDefinition</span></code></a>(*, path, definitions, …)</p></td>
+<td><p>The tensor definition is the core of tensordb, it allows to add functionalities to every tensor that are kept over the time, so you don’t have to know before hand how to transform every tensor.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+    <a class='left-prev' id="prev-link" href="api/tensordb.tensor_translator.defined_translation.html" title="previous page">tensordb.tensor_translator.defined_translation</a>
+    <a class='right-next' id="next-link" href="api/tensordb.tensor_definition.StorageDefinition.html" title="next page">tensordb.tensor_definition.StorageDefinition</a>
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+  <script src="../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+  <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright 2021, Joseph Nowak.<br/>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>

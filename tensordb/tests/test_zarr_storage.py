@@ -1,4 +1,4 @@
-import xarray
+import xarray as xr
 import os
 import numpy as np
 import pytest
@@ -31,7 +31,7 @@ class TestZarrStorage:
             data_names=['a', 'b', 'c'],
             chunks={'index': 3, 'columns': 2},
         )
-        self.arr = xarray.DataArray(
+        self.arr = xr.DataArray(
             data=np.array([
                 [1, 2, 7, 4, 5],
                 [2, 3, 5, 5, 6],
@@ -43,7 +43,7 @@ class TestZarrStorage:
             coords={'index': [0, 1, 2, 3, 4], 'columns': [0, 1, 2, 3, 4]},
         )
 
-        self.arr2 = xarray.DataArray(
+        self.arr2 = xr.DataArray(
             data=np.array([
                 [1, 2, 7, 4, 5, 10, 13],
                 [2, 3, 5, 5, 6, 11, 15],
@@ -53,7 +53,7 @@ class TestZarrStorage:
             coords={'index': [6, 7, 8], 'columns': [0, 1, 2, 3, 4, 5, 6]},
         )
 
-        self.arr3 = xarray.DataArray(
+        self.arr3 = xr.DataArray(
             data=np.array([
                 [1, 2, 3, 4, 5],
             ], dtype=float),
@@ -64,7 +64,7 @@ class TestZarrStorage:
         self.arr4 = self.arr.astype(float) + 5
         self.arr5 = self.arr.astype(np.uint) + 3
 
-        self.dataset = xarray.Dataset(
+        self.dataset = xr.Dataset(
             data_vars=dict(
                 a=self.arr,
                 b=self.arr4,
@@ -79,7 +79,7 @@ class TestZarrStorage:
     def test_append_data(self):
         self.storage.delete_tensor()
 
-        total_data = xarray.concat([self.arr, self.arr2], dim='index')
+        total_data = xr.concat([self.arr, self.arr2], dim='index')
 
         for i in range(len(self.arr.index)):
             self.storage.append(self.arr.isel(index=[i]))
@@ -91,7 +91,7 @@ class TestZarrStorage:
     def test_update_data(self):
         self.storage.store(self.arr)
 
-        expected = xarray.concat([
+        expected = xr.concat([
             self.arr.sel(index=slice(0, 1)),
             self.arr.sel(index=slice(2, None)) + 5
         ], dim='index')
@@ -114,7 +114,7 @@ class TestZarrStorage:
 
     def test_update_dataset(self):
         self.storage_dataset.store(self.dataset)
-        expected = xarray.concat([
+        expected = xr.concat([
             self.dataset.sel(index=slice(0, 1)),
             self.dataset.sel(index=slice(2, None)) + 5
         ], dim='index')

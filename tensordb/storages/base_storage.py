@@ -1,5 +1,5 @@
 import pandas as pd
-import xarray
+import xarray as xr
 import itertools
 import zarr
 import numpy as np
@@ -26,7 +26,7 @@ class BaseStorage:
 
     data_names: Union[str, List[str]], default "data"
         Names of the data vars inside your dataset, if the data_names is a str then the system must return an
-        xarray.DataArray when you read it
+        xr.DataArray when you read it
 
     """
 
@@ -63,9 +63,9 @@ class BaseStorage:
     @abstractmethod
     def append(
             self,
-            new_data: Union[xarray.DataArray, xarray.Dataset],
+            new_data: Union[xr.DataArray, xr.Dataset],
             **kwargs
-    ) -> List[xarray.backends.common.AbstractWritableDataStore]:
+    ) -> List[xr.backends.common.AbstractWritableDataStore]:
         """
         This abstracmethod must be overwrited to append new_data to an existing file, the way that it append the data
         will depend of the implementation of the Storage. For example :meth:`ZarrStorage.append`
@@ -73,7 +73,7 @@ class BaseStorage:
 
         Parameters
         ----------
-        new_data: Union[xarray.DataArray, xarray.Dataset]
+        new_data: Union[xr.DataArray, xr.Dataset]
             This is the tensor that is going to be appended to the stored tensor, it must have the same dims.
 
         **kwargs: Dict
@@ -81,7 +81,7 @@ class BaseStorage:
 
         Returns
         -------
-        A list of xarray.backends.common.AbstractWritableDataStore produced by Xarray
+        A list of xr.backends.common.AbstractWritableDataStore produced by Xarray
 
         """
         pass
@@ -89,16 +89,16 @@ class BaseStorage:
     @abstractmethod
     def update(
             self,
-            new_data: Union[xarray.DataArray, xarray.Dataset],
+            new_data: Union[xr.DataArray, xr.Dataset],
             **kwargs
-    ) -> xarray.backends.common.AbstractWritableDataStore:
+    ) -> xr.backends.common.AbstractWritableDataStore:
         """
         This abstracmethod must be overwrited to update new_data to an existing file, so it must not insert any new
         coords, it must only replace elements inside the stored tensor. Reference :meth:`ZarrStorage.update`
 
         Parameters
         ----------
-        new_data: Union[xarray.DataArray, xarray.Dataset]
+        new_data: Union[xr.DataArray, xr.Dataset]
             This is the tensor that is going to be used to update to the stored tensor, it must have the same dims
             and the coords must be subset of the coords of the stored tensor.
 
@@ -107,7 +107,7 @@ class BaseStorage:
 
         Returns
         -------
-        An xarray.backends.common.AbstractWritableDataStore produced by Xarray
+        An xr.backends.common.AbstractWritableDataStore produced by Xarray
 
         """
         pass
@@ -115,16 +115,16 @@ class BaseStorage:
     @abstractmethod
     def store(
             self,
-            new_data: Union[xarray.DataArray, xarray.Dataset],
+            new_data: Union[xr.DataArray, xr.Dataset],
             **kwargs
-    ) -> xarray.backends.common.AbstractWritableDataStore:
+    ) -> xr.backends.common.AbstractWritableDataStore:
         """
         This abstracmethod must be overwrited to store new_data to an existing file, so it must create
         the necessaries files, folders and metadata for the corresponding tensor. Reference :meth:`ZarrStorage.store`
 
         Parameters
         ----------
-        new_data: Union[xarray.DataArray, xarray.Dataset]
+        new_data: Union[xr.DataArray, xr.Dataset]
             This is the tensor that is going to be stored, the dtypes supported can change depending on the Storage.
 
         **kwargs: Dict
@@ -132,23 +132,23 @@ class BaseStorage:
 
         Returns
         -------
-        An xarray.backends.common.AbstractWritableDataStore produced by Xarray
+        An xr.backends.common.AbstractWritableDataStore produced by Xarray
         """
         pass
 
     @abstractmethod
     def upsert(
             self,
-            new_data: Union[xarray.DataArray, xarray.Dataset],
+            new_data: Union[xr.DataArray, xr.Dataset],
             **kwargs
-    ) -> List[xarray.backends.common.AbstractWritableDataStore]:
+    ) -> List[xr.backends.common.AbstractWritableDataStore]:
         """
         This abstracmethod must be overwrited to update and append new_data to an existing file,
         so basically it must be a combination between update and append. Reference :meth:`ZarrStorage.upsert`
 
         Parameters
         ----------
-        new_data: Union[xarray.DataArray, xarray.Dataset]
+        new_data: Union[xr.DataArray, xr.Dataset]
             This is the tensor that is going to be upserted in the stored tensor, it must have the same dims.
 
         **kwargs: Dict
@@ -156,12 +156,12 @@ class BaseStorage:
 
         Returns
         -------
-        A list of xarray.backends.common.AbstractWritableDataStore produced by Xarray
+        A list of xr.backends.common.AbstractWritableDataStore produced by Xarray
         """
         pass
 
     @abstractmethod
-    def read(self, **kwargs) -> Union[xarray.DataArray, xarray.Dataset]:
+    def read(self, **kwargs) -> Union[xr.DataArray, xr.Dataset]:
         """
         This abstracmethod must be overwrited to read an existing file. Reference :meth:`ZarrStorage.read`
 
@@ -172,7 +172,7 @@ class BaseStorage:
 
         Returns
         -------
-        An xarray.DataArray or an xarray.Dataset
+        An xr.DataArray or an xr.Dataset
 
         """
         pass

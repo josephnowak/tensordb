@@ -97,6 +97,12 @@
  </a>
 </li>
 
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../tensor_definition.html">
+  Tensor Definition
+ </a>
+</li>
+
     
 </ul>
       </div>
@@ -210,7 +216,7 @@ so basically it must be a combination between update and append. Reference <a cl
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>new_data: Union[xarray.DataArray, xarray.Dataset]</strong></dt><dd><p>This is the tensor that is going to be upserted in the stored tensor, it must have the same dims.</p>
+<dt><strong>new_data: Union[xr.DataArray, xr.Dataset]</strong></dt><dd><p>This is the tensor that is going to be upserted in the stored tensor, it must have the same dims.</p>
 </dd>
 <dt><strong>**kwargs: Dict</strong></dt><dd><p>Optional parameters for the Storage</p>
 </dd>
@@ -218,7 +224,7 @@ so basically it must be a combination between update and append. Reference <a cl
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
-<dt>A list of xarray.backends.common.AbstractWritableDataStore produced by Xarray</dt><dd></dd>
+<dt>A list of xr.backends.common.AbstractWritableDataStore produced by Xarray</dt><dd></dd>
 </dl>
 </dd>
 </dl>

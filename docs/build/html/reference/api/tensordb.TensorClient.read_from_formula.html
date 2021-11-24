@@ -34,7 +34,7 @@
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="tensordb.TensorClient.append_reindex" href="tensordb.TensorClient.append_reindex.html" />
+    <link rel="next" title="tensordb.TensorClient.ffill" href="tensordb.TensorClient.ffill.html" />
     <link rel="prev" title="tensordb.TensorClient.get_storage" href="tensordb.TensorClient.get_storage.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
@@ -94,6 +94,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../tensor_translator.html">
   Tensor Translator
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../tensor_definition.html">
+  Tensor Definition
  </a>
 </li>
 
@@ -209,33 +215,13 @@
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.append_reindex.html">
-   tensordb.TensorClient.append_reindex
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.reindex.html">
-   tensordb.TensorClient.reindex
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.fillna.html">
-   tensordb.TensorClient.fillna
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.append_ffill.html">
-   tensordb.TensorClient.append_ffill
-  </a>
- </li>
- <li class="toctree-l1">
   <a class="reference internal" href="tensordb.TensorClient.ffill.html">
    tensordb.TensorClient.ffill
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.last_valid_dim.html">
-   tensordb.TensorClient.last_valid_dim
+  <a class="reference internal" href="tensordb.TensorClient.rank.html">
+   tensordb.TensorClient.rank
   </a>
  </li>
 </ul>
@@ -290,7 +276,7 @@ read automatically.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>new_data: xarray.DataArray, optional</strong></dt><dd><p>Sometimes you can use this method in combination with others so you can pass the data that you are
+<dt><strong>new_data: xr.DataArray, optional</strong></dt><dd><p>Sometimes you can use this method in combination with others so you can pass the data that you are
 creating using this parameters (is more for internal use).</p>
 </dd>
 <dt><strong>use_exec: bool = False</strong></dt><dd><p>Indicate if you want to use python exec or eval for the formula.</p>
@@ -302,32 +288,39 @@ or values.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
-<dt>An xarray.DataArray object created from the formula.</dt><dd></dd>
+<dt>An xr.DataArray object created from the formula.</dt><dd></dd>
 </dl>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
 <dl>
-<dt>Reading a tensor directly from a formula, all this is lazy evaluated:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Creating a new tensor definition using an &#39;on the fly&#39; formula</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">add_definition</span><span class="p">(</span>
-<span class="gp">... </span>    <span class="n">definition_id</span><span class="o">=</span><span class="s1">&#39;tensor_formula_on_the_fly&#39;</span><span class="p">,</span>
-<span class="gp">... </span>    <span class="n">new_data</span><span class="o">=</span><span class="p">{</span>
-<span class="gp">... </span>        <span class="s1">&#39;read&#39;</span><span class="p">:</span> <span class="p">{</span>
-<span class="gp">... </span>            <span class="c1"># Read the section reserved Keywords</span>
-<span class="gp">... </span>            <span class="s1">&#39;substitute_method&#39;</span><span class="p">:</span> <span class="s1">&#39;read_from_formula&#39;</span><span class="p">,</span>
-<span class="gp">... </span>        <span class="p">},</span>
-<span class="gp">... </span>        <span class="s1">&#39;read_from_formula&#39;</span><span class="p">:</span> <span class="p">{</span>
-<span class="gp">... </span>            <span class="s1">&#39;formula&#39;</span><span class="p">:</span> <span class="s1">&#39;`tensor1` + 1 + `tensor1` * 10&#39;</span>
-<span class="gp">... </span>        <span class="p">}</span>
-<span class="gp">... </span>    <span class="p">}</span>
-<span class="gp">... </span><span class="p">)</span>
+<dt>Reading a tensor directly from a formula, all this is lazy evaluated:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">fsspec</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tensordb</span> <span class="kn">import</span> <span class="n">TensorClient</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tensordb</span> <span class="kn">import</span> <span class="n">tensor_definition</span>
 <span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># create a new empty tensor, you must always call this method to start using the tensor.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;tensor_formula_on_the_fly&#39;</span><span class="p">,</span> <span class="n">definition</span><span class="o">=</span><span class="s1">&#39;tensor_formula_on_the_fly&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span> <span class="o">=</span> <span class="n">TensorClient</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">base_map</span><span class="o">=</span><span class="n">fsspec</span><span class="o">.</span><span class="n">get_mapper</span><span class="p">(</span><span class="s1">&#39;test_db&#39;</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">synchronizer</span><span class="o">=</span><span class="s1">&#39;thread&#39;</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Creating a new tensor definition using an &#39;on the fly&#39; formula</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">tensor_definition</span><span class="o">.</span><span class="n">TensorDefinition</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">path</span><span class="o">=</span><span class="s1">&#39;tensor_formula_on_the_fly&#39;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">definition</span><span class="o">=</span><span class="p">{</span>
+<span class="gp">... </span>            <span class="s1">&#39;read&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="gp">... </span>                <span class="c1"># Read the section reserved Keywords</span>
+<span class="gp">... </span>                <span class="s1">&#39;substitute_method&#39;</span><span class="p">:</span> <span class="s1">&#39;read_from_formula&#39;</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="p">},</span>
+<span class="gp">... </span>            <span class="s1">&#39;read_from_formula&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="gp">... </span>                <span class="s1">&#39;formula&#39;</span><span class="p">:</span> <span class="s1">&#39;`tensor1` + 1 + `tensor1` * 10&#39;</span>
+<span class="gp">... </span>            <span class="p">}</span>
+<span class="gp">... </span>        <span class="p">}</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">... </span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Now we don&#39;t need to call the store method when we want to read our tensor</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># the good part is that everything is still lazy</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;tensor_formula_on_the_fly&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;tensor_formula_on_the_fly&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
 <span class="go">&lt;xarray.DataArray &#39;data&#39; (index: 3, columns: 3)&gt;</span>
 <span class="go">array([[1., 1., 1.],</span>
 <span class="go">       [1., 1., 1.],</span>
@@ -352,7 +345,7 @@ constructor section in <cite>TensorClient</cite></p>
               <div class='prev-next-bottom'>
                 
     <a class='left-prev' id="prev-link" href="tensordb.TensorClient.get_storage.html" title="previous page">tensordb.TensorClient.get_storage</a>
-    <a class='right-next' id="next-link" href="tensordb.TensorClient.append_reindex.html" title="next page">tensordb.TensorClient.append_reindex</a>
+    <a class='right-next' id="next-link" href="tensordb.TensorClient.ffill.html" title="next page">tensordb.TensorClient.ffill</a>
 
               </div>
               

@@ -97,6 +97,12 @@
  </a>
 </li>
 
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../tensor_definition.html">
+  Tensor Definition
+ </a>
+</li>
+
     
 </ul>
       </div>
@@ -209,33 +215,13 @@
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.append_reindex.html">
-   tensordb.TensorClient.append_reindex
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.reindex.html">
-   tensordb.TensorClient.reindex
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.fillna.html">
-   tensordb.TensorClient.fillna
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.append_ffill.html">
-   tensordb.TensorClient.append_ffill
-  </a>
- </li>
- <li class="toctree-l1">
   <a class="reference internal" href="tensordb.TensorClient.ffill.html">
    tensordb.TensorClient.ffill
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.last_valid_dim.html">
-   tensordb.TensorClient.last_valid_dim
+  <a class="reference internal" href="tensordb.TensorClient.rank.html">
+   tensordb.TensorClient.rank
   </a>
  </li>
 </ul>
@@ -278,15 +264,12 @@
 <h1>tensordb.TensorClient.get_storage<a class="headerlink" href="#tensordb-tensorclient-get-storage" title="Permalink to this headline">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="tensordb.TensorClient.get_storage">
-<span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">get_storage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">definition</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="tensordb.storages.BaseStorage.html#tensordb.storages.BaseStorage" title="tensordb.storages.base_storage.BaseStorage"><span class="pre">tensordb.storages.base_storage.BaseStorage</span></a></span></span><a class="headerlink" href="#tensordb.TensorClient.get_storage" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">get_storage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="tensordb.tensor_definition.TensorDefinition.html#tensordb.tensor_definition.TensorDefinition" title="tensordb.tensor_definition.TensorDefinition"><span class="pre">tensordb.tensor_definition.TensorDefinition</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="tensordb.storages.BaseStorage.html#tensordb.storages.BaseStorage" title="tensordb.storages.base_storage.BaseStorage"><span class="pre">tensordb.storages.base_storage.BaseStorage</span></a></span></span><a class="headerlink" href="#tensordb.TensorClient.get_storage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the storage of the tensor, by default it try to read the stored definition of the tensor.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>path: str</strong></dt><dd><p>Location of your stored tensor.</p>
-</dd>
-<dt><strong>definition: Optiona[Dict]</strong></dt><dd><p>Definition for instance the storage, by default this method try to get the definition previously stored
-for the tensor with the create_tensor method</p>
+<dt><strong>path: Union[str, TensorDefinition]</strong></dt><dd><p>Location of your stored tensor or a <cite>TensorDefinition</cite></p>
 </dd>
 </dl>
 </dd>

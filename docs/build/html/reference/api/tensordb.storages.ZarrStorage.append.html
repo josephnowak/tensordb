@@ -97,6 +97,12 @@
  </a>
 </li>
 
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../tensor_definition.html">
+  Tensor Definition
+ </a>
+</li>
+
     
 </ul>
       </div>
@@ -207,19 +213,19 @@
 <span class="sig-prename descclassname"><span class="pre">ZarrStorage.</span></span><span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.backends.zarr.ZarrStore</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tensordb.storages.ZarrStorage.append" title="Permalink to this definition">¶</a></dt>
 <dd><p>Append data at the end of a Zarr file (in case that the file does not exist it will call the store method),
 internally it calls the
-<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html">to_zarr method</a>
+<a class="reference external" href="http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a>
 for every dimension of your data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>new_data: Union[xarray.DataArray, xarray.Dataset]</strong></dt><dd><p>This is the data that want to be appended at the end</p>
+<dt><strong>new_data: Union[xr.DataArray, xr.Dataset]</strong></dt><dd><p>This is the data that want to be appended at the end</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
-<dt>A list of xarray.backends.ZarrStore produced by the</dt><dd></dd>
-<dt><a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html">to_zarr method</a></dt><dd></dd>
+<dt>A list of xr.backends.ZarrStore produced by the</dt><dd></dd>
+<dt><a class="reference external" href="http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a></dt><dd></dd>
 <dt>method executed in every dimension</dt><dd></dd>
 </dl>
 </dd>
