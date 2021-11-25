@@ -79,8 +79,8 @@ class Definition(BaseModel):
 
     """
 
-    data_transformation: Optional[List[MethodDescriptor]]
-    substitute_method: Optional[str]
+    data_transformation: Optional[List[MethodDescriptor]] = None
+    substitute_method: Optional[str] = None
 
     class Config:
         extra = Extra.allow
@@ -112,10 +112,10 @@ class TensorDefinition(BaseModel):
     """
 
     path: str
-    definition: Dict[str, Definition]
+    definition: Optional[Dict[str, Definition]] = {}
     dag: Optional[DAGOrder]
     storage: Optional[StorageDefinition] = StorageDefinition()
-    metadata: Optional[Dict]
+    metadata: Optional[Dict] = {}
 
     def __hash__(self):
         return hash(self.path)
