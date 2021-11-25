@@ -48,9 +48,5 @@ Tensor Calculation Methods
    :toctree: api/
 
     TensorClient.read_from_formula
-    TensorClient.append_reindex
-    TensorClient.reindex
-    TensorClient.fillna
-    TensorClient.append_ffill
     TensorClient.ffill
-    TensorClient.last_valid_dim
+    TensorClient.rank

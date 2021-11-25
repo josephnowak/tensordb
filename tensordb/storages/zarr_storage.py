@@ -1,6 +1,6 @@
 import os
 import fsspec
-import xarray
+import xarray as xr
 import numpy as np
 import orjson
 import zarr
@@ -21,13 +21,13 @@ class ZarrStorage(BaseStorage):
 
     chunks: Dict[str, int], default None
         Define the chunks of the Zarr files, read the doc of the Xarray method
-        `to_zarr <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+        `to_zarr <http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         in the parameter 'chunks' for more details.
 
     synchronizer: {'thread', 'process'}, default None
         Depending on the option send it will create a zarr.sync.ThreadSynchronizer or a zarr.sync.ProcessSynchronizer
         for more info read the doc of `Zarr synchronizer <https://zarr.readthedocs.io/en/stable/api/sync.html>`_
-        and the Xarray `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+        and the Xarray `to_zarr method <http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         in the parameter 'synchronizer'.
 
 
@@ -54,27 +54,27 @@ class ZarrStorage(BaseStorage):
 
     def store(
             self,
-            new_data: Union[xarray.DataArray, xarray.Dataset],
+            new_data: Union[xr.DataArray, xr.Dataset],
             compute: bool = True,
-    ) -> xarray.backends.ZarrStore:
+    ) -> xr.backends.ZarrStore:
 
         """
         Store the data, the dtype and all the details will depend of what you pass in the new_data
         parameter, internally this method calls the
-        `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+        `to_zarr method <http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         with a 'w' mode using that data.
 
         Parameters
         ----------
 
-        new_data: Union[xarray.DataArray, xarray.Dataset]
+        new_data: Union[xr.DataArray, xr.Dataset]
             This is the data that want to be stored
 
         Returns
         -------
 
-        An xarray.backends.ZarrStore produced by the
-        `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+        An xr.backends.ZarrStore produced by the
+        `to_zarr method <http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
 
         """
         new_data = self._transform_to_dataset(new_data)
@@ -90,27 +90,27 @@ class ZarrStorage(BaseStorage):
 
     def append(
             self,
-            new_data: Union[xarray.DataArray, xarray.Dataset],
+            new_data: Union[xr.DataArray, xr.Dataset],
             compute: bool = True,
-    ) -> List[xarray.backends.ZarrStore]:
+    ) -> List[xr.backends.ZarrStore]:
 
         """
         Append data at the end of a Zarr file (in case that the file does not exist it will call the store method),
         internally it calls the
-        `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+        `to_zarr method <http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         for every dimension of your data.
 
         Parameters
         ----------
 
-        new_data: Union[xarray.DataArray, xarray.Dataset]
+        new_data: Union[xr.DataArray, xr.Dataset]
             This is the data that want to be appended at the end
 
         Returns
         -------
 
-        A list of xarray.backends.ZarrStore produced by the
-        `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+        A list of xr.backends.ZarrStore produced by the
+        `to_zarr method <http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         method executed in every dimension
 
         """
@@ -147,13 +147,13 @@ class ZarrStorage(BaseStorage):
 
     def update(
             self,
-            new_data: Union[xarray.DataArray, xarray.Dataset],
+            new_data: Union[xr.DataArray, xr.Dataset],
             compute: bool = True,
             complete_update_dims: Union[List[str], str] = None,
-    ) -> xarray.backends.ZarrStore:
+    ) -> xr.backends.ZarrStore:
         """
         Replace data on an existing Zarr files based on the new_data, internally calls the
-        `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_ using the
+        `to_zarr method <http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_ using the
         region parameter, so it automatically create this region based on your new_data, in some
         cases it could even replace all the data in the file even if you only has two coords in your new_data
         this happend due that Xarray only allows to write in contigous blocks (region)
@@ -162,7 +162,7 @@ class ZarrStorage(BaseStorage):
         Parameters
         ----------
 
-        new_data: Union[xarray.DataArray, xarray.Dataset]
+        new_data: Union[xr.DataArray, xr.Dataset]
             This is the data that want
 
         complete_update_dims: Union[List, str], default = None
@@ -173,8 +173,8 @@ class ZarrStorage(BaseStorage):
         Returns
         -------
 
-        An xarray.backends.ZarrStore produced by the
-        `to_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+        An xr.backends.ZarrStore produced by the
+        `to_zarr method <http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         """
 
         act_data = self._transform_to_dataset(self.read(), chunk_data=False)
@@ -211,16 +211,16 @@ class ZarrStorage(BaseStorage):
 
     def upsert(
             self,
-            new_data: Union[xarray.DataArray, xarray.Dataset],
+            new_data: Union[xr.DataArray, xr.Dataset],
             compute: bool = True,
             complete_update_dims: Union[List[str], str] = None,
-    ) -> List[xarray.backends.ZarrStore]:
+    ) -> List[xr.backends.ZarrStore]:
         """
         Calls the update and then the append method
 
         Returns
         -------
-        A list of xarray.backends.ZarrStore produced by the append and update methods
+        A list of xr.backends.ZarrStore produced by the append and update methods
 
         """
         delayed_writes = [
@@ -231,10 +231,10 @@ class ZarrStorage(BaseStorage):
         )
         return delayed_writes
 
-    def read(self) -> Union[xarray.DataArray, xarray.Dataset]:
+    def read(self) -> Union[xr.DataArray, xr.Dataset]:
         """
         Read a tensor stored, internally it use
-        `open_zarr method <http://xarray.pydata.org/en/stable/generated/xarray.open_zarr.html>`_.
+        `open_zarr method <http://xr.pydata.org/en/stable/generated/xr.open_zarr.html>`_.
 
         Parameters
         ----------
@@ -242,12 +242,12 @@ class ZarrStorage(BaseStorage):
         Returns
         -------
 
-        An xarray.DataArray or xarray.Dataset that allow to read your tensor, that is the same result that you get with
-        `open_zarr <http://xarray.pydata.org/en/stable/generated/xarray.open_zarr.html>`_ and then using the '[]'
+        An xr.DataArray or xr.Dataset that allow to read your tensor, that is the same result that you get with
+        `open_zarr <http://xr.pydata.org/en/stable/generated/xr.open_zarr.html>`_ and then using the '[]'
         with some names or a name
         """
 
-        arr = xarray.open_zarr(
+        arr = xr.open_zarr(
             self.base_map,
             consolidated=True,
             synchronizer=self.synchronizer,
@@ -255,14 +255,14 @@ class ZarrStorage(BaseStorage):
         )
         return arr[self.data_names]
 
-    def _transform_to_dataset(self, new_data, chunk_data: bool = True) -> xarray.Dataset:
-        if isinstance(new_data, xarray.Dataset):
+    def _transform_to_dataset(self, new_data, chunk_data: bool = True) -> xr.Dataset:
+        if isinstance(new_data, xr.Dataset):
             new_data = new_data[self.data_names]
         else:
-            if isinstance(new_data, xarray.DataArray) and isinstance(self.data_names, list):
+            if isinstance(new_data, xr.DataArray) and isinstance(self.data_names, list):
                 raise ValueError(
                     f'The expected number of data vars is {len(self.data_names)} '
-                    f'and the new_data has only one (it is an xarray.DataArray)'
+                    f'and the new_data has only one (it is an xr.DataArray)'
                 )
             new_data = new_data.to_dataset(name=self.data_names)
 

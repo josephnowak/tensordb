@@ -97,6 +97,12 @@
  </a>
 </li>
 
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../tensor_definition.html">
+  Tensor Definition
+ </a>
+</li>
+
     
 </ul>
       </div>
@@ -209,33 +215,13 @@
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.append_reindex.html">
-   tensordb.TensorClient.append_reindex
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.reindex.html">
-   tensordb.TensorClient.reindex
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.fillna.html">
-   tensordb.TensorClient.fillna
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.append_ffill.html">
-   tensordb.TensorClient.append_ffill
-  </a>
- </li>
- <li class="toctree-l1">
   <a class="reference internal" href="tensordb.TensorClient.ffill.html">
    tensordb.TensorClient.ffill
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.last_valid_dim.html">
-   tensordb.TensorClient.last_valid_dim
+  <a class="reference internal" href="tensordb.TensorClient.rank.html">
+   tensordb.TensorClient.rank
   </a>
  </li>
 </ul>
@@ -278,47 +264,12 @@
 <h1>tensordb.TensorClient.create_tensor<a class="headerlink" href="#tensordb-tensorclient-create-tensor" title="Permalink to this headline">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="tensordb.TensorClient.create_tensor">
-<span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">create_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">definition</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.TensorClient.create_tensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create the path and the first file of the tensor which store the necessary metadata to use it,
-this method must always be called before start to write in the tensor.</p>
-<dl class="field-list">
+<span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">create_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">definition</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="tensordb.tensor_definition.TensorDefinition.html#tensordb.tensor_definition.TensorDefinition" title="tensordb.tensor_definition.TensorDefinition"><span class="pre">tensordb.tensor_definition.TensorDefinition</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.TensorClient.create_tensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store the definition of tensor, which is equivalent to the creation of the tensor but without data</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl>
-<dt><strong>path: str</strong></dt><dd><p>Indicate the location where your tensor is going to be allocated.</p>
-</dd>
-<dt><strong>definition: str, Dict</strong></dt><dd><p>Inside the definition you can store any kind of metadata or use the reserved keywords detailed below:</p>
-<blockquote>
-<div><p>storage: This key is used to personalize the Storage used for the tensor,
-inside it you can use the next reserved keywords (or use any other parameter of the storage):</p>
-<blockquote>
-<div><p>1. storage_name: Here you put the name of your storage (default zarr_storage), you can see
-all the names in the variable MAPPING_STORAGES.</p>
-</div></blockquote>
-<p>You can personalize the way that any Storage method is used specifying it in the definition,
-this is basically add a key with the name of the method and inside of it you can add any kind of parameters,
-but there are some reserved words that are used by the Tensorclient to add specific functionalities,
-these are described below:</p>
-<blockquote>
-<div><ol class="arabic simple">
-<li><dl class="simple">
-<dt>data_transformation:</dt><dd><p>Receive a list where every position can be a name of a method of the client or the storage or
-a list containing two elements, the first is the name of the method and the second the parameters
-of the method that you want to sent</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>substitute_method:</dt><dd><p>Modify the method called, this is useful if you want to overwrite the defaults
-methods of storage, read, etc for some specific tensors, this is normally used when you want to read
-a tensor on the fly with a formula.</p>
-</dd>
-</dl>
-</li>
-</ol>
-</div></blockquote>
-</div></blockquote>
-</dd>
-<dt><strong>See Also:</strong></dt><dd><p>If you want to personalize any method of your Storage read the <cite>TensorClient.storage_method_caller</cite> doc</p>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>definition: TensorDefinition</strong></dt><dd><p>Read the docs of the <cite>TensorDefinition</cite> class for more info of the definition.</p>
 </dd>
 </dl>
 </dd>

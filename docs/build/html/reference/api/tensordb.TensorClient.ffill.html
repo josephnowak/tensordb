@@ -34,8 +34,8 @@
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="tensordb.TensorClient.last_valid_dim" href="tensordb.TensorClient.last_valid_dim.html" />
-    <link rel="prev" title="tensordb.TensorClient.append_ffill" href="tensordb.TensorClient.append_ffill.html" />
+    <link rel="next" title="tensordb.TensorClient.rank" href="tensordb.TensorClient.rank.html" />
+    <link rel="prev" title="tensordb.TensorClient.read_from_formula" href="tensordb.TensorClient.read_from_formula.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
     
@@ -94,6 +94,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../tensor_translator.html">
   Tensor Translator
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../tensor_definition.html">
+  Tensor Definition
  </a>
 </li>
 
@@ -208,34 +214,14 @@
    tensordb.TensorClient.read_from_formula
   </a>
  </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.append_reindex.html">
-   tensordb.TensorClient.append_reindex
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.reindex.html">
-   tensordb.TensorClient.reindex
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.fillna.html">
-   tensordb.TensorClient.fillna
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.append_ffill.html">
-   tensordb.TensorClient.append_ffill
-  </a>
- </li>
  <li class="toctree-l1 current active">
   <a class="current reference internal" href="#">
    tensordb.TensorClient.ffill
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.last_valid_dim.html">
-   tensordb.TensorClient.last_valid_dim
+  <a class="reference internal" href="tensordb.TensorClient.rank.html">
+   tensordb.TensorClient.rank
   </a>
  </li>
 </ul>
@@ -278,7 +264,7 @@
 <h1>tensordb.TensorClient.ffill<a class="headerlink" href="#tensordb-tensorclient-ffill" title="Permalink to this headline">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="tensordb.TensorClient.ffill">
-<span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">ffill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">xarray.core.dataarray.DataArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.TensorClient.ffill" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">ffill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">xarray.core.dataarray.DataArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">until_last_valid</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.TensorClient.ffill" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </section>
@@ -289,8 +275,8 @@
               
               <div class='prev-next-bottom'>
                 
-    <a class='left-prev' id="prev-link" href="tensordb.TensorClient.append_ffill.html" title="previous page">tensordb.TensorClient.append_ffill</a>
-    <a class='right-next' id="next-link" href="tensordb.TensorClient.last_valid_dim.html" title="next page">tensordb.TensorClient.last_valid_dim</a>
+    <a class='left-prev' id="prev-link" href="tensordb.TensorClient.read_from_formula.html" title="previous page">tensordb.TensorClient.read_from_formula</a>
+    <a class='right-next' id="next-link" href="tensordb.TensorClient.rank.html" title="next page">tensordb.TensorClient.rank</a>
 
               </div>
               

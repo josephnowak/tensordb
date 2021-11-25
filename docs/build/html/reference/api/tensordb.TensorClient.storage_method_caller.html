@@ -97,6 +97,12 @@
  </a>
 </li>
 
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../tensor_definition.html">
+  Tensor Definition
+ </a>
+</li>
+
     
 </ul>
       </div>
@@ -209,33 +215,13 @@
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.append_reindex.html">
-   tensordb.TensorClient.append_reindex
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.reindex.html">
-   tensordb.TensorClient.reindex
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.fillna.html">
-   tensordb.TensorClient.fillna
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.append_ffill.html">
-   tensordb.TensorClient.append_ffill
-  </a>
- </li>
- <li class="toctree-l1">
   <a class="reference internal" href="tensordb.TensorClient.ffill.html">
    tensordb.TensorClient.ffill
   </a>
  </li>
  <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.last_valid_dim.html">
-   tensordb.TensorClient.last_valid_dim
+  <a class="reference internal" href="tensordb.TensorClient.rank.html">
+   tensordb.TensorClient.rank
   </a>
  </li>
 </ul>
@@ -278,10 +264,10 @@
 <h1>tensordb.TensorClient.storage_method_caller<a class="headerlink" href="#tensordb-tensorclient-storage-method-caller" title="Permalink to this headline">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="tensordb.TensorClient.storage_method_caller">
-<span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">storage_method_caller</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#tensordb.TensorClient.storage_method_caller" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">storage_method_caller</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="tensordb.tensor_definition.TensorDefinition.html#tensordb.tensor_definition.TensorDefinition" title="tensordb.tensor_definition.TensorDefinition"><span class="pre">tensordb.tensor_definition.TensorDefinition</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#tensordb.TensorClient.storage_method_caller" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calls an specific method of a Storage, this include send the parameters specified in the tensor_definition
 or modifying the behaviour of the method based in your tensor_definition
-(read <code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.add_definition()</span></code> for more info of how to personalize your method).</p>
+(read <code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorDefinition()</span></code> for more info of how to personalize your method).</p>
 <p>If you want to know the specific behaviour of the method that you are using,
 please read the specific documentation of the Storage that you are using or read <cite>BaseStorage</cite> .</p>
 <dl class="field-list simple">

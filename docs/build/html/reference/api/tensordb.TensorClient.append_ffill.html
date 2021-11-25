@@ -34,8 +34,6 @@
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="tensordb.TensorClient.ffill" href="tensordb.TensorClient.ffill.html" />
-    <link rel="prev" title="tensordb.TensorClient.fillna" href="tensordb.TensorClient.fillna.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
     
@@ -67,7 +65,7 @@
       
       <div class="navbar-center-item">
         <ul id="navbar-main-elements" class="navbar-nav">
-    <li class="toctree-l1 current active nav-item">
+    <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../tensor_client.html">
   TensorClient
  </a>
@@ -94,6 +92,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../tensor_translator.html">
   Tensor Translator
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../tensor_definition.html">
+  Tensor Definition
  </a>
 </li>
 
@@ -126,120 +130,7 @@
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
   <div class="bd-toc-item active">
-    <ul class="nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.html">
-   tensordb.TensorClient
-  </a>
- </li>
-</ul>
-<ul class="nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.create_tensor.html">
-   tensordb.TensorClient.create_tensor
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.get_tensor_definition.html">
-   tensordb.TensorClient.get_tensor_definition
-  </a>
- </li>
-</ul>
-<ul class="nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html">
-   tensordb.TensorClient.storage_method_caller
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.read.html">
-   tensordb.TensorClient.read
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.store.html">
-   tensordb.TensorClient.store
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.append.html">
-   tensordb.TensorClient.append
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.update.html">
-   tensordb.TensorClient.update
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.upsert.html">
-   tensordb.TensorClient.upsert
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.delete_tensor.html">
-   tensordb.TensorClient.delete_tensor
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.exist.html">
-   tensordb.TensorClient.exist
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.get_cached_storage.html">
-   tensordb.TensorClient.get_cached_storage
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.apply_data_transformation.html">
-   tensordb.TensorClient.apply_data_transformation
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.get_storage.html">
-   tensordb.TensorClient.get_storage
-  </a>
- </li>
-</ul>
-<ul class="current nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.read_from_formula.html">
-   tensordb.TensorClient.read_from_formula
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.append_reindex.html">
-   tensordb.TensorClient.append_reindex
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.reindex.html">
-   tensordb.TensorClient.reindex
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.fillna.html">
-   tensordb.TensorClient.fillna
-  </a>
- </li>
- <li class="toctree-l1 current active">
-  <a class="current reference internal" href="#">
-   tensordb.TensorClient.append_ffill
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.ffill.html">
-   tensordb.TensorClient.ffill
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.last_valid_dim.html">
-   tensordb.TensorClient.last_valid_dim
-  </a>
- </li>
-</ul>
-
+    
   </div>
 </nav>
             </div>
@@ -276,11 +167,6 @@
                 
   <section id="tensordb-tensorclient-append-ffill">
 <h1>tensordb.TensorClient.append_ffill<a class="headerlink" href="#tensordb-tensorclient-append-ffill" title="Permalink to this headline">¶</a></h1>
-<dl class="py method">
-<dt class="sig sig-object py" id="tensordb.TensorClient.append_ffill">
-<span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">append_ffill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">storage</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="tensordb.storages.BaseStorage.html#tensordb.storages.BaseStorage" title="tensordb.storages.base_storage.BaseStorage"><span class="pre">tensordb.storages.base_storage.BaseStorage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">xarray.core.dataarray.DataArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remote</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tensordb.TensorClient.append_ffill" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </section>
 
 
@@ -289,8 +175,6 @@
               
               <div class='prev-next-bottom'>
                 
-    <a class='left-prev' id="prev-link" href="tensordb.TensorClient.fillna.html" title="previous page">tensordb.TensorClient.fillna</a>
-    <a class='right-next' id="next-link" href="tensordb.TensorClient.ffill.html" title="next page">tensordb.TensorClient.ffill</a>
 
               </div>
               

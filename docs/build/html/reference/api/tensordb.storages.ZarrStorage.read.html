@@ -97,6 +97,12 @@
  </a>
 </li>
 
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../tensor_definition.html">
+  Tensor Definition
+ </a>
+</li>
+
     
 </ul>
       </div>
@@ -206,12 +212,12 @@
 <dt class="sig sig-object py" id="tensordb.storages.ZarrStorage.read">
 <span class="sig-prename descclassname"><span class="pre">ZarrStorage.</span></span><span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tensordb.storages.ZarrStorage.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read a tensor stored, internally it use
-<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.open_zarr.html">open_zarr method</a>.</p>
+<a class="reference external" href="http://xr.pydata.org/en/stable/generated/xr.open_zarr.html">open_zarr method</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><dl class="simple">
-<dt>An xarray.DataArray or xarray.Dataset that allow to read your tensor, that is the same result that you get with</dt><dd></dd>
-<dt><a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.open_zarr.html">open_zarr</a> and then using the ‘[]’</dt><dd></dd>
+<dt>An xr.DataArray or xr.Dataset that allow to read your tensor, that is the same result that you get with</dt><dd></dd>
+<dt><a class="reference external" href="http://xr.pydata.org/en/stable/generated/xr.open_zarr.html">open_zarr</a> and then using the ‘[]’</dt><dd></dd>
 <dt>with some names or a name</dt><dd></dd>
 </dl>
 </dd>

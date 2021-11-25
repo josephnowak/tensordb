@@ -1,4 +1,4 @@
-import xarray
+import xarray as xr
 import os
 import numpy as np
 import pytest
@@ -16,21 +16,21 @@ class TestTensorTranslation:
 
     @pytest.fixture(autouse=True)
     def setup_tests(self):
-        self.data_array = xarray.DataArray(
+        self.data_array = xr.DataArray(
             np.arange(56).reshape((7, 8)).astype(np.float64),
             dims=['a', 'b'],
             coords={'a': list(range(7)), 'b': list(range(8))}
         )
-        self.dataset = xarray.Dataset(
+        self.dataset = xr.Dataset(
             {'first': self.data_array, 'second': self.data_array + 10}
         )
 
     @staticmethod
-    def read_by_coords(data: xarray.DataArray, coords) -> xarray.DataArray:
+    def read_by_coords(data: xr.DataArray, coords) -> xr.DataArray:
         return data.sel(**coords)
 
     @staticmethod
-    def read_by_coords_dataset(dataset: xarray.Dataset, coords) -> List[xarray.DataArray]:
+    def read_by_coords_dataset(dataset: xr.Dataset, coords) -> List[xr.DataArray]:
         return [dataset[name].sel(**coords) for name in ['first', 'second']]
 
     def test_defined_translation_data_array(self):
