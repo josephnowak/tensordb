@@ -1,5 +1,6 @@
 import xarray as xr
 import numpy as np
+import dask
 
 from typing import Dict, List, Any, Union, Tuple, Literal
 from collections.abc import MutableMapping
@@ -7,7 +8,6 @@ from collections.abc import MutableMapping
 from pandas import Timestamp
 from loguru import logger
 from pydantic import validate_arguments
-from dask.distributed import Client, wait
 
 from tensordb.storages import (
     BaseStorage,
@@ -270,9 +270,10 @@ class TensorClient:
 
     def exec_on_dag_order(
             self,
-            client: Client,
             method: Literal['append', 'update', 'store', 'upsert'],
             tensors_path: List[str] = None,
+            client: dask.distributed.Client = None,
+            groups: List[str] = None,
             **kwargs
     ):
         if tensors_path is None:
@@ -280,12 +281,21 @@ class TensorClient:
         else:
             tensors = [self.get_tensor_definition(path) for path in tensors_path]
 
+        if groups is not None:
+            tensors = [
+                tensor for tensor in tensors
+                if tensor.dag.groups is None or set(tensor.dag.groups) & set(groups)
+            ]
+
         for level in dag.get_tensor_dag(tensors):
             futures = [
                 getattr(self, method)(path=tensor.path, compute=False, **kwargs)
                 for tensor in level
             ]
-            client.compute(futures, sync=True)
+            if client is None:
+                dask.compute(*futures, sync=True)
+            else:
+                client.compute(futures, sync=True)
 
     def apply_data_transformation(
             self,
