@@ -240,10 +240,7 @@ class TestTensorClient:
         for definition in definitions:
             self.tensor_client.create_tensor(definition)
 
-        client = Client()
-
         self.tensor_client.exec_on_dag_order(
-            client=client,
             method='store'
         )
         assert self.tensor_client.read('0').equals(self.arr)
