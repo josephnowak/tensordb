@@ -19,6 +19,7 @@
       ~TensorClient.create_tensor
       ~TensorClient.customize_storage_method
       ~TensorClient.delete_tensor
+      ~TensorClient.exec_on_dag_order
       ~TensorClient.exist
       ~TensorClient.ffill
       ~TensorClient.get_all_tensors_definition
@@ -28,9 +29,9 @@
       ~TensorClient.rank
       ~TensorClient.read
       ~TensorClient.read_from_formula
+      ~TensorClient.shift_on_valids
       ~TensorClient.storage_method_caller
       ~TensorClient.store
-      ~TensorClient.tensor_dag
       ~TensorClient.update
       ~TensorClient.upsert
    

@@ -36,5 +36,6 @@
    .. autosummary::
    
       ~DAGOrder.depends
+      ~DAGOrder.group
    
    
