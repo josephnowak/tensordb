@@ -271,25 +271,23 @@ class TensorClient:
     def exec_on_dag_order(
             self,
             method: Literal['append', 'update', 'store', 'upsert'],
+            kwargs_groups: Dict[str, Dict[str, Any]] = None,
             tensors_path: List[str] = None,
             client: dask.distributed.Client = None,
-            groups: List[str] = None,
-            **kwargs
     ):
+        kwargs_groups = {} if kwargs_groups is None else kwargs_groups
         if tensors_path is None:
             tensors = [tensor for tensor in self.get_all_tensors_definition() if tensor.dag is not None]
         else:
             tensors = [self.get_tensor_definition(path) for path in tensors_path]
 
-        if groups is not None:
-            tensors = [
-                tensor for tensor in tensors
-                if tensor.dag.groups is None or set(tensor.dag.groups) & set(groups)
-            ]
-
         for level in dag.get_tensor_dag(tensors):
             futures = [
-                getattr(self, method)(path=tensor.path, compute=False, **kwargs)
+                getattr(self, method)(
+                    path=tensor.path,
+                    compute=False,
+                    **kwargs_groups.get(tensor.dag.group, {})
+                )
                 for tensor in level
             ]
             if client is None:
@@ -610,12 +608,14 @@ class TensorClient:
             dim: str,
             limit: int = None,
             until_last_valid: Union[xr.DataArray, bool] = False,
+            keep_chunks_size: bool = False
     ):
         return algorithms.ffill(
             arr=new_data,
             limit=limit,
             dim=dim,
-            until_last_valid=until_last_valid
+            until_last_valid=until_last_valid,
+            keep_chunks_size=keep_chunks_size
         )
 
     @classmethod
@@ -631,4 +631,17 @@ class TensorClient:
             method=method,
             dim=dim,
             rank_nan=rank_nan
+        )
+
+    @classmethod
+    def shift_on_valids(
+            cls,
+            arr: xr.DataArray,
+            dim: str,
+            shift: int
+    ):
+        return algorithms.shift_on_valids(
+            arr=new_data,
+            dim=dim,
+            shift=shift
         )

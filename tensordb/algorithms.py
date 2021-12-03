@@ -9,26 +9,47 @@ def ffill(
         arr: xr.DataArray,
         dim: str,
         limit: int = None,
-        until_last_valid: Union[xr.DataArray, bool] = False
+        until_last_valid: Union[xr.DataArray, bool] = False,
+        keep_chunks_size: bool = False
 ):
     result = arr
     try:
         result = result.ffill(dim, limit=limit)
     except NotImplementedError:
-        from bottleneck import push
+        if keep_chunks_size:
+            axis = arr.dims.index(dim)
+            arange = xr.DataArray(
+                da.broadcast_to(
+                    da.arange(
+                        arr.shape[axis],
+                        chunks=arr.chunks[axis],
+                        dtype=arr.dtype
+                    ).reshape(
+                        tuple(size if i == axis else 1 for i, size in enumerate(arr.shape))
+                    ),
+                    arr.shape,
+                    arr.chunks
+                ),
+                coords=arr.coords,
+                dims=arr.dims
+            )
+            valid_limits = (arange - arange.where(arr.notnull(), np.nan).ffill(dim)) <= limit
+            result = arr.ffill(dim=dim).where(valid_limits, np.nan)
+        else:
+            from bottleneck import push
 
-        result = xr.DataArray(
-            da.apply_along_axis(
-                func1d=push,
-                axis=result.dims.index(dim),
-                arr=arr.data,
-                dtype=arr.dtype,
-                shape=(arr.sizes[dim], ),
-                n=limit,
-            ),
-            coords=arr.coords,
-            dims=arr.dims
-        )
+            result = xr.DataArray(
+                da.apply_along_axis(
+                    func1d=push,
+                    axis=result.dims.index(dim),
+                    arr=arr.data,
+                    dtype=arr.dtype,
+                    shape=(arr.sizes[dim],),
+                    n=limit,
+                ),
+                coords=arr.coords,
+                dims=arr.dims
+            )
 
     if isinstance(until_last_valid, bool) and until_last_valid:
         until_last_valid = arr.notnull().cumsum(dim=dim).idxmax(dim=dim)
@@ -74,4 +95,29 @@ def rank(
         )
 
 
+def shift_on_valids(
+        arr: xr.DataArray,
+        dim: str,
+        shift: int
+):
+    def _shift(a):
+        pos = np.arange(len(a))[~np.isnan(a)]
+        v = a[np.roll(pos, shift)]
+        if shift < 0:
+            v[shift:] = np.nan
+        else:
+            v[:shift] = np.nan
+        a[pos] = v
+        return a
 
+    return xr.DataArray(
+        da.apply_along_axis(
+            func1d=_shift,
+            axis=arr.dims.index(dim),
+            arr=arr.data,
+            dtype=float,
+            shape=(arr.sizes[dim],),
+        ),
+        coords=arr.coords,
+        dims=arr.dims
+    )

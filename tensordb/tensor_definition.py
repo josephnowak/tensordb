@@ -16,12 +16,11 @@ class DAGOrder(BaseModel):
         Every element of the list is a tensor on which this tensor depends, so this can be seen like every tensor Ai
         of the list has an edge to this tensor B, so Ai->B for every i.
 
-    groups: Optional[List[str]]
-        Useful to filter the tasks base on groups, this ideal if you need to run a method only in a specific
-        set of tensors
+    group: Optional[str], default 'regular'
+        Useful to send parameters by groups on the exec_on_dag_order method of the tensor client
     """
     depends: Optional[List[str]]
-    groups: Optional[List[str]] = None
+    group: Optional[str] = 'regular'
 
 
 class StorageDefinition(BaseModel):
