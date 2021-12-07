@@ -510,9 +510,8 @@ class TensorClient:
     def read_from_formula(
             self,
             formula: str,
-            formula_locals: Dict[str, Any] = None,
-            new_data: xr.DataArray = None,
             use_exec: bool = False,
+            **kwargs
     ) -> xr.DataArray:
         """
         This is one of the most important methods of the `TensorClient` class, basically it allows to define
@@ -537,16 +536,13 @@ class TensorClient:
             to extract the tensor paths inside of it to read them before execute the evaluation of the string,
             so, use the following syntax to indicate the part of the string that is a path of a tensor
 
-        new_data: xr.DataArray, optional
-            Sometimes you can use this method in combination with others so you can pass the data that you are
-            creating using this parameters.
-
         use_exec: bool = False
             Indicate if you want to use python exec or eval to evaluate the formula, it must always create
             a variable called new_data inside the code.
 
-        formula_locals: Dict[str, Any]
-            It's the equivalent to the locals dictionary of the eval and exec functions.
+        **kwargs: Dict
+            It's use as the locals dictionary of the eval and exec functions, it is automatically
+            filled by the apply_data_transformation with all the previously stored data.
 
         Examples
         --------
@@ -608,13 +604,12 @@ class TensorClient:
         formula_globals = {
             'xr': xr, 'np': np, 'pd': pd, 'da': da, 'dask': dask, 'self': self, 'algorithms': algorithms
         }
-        formula_locals = {} if formula_locals is None else formula_locals.copy()
-        formula_locals.update({'data_fields': data_fields, 'new_data': new_data})
+        kwargs.update({'data_fields': data_fields})
 
         if use_exec:
-            exec(formula, formula_globals, formula_locals)
-            return formula_locals['new_data']
-        return eval(formula, formula_globals, formula_locals)
+            exec(formula, formula_globals, kwargs)
+            return kwargs['new_data']
+        return eval(formula, formula_globals, kwargs)
 
     @classmethod
     def ffill(
