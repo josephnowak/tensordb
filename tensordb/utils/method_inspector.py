@@ -1,11 +1,19 @@
 import inspect
 
 from typing import List, Callable, Dict, Any
+from loguru import logger
 
 
 def get_parameters(func: Callable, *args: Dict[str, Any]):
     signature = inspect.signature(func)
     func_parameters = list(signature.parameters.keys())
+
+    if 'kwargs' in func_parameters:
+        return {
+            k: v
+            for user_parameters in args[::-1]
+            for k, v in user_parameters.items()
+        }
 
     # instance the parameters with the default parameters
     parameters = {
