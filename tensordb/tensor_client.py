@@ -173,10 +173,12 @@ class TensorClient:
 
     internal_actions = ['store', 'update', 'append', 'upsert']
 
-    def __init__(self,
-                 base_map: MutableMapping,
-                 synchronizer: str = None,
-                 **kwargs):
+    def __init__(
+            self,
+            base_map: MutableMapping,
+            synchronizer: str = None,
+            **kwargs
+    ):
 
         self.base_map = base_map
         self.synchronizer = synchronizer
