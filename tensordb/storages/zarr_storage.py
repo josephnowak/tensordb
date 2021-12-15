@@ -283,7 +283,12 @@ class ZarrStorage(BaseStorage):
 
         """
 
-        return '.zmetadata' in self.base_map
+        # return '.zmetadata' in self.base_map, I don't know why that code can return False even if the file exist
+        try:
+            self.read()
+            return True
+        except:
+            return False
 
     def delete_tensor(self):
         """
