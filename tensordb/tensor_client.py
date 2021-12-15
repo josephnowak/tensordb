@@ -285,7 +285,7 @@ class TensorClient:
             tensors = [self.get_tensor_definition(path) for path in tensors_path]
 
         for level in dag.get_tensor_dag(tensors):
-            logger.info(level)
+            logger.info([tensor.path for tensor in level])
             futures = [
                 getattr(self, method)(
                     path=tensor.path,
