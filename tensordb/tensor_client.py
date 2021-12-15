@@ -287,20 +287,27 @@ class TensorClient:
 
         for level in dag.get_tensor_dag(tensors):
             logger.info([tensor.path for tensor in level])
-            futures = []
+            # futures = [
+            #     getattr(self, method)(
+            #         compute=False,
+            #         path=tensor.path,
+            #         **kwargs_groups.get(tensor.dag.group, {})
+            #     )
+            #     for tensor in level
+            # ]
             with concurrent.futures.ThreadPoolExecutor(len(level)) as pool:
+                futures = []
                 for tensor in level:
                     futures.append(pool.submit(
                         getattr(self, method),
-                        compute=False,
                         path=tensor.path,
                         **kwargs_groups.get(tensor.dag.group, {})
                     ))
             futures = [future.result() for future in futures]
-            if client is None:
-                dask.compute(*futures, sync=True)
-            else:
-                client.compute(futures, sync=True)
+            # if client is None:
+            #     dask.compute(*futures, sync=True)
+            # else:
+            #     client.compute(futures, sync=True)
 
     def apply_data_transformation(
             self,
