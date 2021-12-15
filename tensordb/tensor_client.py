@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import dask
 import dask.array as da
+import concurrent
 
 from typing import Dict, List, Any, Union, Tuple, Literal
 from collections.abc import MutableMapping
@@ -286,14 +287,16 @@ class TensorClient:
 
         for level in dag.get_tensor_dag(tensors):
             logger.info([tensor.path for tensor in level])
-            futures = [
-                getattr(self, method)(
-                    path=tensor.path,
-                    compute=False,
-                    **kwargs_groups.get(tensor.dag.group, {})
-                )
-                for tensor in level
-            ]
+            futures = []
+            with concurrent.futures.ThreadPoolExecutor(len(level)) as pool:
+                for tensor in level:
+                    futures.append(pool.submit(
+                        getattr(self, method),
+                        compute=False,
+                        path=tensor.path,
+                        **kwargs_groups.get(tensor.dag.group, {})
+                    ))
+            futures = [future.result() for future in futures]
             if client is None:
                 dask.compute(*futures, sync=True)
             else:
