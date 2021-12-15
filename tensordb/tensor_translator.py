@@ -2,6 +2,7 @@ import xarray as xr
 import dask
 import numpy as np
 import itertools
+import uuid
 
 from typing import Iterable, Callable, Union, Dict, Any, List, Tuple, Optional, Literal, Hashable, Generator
 from math import ceil
@@ -71,14 +72,8 @@ def defined_translation(
     """
 
     as_data_array = data_names is None
-
-    if not as_data_array and len(dtypes) != len(data_names):
-        raise ValueError(
-            f'The number of dtypes ({len(dtypes)}) does not match the number of dataset names ({len(data_names)}), '
-            f'you need to specify a dtype for every data array in your dataset'
-        )
-
     chunks = [len(coords[dim]) if chunk is None else chunk for chunk, dim in zip(chunks, dims)]
+    func_parameters = {} if func_parameters is None else func_parameters
 
     if as_data_array:
         return _generate_lazy_data_array(
@@ -129,16 +124,19 @@ def _generate_lazy_data_array(
 
     """
     task_graph = {}
-    chunks_positions = itertools.product(*[range(ceil(len(coords[dim]) / chunk)) for chunk, dim in zip(chunks, dims)])
+    array_name = func.__name__ + str(uuid.uuid4())
+    chunks_positions = itertools.product(
+        *[range(ceil(len(coords[dim]) / chunk)) for chunk, dim in zip(chunks, dims)]
+    )
 
     for chunk_coords, chunk_pos in zip(_chunk_coords(coords, chunks, dims), chunks_positions):
         chunk_coords = {dim: coord for dim, coord in zip(dims, chunk_coords)}
         parameters = {**func_parameters, **{'coords': chunk_coords}}
-        task_graph[('arr', *chunk_pos)] = (dask.utils.apply, func, [], parameters)
+        task_graph[(array_name, *chunk_pos)] = (dask.utils.apply, func, [], parameters)
 
     arr = dask.array.Array(
         dask=task_graph,
-        name='arr',
+        name=array_name,
         shape=list(len(coords[dim]) for dim in dims),
         chunks=chunks,
         dtype=dtype
@@ -160,6 +158,13 @@ def _generate_lazy_dataset(
         data_names: List[Hashable],
         func_parameters: Dict[str, Any],
 ):
+
+    if len(dtypes) != len(data_names):
+        raise ValueError(
+            f'The number of dtypes ({len(dtypes)}) does not match the number of dataset names ({len(data_names)}), '
+            f'you need to specify a dtype for every data array in your dataset'
+        )
+
     chunked_arrays = []
     for chunk_coords in _chunk_coords(coords, chunks, dims):
         chunk_coords = {dim: coord for dim, coord in zip(dims, chunk_coords)}
