@@ -19,6 +19,7 @@
       ~TensorClient.create_tensor
       ~TensorClient.customize_storage_method
       ~TensorClient.delete_tensor
+      ~TensorClient.drop
       ~TensorClient.exec_on_dag_order
       ~TensorClient.exist
       ~TensorClient.ffill

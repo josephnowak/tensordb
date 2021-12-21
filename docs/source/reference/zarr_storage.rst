@@ -22,6 +22,7 @@ Storage Methods
    ZarrStorage.store
    ZarrStorage.append
    ZarrStorage.update
+   ZarrStorage.drop
    ZarrStorage.upsert
    ZarrStorage.exist
 

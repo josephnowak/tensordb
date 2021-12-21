@@ -20,6 +20,7 @@ Storage Methods
 
    BaseStorage.read
    BaseStorage.store
+   BaseStorage.drop
    BaseStorage.append
    BaseStorage.update
    BaseStorage.upsert
