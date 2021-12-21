@@ -9,6 +9,7 @@ from abc import abstractmethod
 from collections.abc import MutableMapping
 from typing import Dict, List, Union, Tuple, Iterable
 from loguru import logger
+from fsspec.implementations.cached import CachingFileSystem
 
 
 class BaseStorage:
@@ -55,7 +56,7 @@ class BaseStorage:
         If the base_map has the local_file cache option active it is going to give a KeyError: '.zmetadata' when
         the tensor is being writted, so this method omit the cache of the base_map in case that it exist
         """
-        if not isinstance(self.base_map.fs, fsspec.implementations.cached.CachingFileSystem):
+        if not isinstance(self.base_map.fs, CachingFileSystem):
             return self.base_map
 
         return self.base_map.fs.fs.get_mapper(self._get_root())
