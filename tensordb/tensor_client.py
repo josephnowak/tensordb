@@ -1,3 +1,4 @@
+import fsspec
 import xarray as xr
 import numpy as np
 import pandas as pd
@@ -172,20 +173,23 @@ class TensorClient:
 
     # TODO: Add more examples to the documentation
 
-    internal_actions = ['store', 'update', 'append', 'upsert']
+    internal_actions = ['store', 'update', 'append', 'upsert', 'drop']
 
     def __init__(
             self,
             base_map: MutableMapping,
+            tmp_map: MutableMapping = None,
             synchronizer: str = None,
             **kwargs
     ):
 
         self.base_map = base_map
+        self.tmp_map = fsspec.get_mapper('tmp') if tmp_map is None else tmp_map
         self.synchronizer = synchronizer
         self._tensors_definition = JsonStorage(
             path='_tensors_definition',
             base_map=self.base_map,
+            tmp_map=self.tmp_map
         )
 
     @validate_arguments
@@ -267,6 +271,7 @@ class TensorClient:
         storage = MAPPING_STORAGES[definition.storage.storage_name]
         storage = storage(
             base_map=self.base_map,
+            tmp_map=self.tmp_map,
             path=definition.path,
             **definition.storage.dict(exclude_unset=True)
         )
@@ -285,29 +290,20 @@ class TensorClient:
         else:
             tensors = [self.get_tensor_definition(path) for path in tensors_path]
 
+        method = getattr(self, method)
+
         for level in dag.get_tensor_dag(tensors):
             logger.info([tensor.path for tensor in level])
-            # futures = [
-            #     getattr(self, method)(
-            #         compute=False,
-            #         path=tensor.path,
-            #         **kwargs_groups.get(tensor.dag.group, {})
-            #     )
-            #     for tensor in level
-            # ]
             with concurrent.futures.ThreadPoolExecutor(len(level)) as pool:
-                futures = []
-                for tensor in level:
-                    futures.append(pool.submit(
-                        getattr(self, method),
+                futures = [
+                    pool.submit(
+                        method,
                         path=tensor.path,
                         **kwargs_groups.get(tensor.dag.group, {})
-                    ))
+                    )
+                    for tensor in level
+                ]
             futures = [future.result() for future in futures]
-            # if client is None:
-            #     dask.compute(*futures, sync=True)
-            # else:
-            #     client.compute(futures, sync=True)
 
     def apply_data_transformation(
             self,
@@ -477,6 +473,18 @@ class TensorClient:
 
         """
         return self.storage_method_caller(path=path, method_name='upsert', parameters=kwargs)
+
+    def drop(self, path: str, **kwargs) -> List[xr.backends.common.AbstractWritableDataStore]:
+        """
+        Calls :meth:`TensorClient.storage_method_caller` with drop as method_name (has the same parameters).
+
+        Returns
+        -------
+        Returns a List of xr.backends.common.AbstractWritableDataStore objects,
+        which is used as an interface for the corresponding backend that you select in xarray (the Storage).
+
+        """
+        return self.storage_method_caller(path=path, method_name='drop', parameters=kwargs)
 
     def exist(self, path: str, **kwargs) -> bool:
         """

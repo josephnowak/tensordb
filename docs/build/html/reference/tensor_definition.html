@@ -8,8 +8,8 @@
 
     <title>Tensor Definition &#8212; TensorDB 0.1 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+  <link href="../_static/css/theme.css" rel="stylesheet">
+  <link href="../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
 
     
   <link rel="stylesheet"
@@ -24,9 +24,9 @@
 
     
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/basic.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blank.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.1c5a1a01449ed65a7b51.js">
+  <link rel="preload" as="script" href="../_static/js/index.be7d3bbb2ef33a8344ce.js">
 
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -37,7 +37,10 @@
     <link rel="next" title="tensordb.tensor_definition.StorageDefinition" href="api/tensordb.tensor_definition.StorageDefinition.html" />
     <link rel="prev" title="tensordb.tensor_translator.defined_translation" href="api/tensordb.tensor_translator.defined_translation.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="docsearch:language" content="en" />
+    <meta name="docsearch:language" content="en">
+    
+
+    <!-- Google Analytics -->
     
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
@@ -216,20 +219,20 @@ any tensor using the tensor_client class</p>
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.StorageDefinition.html#tensordb.tensor_definition.StorageDefinition" title="tensordb.tensor_definition.StorageDefinition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StorageDefinition</span></code></a>(*, storage_name, ] =, …)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.StorageDefinition.html#tensordb.tensor_definition.StorageDefinition" title="tensordb.tensor_definition.StorageDefinition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StorageDefinition</span></code></a>(*[, storage_name, ...])</p></td>
 <td><p>Definition of the storage of the tensor</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.DAGOrder.html#tensordb.tensor_definition.DAGOrder" title="tensordb.tensor_definition.DAGOrder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DAGOrder</span></code></a>(*, depends)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.DAGOrder.html#tensordb.tensor_definition.DAGOrder" title="tensordb.tensor_definition.DAGOrder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DAGOrder</span></code></a>(*[, depends, group])</p></td>
 <td><p>As the tensor has relations between them it is possible to create a DAG that facilities the process of updating everyone of them, so the idea is that this class keep the necessary information for sorting the tensor execution.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.MethodDescriptor.html#tensordb.tensor_definition.MethodDescriptor" title="tensordb.tensor_definition.MethodDescriptor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MethodDescriptor</span></code></a>(*, method, parameters, …)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.MethodDescriptor.html#tensordb.tensor_definition.MethodDescriptor" title="tensordb.tensor_definition.MethodDescriptor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MethodDescriptor</span></code></a>(*, method_name[, ...])</p></td>
 <td><p>This class is used to indicate the method that want to be transformed during the data_transformation process</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.Definition.html#tensordb.tensor_definition.Definition" title="tensordb.tensor_definition.Definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Definition</span></code></a>(*, data_transformation, …)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.Definition.html#tensordb.tensor_definition.Definition" title="tensordb.tensor_definition.Definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Definition</span></code></a>(*[, data_transformation, ...])</p></td>
 <td><p>The definition allows to modify/extend the default behaviour of every method on the tensor_client, this is useful because you can create a pipeline that transform or read your data from other sources.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.TensorDefinition.html#tensordb.tensor_definition.TensorDefinition" title="tensordb.tensor_definition.TensorDefinition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorDefinition</span></code></a>(*, path, definitions, …)</p></td>
-<td><p>The tensor definition is the core of tensordb, it allows to add functionalities to every tensor that are kept over the time, so you don’t have to know before hand how to transform every tensor.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.TensorDefinition.html#tensordb.tensor_definition.TensorDefinition" title="tensordb.tensor_definition.TensorDefinition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorDefinition</span></code></a>(*, path[, definition, dag, ...])</p></td>
+<td><p>The tensor definition is the core of tensordb, it allows to add functionalities to every tensor that are kept over the time, so you don't have to know before hand how to transform every tensor.</p></td>
 </tr>
 </tbody>
 </table>
@@ -240,12 +243,23 @@ any tensor using the tensor_client class</p>
               </div>
               
               
-              <div class='prev-next-bottom'>
-                
-    <a class='left-prev' id="prev-link" href="api/tensordb.tensor_translator.defined_translation.html" title="previous page">tensordb.tensor_translator.defined_translation</a>
-    <a class='right-next' id="next-link" href="api/tensordb.tensor_definition.StorageDefinition.html" title="next page">tensordb.tensor_definition.StorageDefinition</a>
-
-              </div>
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'> 
+    <a class='left-prev' id="prev-link" href="api/tensordb.tensor_translator.defined_translation.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">tensordb.tensor_translator.defined_translation</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="api/tensordb.tensor_definition.StorageDefinition.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">tensordb.tensor_definition.StorageDefinition</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
               
           </main>
           
@@ -253,20 +267,19 @@ any tensor using the tensor_client class</p>
       </div>
     </div>
   
-  <script src="../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
-
-  <footer class="footer mt-5 mt-md-0">
+  <script src="../_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
+<footer class="footer mt-5 mt-md-0">
   <div class="container">
     
     <div class="footer-item">
       <p class="copyright">
-    &copy; Copyright 2021, Joseph Nowak.<br/>
+    &copy; Copyright 2021, Joseph Nowak.<br>
 </p>
     </div>
     
     <div class="footer-item">
       <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.3.2.<br>
 </p>
     </div>
     

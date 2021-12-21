@@ -15,7 +15,9 @@
    
       ~BaseStorage.__init__
       ~BaseStorage.append
+      ~BaseStorage.drop
       ~BaseStorage.exist
+      ~BaseStorage.get_base_map_write
       ~BaseStorage.get_data_names_list
       ~BaseStorage.read
       ~BaseStorage.store
@@ -25,11 +27,5 @@
    
 
    
-   
-   .. rubric:: Attributes
-
-   .. autosummary::
-   
-      ~BaseStorage.base_map
    
    

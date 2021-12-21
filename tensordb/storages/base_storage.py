@@ -7,7 +7,8 @@ import fsspec
 
 from abc import abstractmethod
 from collections.abc import MutableMapping
-from typing import Dict, List, Union, Tuple
+from typing import Dict, List, Union, Tuple, Iterable
+from loguru import logger
 
 
 class BaseStorage:
@@ -32,33 +33,44 @@ class BaseStorage:
 
     def __init__(self,
                  base_map: MutableMapping,
+                 tmp_map: MutableMapping,
                  data_names: Union[str, List[str]] = "data",
                  path: str = None,
                  **kwargs):
-        self._base_map = base_map
+        self.base_map = base_map
+        self.data_names = data_names
         self.group = None
+        # TODO: Add the option for tmp_map of use a group
+        self.tmp_map = tmp_map
         if path is not None:
-            root = ""
-            try:
-                root = self._base_map.root
-            except AttributeError:
-                try:
-                    root = self._base_map.map.root
-                except AttributeError:
-                    pass
+            self.tmp_map = tmp_map.fs.get_mapper(tmp_map.root + '/' + path)
+            root = self._get_root()
             if root == "":
                 self.group = path
             else:
-                self._base_map = base_map.fs.get_mapper(root + '/' + path)
+                self.base_map = base_map.fs.get_mapper(root + '/' + path)
 
-        self.data_names = data_names
+    def get_base_map_write(self) -> MutableMapping:
+        """
+        If the base_map has the local_file cache option active it is going to give a KeyError: '.zmetadata' when
+        the tensor is being writted, so this method omit the cache of the base_map in case that it exist
+        """
+        if self.group is not None or not getattr(self.base_map, 'local_file', False):
+            return self.base_map
 
-    @property
-    def base_map(self) -> MutableMapping:
-        return self._base_map
+        return self.base_map.fs.fs.get_mapper(self._get_root())
 
     def get_data_names_list(self) -> List[str]:
         return self.data_names if isinstance(self.data_names, list) else [self.data_names]
+
+    def _get_root(self) -> str:
+        try:
+            return self.base_map.root
+        except AttributeError:
+            try:
+                return self.base_map.map.root
+            except:
+                return ""
 
     @abstractmethod
     def append(
@@ -157,6 +169,21 @@ class BaseStorage:
         Returns
         -------
         A list of xr.backends.common.AbstractWritableDataStore produced by Xarray
+        """
+        pass
+
+    @abstractmethod
+    def drop(
+            self,
+            coords,
+            **kwargs
+    ) -> xr.backends.common.AbstractWritableDataStore:
+        """
+        Drop coords of the tensor, this can rewrite the hole file depending on the storage
+
+        Parameters
+        ----------
+            coords: Dict[
         """
         pass
 

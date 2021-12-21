@@ -31,6 +31,7 @@ Storage Methods
    TensorClient.storage_method_caller
    TensorClient.read
    TensorClient.store
+   TensorClient.drop
    TensorClient.append
    TensorClient.update
    TensorClient.upsert

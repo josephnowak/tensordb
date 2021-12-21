@@ -8,8 +8,8 @@
 
     <title>tensordb.storages.BaseStorage.store &#8212; TensorDB 0.1 documentation</title>
     
-  <link href="../../_static/css/theme.css" rel="stylesheet" />
-  <link href="../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+  <link href="../../_static/css/theme.css" rel="stylesheet">
+  <link href="../../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
 
     
   <link rel="stylesheet"
@@ -24,9 +24,9 @@
 
     
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/basic.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/blank.css" />
     
-  <link rel="preload" as="script" href="../../_static/js/index.1c5a1a01449ed65a7b51.js">
+  <link rel="preload" as="script" href="../../_static/js/index.be7d3bbb2ef33a8344ce.js">
 
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
@@ -34,10 +34,13 @@
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="tensordb.storages.BaseStorage.append" href="tensordb.storages.BaseStorage.append.html" />
+    <link rel="next" title="tensordb.storages.BaseStorage.drop" href="tensordb.storages.BaseStorage.drop.html" />
     <link rel="prev" title="tensordb.storages.BaseStorage.read" href="tensordb.storages.BaseStorage.read.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="docsearch:language" content="en" />
+    <meta name="docsearch:language" content="en">
+    
+
+    <!-- Google Analytics -->
     
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
@@ -151,6 +154,11 @@
   </a>
  </li>
  <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.storages.BaseStorage.drop.html">
+   tensordb.storages.BaseStorage.drop
+  </a>
+ </li>
+ <li class="toctree-l1">
   <a class="reference internal" href="tensordb.storages.BaseStorage.append.html">
    tensordb.storages.BaseStorage.append
   </a>
@@ -210,7 +218,7 @@
 <h1>tensordb.storages.BaseStorage.store<a class="headerlink" href="#tensordb-storages-basestorage-store" title="Permalink to this headline">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="tensordb.storages.BaseStorage.store">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-prename descclassname"><span class="pre">BaseStorage.</span></span><span class="sig-name descname"><span class="pre">store</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xarray.backends.common.AbstractWritableDataStore</span></span></span><a class="headerlink" href="#tensordb.storages.BaseStorage.store" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">BaseStorage.</span></span><span class="sig-name descname"><span class="pre">store</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xarray.backends.common.AbstractWritableDataStore</span></span></span><a class="headerlink" href="#tensordb.storages.BaseStorage.store" title="Permalink to this definition">¶</a></dt>
 <dd><p>This abstracmethod must be overwrited to store new_data to an existing file, so it must create
 the necessaries files, folders and metadata for the corresponding tensor. Reference <a class="reference internal" href="tensordb.storages.ZarrStorage.store.html#tensordb.storages.ZarrStorage.store" title="tensordb.storages.ZarrStorage.store"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ZarrStorage.store()</span></code></a></p>
 <dl class="field-list simple">
@@ -236,12 +244,23 @@ the necessaries files, folders and metadata for the corresponding tensor. Refere
               </div>
               
               
-              <div class='prev-next-bottom'>
-                
-    <a class='left-prev' id="prev-link" href="tensordb.storages.BaseStorage.read.html" title="previous page">tensordb.storages.BaseStorage.read</a>
-    <a class='right-next' id="next-link" href="tensordb.storages.BaseStorage.append.html" title="next page">tensordb.storages.BaseStorage.append</a>
-
-              </div>
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'> 
+    <a class='left-prev' id="prev-link" href="tensordb.storages.BaseStorage.read.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">tensordb.storages.BaseStorage.read</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="tensordb.storages.BaseStorage.drop.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">tensordb.storages.BaseStorage.drop</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
               
           </main>
           
@@ -249,20 +268,19 @@ the necessaries files, folders and metadata for the corresponding tensor. Refere
       </div>
     </div>
   
-  <script src="../../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
-
-  <footer class="footer mt-5 mt-md-0">
+  <script src="../../_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
+<footer class="footer mt-5 mt-md-0">
   <div class="container">
     
     <div class="footer-item">
       <p class="copyright">
-    &copy; Copyright 2021, Joseph Nowak.<br/>
+    &copy; Copyright 2021, Joseph Nowak.<br>
 </p>
     </div>
     
     <div class="footer-item">
       <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.3.2.<br>
 </p>
     </div>
     

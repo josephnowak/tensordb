@@ -8,8 +8,8 @@
 
     <title>BaseStorage &#8212; TensorDB 0.1 documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet" />
-  <link href="../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+  <link href="../_static/css/theme.css" rel="stylesheet">
+  <link href="../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
 
     
   <link rel="stylesheet"
@@ -24,9 +24,9 @@
 
     
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/basic.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blank.css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.1c5a1a01449ed65a7b51.js">
+  <link rel="preload" as="script" href="../_static/js/index.be7d3bbb2ef33a8344ce.js">
 
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
@@ -37,7 +37,10 @@
     <link rel="next" title="tensordb.storages.BaseStorage" href="api/tensordb.storages.BaseStorage.html" />
     <link rel="prev" title="tensordb.TensorClient.rank" href="api/tensordb.TensorClient.rank.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="docsearch:language" content="en" />
+    <meta name="docsearch:language" content="en">
+    
+
+    <!-- Google Analytics -->
     
   </head>
   <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
@@ -151,6 +154,11 @@
   </a>
  </li>
  <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.storages.BaseStorage.drop.html">
+   tensordb.storages.BaseStorage.drop
+  </a>
+ </li>
+ <li class="toctree-l1">
   <a class="reference internal" href="api/tensordb.storages.BaseStorage.append.html">
    tensordb.storages.BaseStorage.append
   </a>
@@ -231,7 +239,7 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.html#tensordb.storages.BaseStorage" title="tensordb.storages.BaseStorage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage</span></code></a>(base_map, data_names, …)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.html#tensordb.storages.BaseStorage" title="tensordb.storages.BaseStorage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage</span></code></a>(base_map, tmp_map[, data_names, ...])</p></td>
 <td><p>Obligatory interface used for the Storage classes created, this define the abstract methods for every Storage and allow their use with TensorClient.</p></td>
 </tr>
 </tbody>
@@ -251,16 +259,19 @@
 <tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.store.html#tensordb.storages.BaseStorage.store" title="tensordb.storages.BaseStorage.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.store</span></code></a>(new_data, **kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to store new_data to an existing file, so it must create the necessaries files, folders and metadata for the corresponding tensor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.append.html#tensordb.storages.BaseStorage.append" title="tensordb.storages.BaseStorage.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.append</span></code></a>(new_data, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.drop.html#tensordb.storages.BaseStorage.drop" title="tensordb.storages.BaseStorage.drop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.drop</span></code></a>(coords, **kwargs)</p></td>
+<td><p>Drop coords of the tensor, this can rewrite the hole file depending on the storage</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.append.html#tensordb.storages.BaseStorage.append" title="tensordb.storages.BaseStorage.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.append</span></code></a>(new_data, **kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to append new_data to an existing file, the way that it append the data will depend of the implementation of the Storage.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.update.html#tensordb.storages.BaseStorage.update" title="tensordb.storages.BaseStorage.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.update</span></code></a>(new_data, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.update.html#tensordb.storages.BaseStorage.update" title="tensordb.storages.BaseStorage.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.update</span></code></a>(new_data, **kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to update new_data to an existing file, so it must not insert any new coords, it must only replace elements inside the stored tensor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.upsert.html#tensordb.storages.BaseStorage.upsert" title="tensordb.storages.BaseStorage.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.upsert</span></code></a>(new_data, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.upsert.html#tensordb.storages.BaseStorage.upsert" title="tensordb.storages.BaseStorage.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.upsert</span></code></a>(new_data, **kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to update and append new_data to an existing file, so basically it must be a combination between update and append.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.exist.html#tensordb.storages.BaseStorage.exist" title="tensordb.storages.BaseStorage.exist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.exist</span></code></a>(**kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.exist.html#tensordb.storages.BaseStorage.exist" title="tensordb.storages.BaseStorage.exist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.exist</span></code></a>(**kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to check if the tensor exist or not.</p></td>
 </tr>
 </tbody>
@@ -272,12 +283,23 @@
               </div>
               
               
-              <div class='prev-next-bottom'>
-                
-    <a class='left-prev' id="prev-link" href="api/tensordb.TensorClient.rank.html" title="previous page">tensordb.TensorClient.rank</a>
-    <a class='right-next' id="next-link" href="api/tensordb.storages.BaseStorage.html" title="next page">tensordb.storages.BaseStorage</a>
-
-              </div>
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'> 
+    <a class='left-prev' id="prev-link" href="api/tensordb.TensorClient.rank.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">tensordb.TensorClient.rank</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="api/tensordb.storages.BaseStorage.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">tensordb.storages.BaseStorage</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
               
           </main>
           
@@ -285,20 +307,19 @@
       </div>
     </div>
   
-  <script src="../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
-
-  <footer class="footer mt-5 mt-md-0">
+  <script src="../_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
+<footer class="footer mt-5 mt-md-0">
   <div class="container">
     
     <div class="footer-item">
       <p class="copyright">
-    &copy; Copyright 2021, Joseph Nowak.<br/>
+    &copy; Copyright 2021, Joseph Nowak.<br>
 </p>
     </div>
     
     <div class="footer-item">
       <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.3.2.<br>
 </p>
     </div>
     

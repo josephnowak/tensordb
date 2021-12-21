@@ -36,6 +36,7 @@ class TestTensorClient:
         path = tmpdir.strpath
         self.tensor_client = TensorClient(
             base_map=fsspec.get_mapper(path),
+            tmp_map=fsspec.get_mapper(path + '/tmp'),
             synchronizer='thread'
         )
         self.arr = xr.DataArray(
@@ -92,6 +93,13 @@ class TestTensorClient:
     def test_update(self):
         self.tensor_client.update(new_data=self.arr2, path='data_one')
         assert self.tensor_client.read(path='data_one').equals(self.arr2)
+
+    def test_drop(self):
+        coords = {'index': [0, 3], 'columns': [1, 2]}
+        self.tensor_client.drop(path='data_one', coords=coords)
+        self.tensor_client.read('data_one').equals(
+            self.arr.drop_sel(coords)
+        )
 
     def test_append(self):
         arr = create_dummy_array(10, 5, dtype=int)

@@ -21,15 +21,35 @@ class TestZarrStorage:
         sub_path = tmpdir.strpath
         self.storage = ZarrStorage(
             base_map=fsspec.get_mapper(sub_path),
+            tmp_map=fsspec.get_mapper(sub_path + '/tmp'),
             path='zarr',
             data_names='data_test',
             chunks={'index': 3, 'columns': 2},
         )
         self.storage_dataset = ZarrStorage(
             base_map=fsspec.get_mapper(sub_path),
+            tmp_map=fsspec.get_mapper(sub_path + '/tmp'),
+            path='zarr_dataset',
+            data_names=['a', 'b', 'c'],
+            chunks={'index': 3, 'columns': 2}
+        )
+        self.storage_sorted_unique = ZarrStorage(
+            base_map=fsspec.get_mapper(sub_path),
+            tmp_map=fsspec.get_mapper(sub_path + '/tmp'),
+            path='zarr',
+            data_names='data_test',
+            chunks={'index': 3, 'columns': 2},
+            unique_coords=True,
+            sorted_coords={'index': False, 'columns': False}
+        )
+        self.storage_dataset_sorted_unique = ZarrStorage(
+            base_map=fsspec.get_mapper(sub_path),
+            tmp_map=fsspec.get_mapper(sub_path + '/tmp'),
             path='zarr_dataset',
             data_names=['a', 'b', 'c'],
             chunks={'index': 3, 'columns': 2},
+            unique_coords=True,
+            sorted_coords={'index': False, 'columns': False}
         )
         self.arr = xr.DataArray(
             data=np.array([
@@ -72,21 +92,36 @@ class TestZarrStorage:
             )
         )
 
-    def test_store_data(self):
-        self.storage.store(self.arr2)
-        assert self.storage.read().equals(self.arr2)
+    @pytest.mark.parametrize('keep_order', [True, False])
+    def test_store_data(self, keep_order: bool):
+        storage = self.storage_sorted_unique if keep_order else self.storage
+        storage.store(self.arr2)
+        if keep_order:
+            assert storage.read().equals(
+                self.arr2.sel(index=self.arr2.index[::-1], columns=self.arr2.columns[::-1])
+            )
+        else:
+            assert storage.read().equals(self.arr2)
 
-    def test_append_data(self):
-        self.storage.delete_tensor()
+    @pytest.mark.parametrize('keep_order', [True, False])
+    def test_append_data(self, keep_order: bool):
+        storage = self.storage_sorted_unique if keep_order else self.storage
 
-        total_data = xr.concat([self.arr, self.arr2], dim='index')
+        storage.delete_tensor()
 
         for i in range(len(self.arr.index)):
-            self.storage.append(self.arr.isel(index=[i]))
-        for i in range(len(self.arr2.index)):
-            self.storage.append(self.arr2.isel(index=[i]))
+            storage.append(self.arr.isel(index=[i]))
 
-        assert self.storage.read().equals(total_data)
+        for i in range(len(self.arr2.index)):
+            storage.append(self.arr2.isel(index=[i]))
+
+        total_data = xr.concat([self.arr, self.arr2], dim='index')
+        if keep_order:
+            assert storage.read().equals(
+                total_data.sel(index=total_data.index[::-1], columns=total_data.columns[::-1])
+            )
+        else:
+            assert storage.read().equals(total_data)
 
     def test_update_data(self):
         self.storage.store(self.arr)
@@ -99,18 +134,33 @@ class TestZarrStorage:
 
         assert self.storage.read().equals(expected)
 
-    def test_store_dataset(self):
-        self.storage_dataset.store(self.dataset)
-        assert self.storage_dataset.read().equals(self.dataset)
+    @pytest.mark.parametrize('keep_order', [True, False])
+    def test_store_dataset(self, keep_order: bool):
+        storage_dataset = self.storage_dataset_sorted_unique if keep_order else self.storage_dataset
+        storage_dataset.store(self.dataset)
 
-    def test_append_dataset(self):
-        self.storage_dataset.store(self.dataset)
+        if keep_order:
+            assert storage_dataset.read().equals(
+                self.dataset.sel(index=self.dataset.index[::-1], columns=self.dataset.columns[::-1])
+            )
+        else:
+            assert storage_dataset.read().equals(self.dataset)
+
+    @pytest.mark.parametrize('keep_order', [True, False])
+    def test_append_dataset(self, keep_order: bool):
+        storage_dataset = self.storage_dataset_sorted_unique if keep_order else self.storage_dataset
+        storage_dataset.store(self.dataset)
         dataset = self.dataset.reindex(
             index=list(self.dataset.index.values) + [self.dataset.index.values[-1] + 1],
             fill_value=1
         )
-        self.storage_dataset.append(dataset.isel(index=[-1]))
-        assert self.storage_dataset.read().equals(dataset)
+        storage_dataset.append(dataset.isel(index=[-1]))
+        if keep_order:
+            assert storage_dataset.read().equals(
+                dataset.sel(index=dataset.index[::-1], columns=dataset.columns[::-1])
+            )
+        else:
+            assert storage_dataset.read().equals(dataset)
 
     def test_update_dataset(self):
         self.storage_dataset.store(self.dataset)
@@ -120,6 +170,14 @@ class TestZarrStorage:
         ], dim='index')
         self.storage_dataset.update(expected.sel(index=slice(2, None)))
         assert self.storage_dataset.read().equals(expected)
+
+    def test_drop_data(self):
+        self.storage.store(self.arr)
+        coords = {'index': [0, 2, 4], 'columns': [1, 3]}
+        self.storage.drop(coords)
+        assert self.storage.read().equals(
+            self.arr.drop_sel(coords)
+        )
 
 
 if __name__ == "__main__":
