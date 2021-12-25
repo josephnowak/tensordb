@@ -51,16 +51,6 @@ class BaseStorage:
             else:
                 self.base_map = base_map.fs.get_mapper(root + '/' + path)
 
-    def get_base_map_write(self) -> MutableMapping:
-        """
-        If the base_map has the local_file cache option active it is going to give a KeyError: '.zmetadata' when
-        the tensor is being writted, so this method omit the cache of the base_map in case that it exist
-        """
-        if self.group is not None or not isinstance(self.base_map.fs, CachingFileSystem):
-            return self.base_map
-
-        return self.base_map.fs.fs.get_mapper(self._get_root())
-
     def get_data_names_list(self) -> List[str]:
         return self.data_names if isinstance(self.data_names, list) else [self.data_names]
 
