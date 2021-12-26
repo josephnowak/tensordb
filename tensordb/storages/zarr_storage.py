@@ -145,7 +145,7 @@ class ZarrStorage(BaseStorage):
             )
 
         delayed_write = new_data.to_zarr(
-            self.get_base_map_write(),
+            self.base_map,
             mode='w',
             compute=compute,
             consolidated=True,
@@ -222,7 +222,7 @@ class ZarrStorage(BaseStorage):
             else:
                 delayed_appends.append(
                     concat_data[dim].to_zarr(
-                        self.get_base_map_write(),
+                        self.base_map,
                         append_dim=dim,
                         compute=compute,
                         synchronizer=self.synchronizer,
@@ -292,7 +292,7 @@ class ZarrStorage(BaseStorage):
         act_data = act_data.where(~bitmask, new_data)
 
         delayed_write = act_data.to_zarr(
-            self.get_base_map_write(),
+            self.base_map,
             group=self.group,
             compute=compute,
             synchronizer=self.synchronizer,

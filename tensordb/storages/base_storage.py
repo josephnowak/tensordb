@@ -54,16 +54,6 @@ class BaseStorage:
     def get_data_names_list(self) -> List[str]:
         return self.data_names if isinstance(self.data_names, list) else [self.data_names]
 
-    def get_base_map_write(self) -> MutableMapping:
-        """
-        If the base_map is an instance of the CachingFileSystem class of fsspec it can generate many
-        problems during the writes, so the best is to avoid the write with cache.
-        """
-        if self.group is not None or not isinstance(self.base_map.fs, CachingFileSystem):
-            return self.base_map
-
-        return self.base_map.fs.fs.get_mapper(self._get_root())
-
     def _get_root(self) -> str:
         try:
             return self.base_map.root
