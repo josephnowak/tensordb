@@ -10,46 +10,58 @@ def ffill(
         dim: str,
         limit: int = None,
         until_last_valid: Union[xr.DataArray, bool] = False,
-        keep_chunks_size: bool = False
 ):
-    result = arr
-    try:
-        result = result.ffill(dim, limit=limit)
-    except NotImplementedError:
-        if keep_chunks_size:
-            axis = arr.dims.index(dim)
-            arange = xr.DataArray(
-                da.broadcast_to(
-                    da.arange(
-                        arr.shape[axis],
-                        chunks=arr.chunks[axis],
-                        dtype=arr.dtype
-                    ).reshape(
-                        tuple(size if i == axis else 1 for i, size in enumerate(arr.shape))
-                    ),
-                    arr.shape,
-                    arr.chunks
-                ),
-                coords=arr.coords,
-                dims=arr.dims
-            )
-            valid_limits = (arange - arange.where(arr.notnull(), np.nan).ffill(dim)) <= limit
-            result = arr.ffill(dim=dim).where(valid_limits, np.nan)
-        else:
-            from bottleneck import push
+    from bottleneck import push
 
-            result = xr.DataArray(
-                da.apply_along_axis(
-                    func1d=push,
-                    axis=result.dims.index(dim),
-                    arr=arr.data,
-                    dtype=arr.dtype,
-                    shape=(arr.sizes[dim],),
-                    n=limit,
+    # TODO delete the forward fill logic once I solve https://github.com/pydata/xarray/issues/6112
+
+    def _fill_with_last_one(a, b):
+        # cumreduction apply the push func over all the blocks first so,
+        # the only missing part is filling the missing values using
+        # the last data for every one of them
+        if isinstance(a, np.ma.masked_array) or isinstance(b, np.ma.masked_array):
+            a = np.ma.getdata(a)
+            b = np.ma.getdata(b)
+            values = np.where(~np.isnan(b), b, a)
+            return np.ma.masked_array(values, mask=np.ma.getmaskarray(b))
+
+        return np.where(~np.isnan(b), b, a)
+
+    def _ffill(x):
+        return xr.DataArray(
+            da.reductions.cumreduction(
+                func=push,
+                binop=_fill_with_last_one,
+                ident=np.nan,
+                x=x.data,
+                axis=x.dims.index(dim),
+                dtype=x.dtype,
+                method="sequential",
+            ),
+            dims=x.dims,
+            coords=x.coords
+        )
+
+    result = _ffill(arr)
+    if limit is not None:
+        axis = arr.dims.index(dim)
+        arange = xr.DataArray(
+            da.broadcast_to(
+                da.arange(
+                    arr.shape[axis],
+                    chunks=arr.chunks[axis],
+                    dtype=arr.dtype
+                ).reshape(
+                    tuple(size if i == axis else 1 for i, size in enumerate(arr.shape))
                 ),
-                coords=arr.coords,
-                dims=arr.dims
-            )
+                arr.shape,
+                arr.chunks
+            ),
+            coords=arr.coords,
+            dims=arr.dims
+        )
+        valid_limits = (arange - _ffill(arange.where(arr.notnull(), np.nan))) <= limit
+        result = result.where(valid_limits, np.nan)
 
     if isinstance(until_last_valid, bool) and until_last_valid:
         until_last_valid = arr.notnull().cumsum(dim=dim).idxmax(dim=dim)
@@ -95,7 +107,7 @@ def rank(
         )
 
 
-def shift_on_valids(
+def shift_on_valid(
         arr: xr.DataArray,
         dim: str,
         shift: int

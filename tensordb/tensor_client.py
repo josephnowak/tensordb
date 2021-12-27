@@ -639,14 +639,12 @@ class TensorClient:
             dim: str,
             limit: int = None,
             until_last_valid: Union[xr.DataArray, bool] = False,
-            keep_chunks_size: bool = False
     ):
         return algorithms.ffill(
             arr=new_data,
             limit=limit,
             dim=dim,
             until_last_valid=until_last_valid,
-            keep_chunks_size=keep_chunks_size
         )
 
     @classmethod
@@ -665,13 +663,13 @@ class TensorClient:
         )
 
     @classmethod
-    def shift_on_valids(
+    def shift_on_valid(
             cls,
             arr: xr.DataArray,
             dim: str,
             shift: int
     ):
-        return algorithms.shift_on_valids(
+        return algorithms.shift_on_valid(
             arr=new_data,
             dim=dim,
             shift=shift
