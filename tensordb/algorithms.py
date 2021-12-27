@@ -4,8 +4,6 @@ import dask.array as da
 
 from typing import Union, List, Dict, Literal
 
-from bottleneck import push
-
 
 def ffill(
         arr: xr.DataArray,
@@ -13,6 +11,8 @@ def ffill(
         limit: int = None,
         until_last_valid: Union[xr.DataArray, bool] = False,
 ):
+    from bottleneck import push
+
     # TODO delete the forward fill logic once I solve https://github.com/pydata/xarray/issues/6112
 
     def _fill_with_last_one(a, b):
