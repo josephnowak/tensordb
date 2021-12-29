@@ -143,33 +143,6 @@ class TestTensorClient:
         data_two = self.tensor_client.read(path='data_two')
         assert data_four.equals((data_one * data_two).rolling({'index': 3}).sum())
 
-    def test_ffill(self):
-        definition = TensorDefinition(
-            path='data_ffill',
-            definition={
-                'store': {
-                    'data_transformation': [
-                        {'method_name': 'read_from_formula'},
-                        {'method_name': 'ffill'}
-                    ],
-                },
-                'read_from_formula': {
-                    'formula': "`data_one`.chunk({'index': 3, 'columns': 2})",
-                },
-                'ffill': {
-                    'dim': 'index',
-                    'limit': 2
-                }
-            }
-        )
-        self.tensor_client.create_tensor(definition=definition)
-        self.tensor_client.store(path='data_ffill')
-        assert self.tensor_client.read(
-            path='data_ffill'
-        ).equals(
-            self.tensor_client.read(path='data_one').ffill('index', limit=2)
-        )
-
     def test_specifics_definition(self):
         definition = TensorDefinition(
             path='specific_definition',
