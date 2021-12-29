@@ -19,12 +19,12 @@ from tensordb.storages import (
     MAPPING_STORAGES
 )
 from tensordb.utils.method_inspector import get_parameters
-from tensordb import algorithms
+from tensordb.algorithms import Algorithms
 from tensordb.tensor_definition import TensorDefinition, MethodDescriptor, Definition
 from tensordb import dag
 
 
-class TensorClient:
+class TensorClient(Algorithms):
 
     """
 
@@ -546,8 +546,8 @@ class TensorClient:
         (it make use of python exec so use use_exec parameter as True).
 
         Note: The globals dictionary use in eval is the following:
-        {'xr': xr, 'np': np, 'pd': pd, 'da': da, 'dask': dask, 'self': self, 'algorithms': algorithms}.
-        You can use Pandas (pd), Numpy (np), Xarray (xr), Dask, Dask Array (da), self (client), algorithms.
+        {'xr': xr, 'np': np, 'pd': pd, 'da': da, 'dask': dask, 'self': self}.
+        You can use Pandas (pd), Numpy (np), Xarray (xr), Dask, Dask Array (da), self (client).
 
         Parameters
         ----------
@@ -623,7 +623,7 @@ class TensorClient:
             formula = formula.replace(f"`{name}`", f"data_fields['{name}']")
 
         formula_globals = {
-            'xr': xr, 'np': np, 'pd': pd, 'da': da, 'dask': dask, 'self': self, 'algorithms': algorithms
+            'xr': xr, 'np': np, 'pd': pd, 'da': da, 'dask': dask, 'self': self
         }
         kwargs.update({'data_fields': data_fields})
 
@@ -631,46 +631,3 @@ class TensorClient:
             exec(formula, formula_globals, kwargs)
             return kwargs['new_data']
         return eval(formula, formula_globals, kwargs)
-
-    @classmethod
-    def ffill(
-            cls,
-            new_data: xr.DataArray,
-            dim: str,
-            limit: int = None,
-            until_last_valid: Union[xr.DataArray, bool] = False,
-    ):
-        return algorithms.ffill(
-            arr=new_data,
-            limit=limit,
-            dim=dim,
-            until_last_valid=until_last_valid,
-        )
-
-    @classmethod
-    def rank(
-            cls,
-            new_data: xr.DataArray,
-            dim: str,
-            method: Literal['average', 'min', 'max', 'dense', 'ordinal'] = 'ordinal',
-            rank_nan: bool = False
-    ):
-        return algorithms.rank(
-            arr=new_data,
-            method=method,
-            dim=dim,
-            rank_nan=rank_nan
-        )
-
-    @classmethod
-    def shift_on_valid(
-            cls,
-            arr: xr.DataArray,
-            dim: str,
-            shift: int
-    ):
-        return algorithms.shift_on_valid(
-            arr=new_data,
-            dim=dim,
-            shift=shift
-        )
