@@ -25,12 +25,6 @@ class Algorithms:
             # cumreduction apply the push func over all the blocks first so,
             # the only missing part is filling the missing values using
             # the last data for every one of them
-            if isinstance(a, np.ma.masked_array) or isinstance(b, np.ma.masked_array):
-                a = np.ma.getdata(a)
-                b = np.ma.getdata(b)
-                values = np.where(~np.isnan(b), b, a)
-                return np.ma.masked_array(values, mask=np.ma.getmaskarray(b))
-
             return np.where(~np.isnan(b), b, a)
 
         def _ffill(x):
