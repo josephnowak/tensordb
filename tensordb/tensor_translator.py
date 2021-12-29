@@ -96,11 +96,15 @@ def defined_translation(
     )
 
 
-def _chunk_coords(coords, chunks, dims) -> Generator:
-    return itertools.product(*[
+def generate_chunk_coords(coords, chunks, dims) -> Iterable:
+    chunk_coords_product = itertools.product(*[
         [coords[dim][i: i + chunk] for i in range(0, len(coords[dim]), chunk)]
         for chunk, dim in zip(chunks, dims)
     ])
+    chunk_pos_product = itertools.product(
+        *[range(ceil(len(coords[dim]) / chunk)) for chunk, dim in zip(chunks, dims)]
+    )
+    return zip(chunk_coords_product, chunk_pos_product)
 
 
 def _generate_lazy_data_array(
@@ -112,31 +116,28 @@ def _generate_lazy_data_array(
         func_parameters: Dict[str, Any],
 ):
     """
-    This method works using the task graph of dask, which is a little bit complex to use, but it reduce the time
+    This method works using the task graph of dask, which is a little complex to use, but it reduces the time
     for generating the array from multiple arrays.
 
     The important part is that the task graph is a simple dictionary that has as a key the name of the array
-    and the chunk position, so every chunk is contiguos to the other and they follow the order of 0, 1, 2, 3 and so on.
-    for two dimensional cases the positions looks like (0, 0), (0, 1), ..., (N, 0), (N, 1), ... (N, M).
+    and the chunk position, so every chunk is contiguous to the other, and they follow the order of 0, 1, 2, 3 and so on
+    for two-dimensional cases the positions looks like (0, 0), (0, 1), ..., (N, 0), (N, 1), ... (N, M).
 
-    It's important to keep aligned the chunks coords and the chunks positions, the order is mantained due
+    It's important to keep aligned the chunks coords and the chunks positions, the order is maintained due
     to the way that itertools product works.
 
     """
     task_graph = {}
-    array_name = func.__name__ + str(uuid.uuid4())
-    chunks_positions = itertools.product(
-        *[range(ceil(len(coords[dim]) / chunk)) for chunk, dim in zip(chunks, dims)]
-    )
+    name = f'{func.__name__}-{dask.base.tokenize(func.__name__, dims, coords, chunks, dtype, func_parameters)}'
 
-    for chunk_coords, chunk_pos in zip(_chunk_coords(coords, chunks, dims), chunks_positions):
+    for chunk_coords, chunk_pos in generate_chunk_coords(coords, chunks, dims):
         chunk_coords = {dim: coord for dim, coord in zip(dims, chunk_coords)}
         parameters = {**func_parameters, **{'coords': chunk_coords}}
-        task_graph[(array_name, *chunk_pos)] = (dask.utils.apply, func, [], parameters)
+        task_graph[(name, *chunk_pos)] = (dask.utils.apply, func, [], parameters)
 
     arr = dask.array.Array(
         dask=task_graph,
-        name=array_name,
+        name=name,
         shape=list(len(coords[dim]) for dim in dims),
         chunks=chunks,
         dtype=dtype
@@ -157,33 +158,46 @@ def _generate_lazy_dataset(
         dtypes: List[Any],
         data_names: List[Hashable],
         func_parameters: Dict[str, Any],
+        pure: bool = True
 ):
-
     if len(dtypes) != len(data_names):
         raise ValueError(
             f'The number of dtypes ({len(dtypes)}) does not match the number of dataset names ({len(data_names)}), '
             f'you need to specify a dtype for every data array in your dataset'
         )
 
-    chunked_arrays = []
-    for chunk_coords in _chunk_coords(coords, chunks, dims):
+    dataset_graph = {}
+    base_name = f'{func.__name__}-{dask.base.tokenize(func.__name__, dims, coords, chunks, dtypes, func_parameters)}'
+    dependencies = []
+
+    for chunk_coords, chunk_pos in generate_chunk_coords(coords, chunks, dims):
         chunk_coords = {dim: coord for dim, coord in zip(dims, chunk_coords)}
         func_parameters['coords'] = chunk_coords
-        shape = list(len(chunk_coords[dim]) for dim in dims)
-        delayed_func = dask.delayed(func, nout=len(data_names))(**func_parameters)
-        dataset = xr.Dataset({
-            name: xr.DataArray(
-                dask.array.from_delayed(
-                    delayed,
-                    shape=shape,
-                    dtype=dtype
-                ),
-                dims=dims,
-                coords=chunk_coords
-            )
-            for delayed, name, dtype in zip(delayed_func, data_names, dtypes)
-        })
-        chunked_arrays.append(dataset)
+        multi_delayed = dask.delayed(func, nout=len(data_names), pure=pure)(**func_parameters)
 
-    return xr.combine_by_coords(chunked_arrays)
+        shape = list(len(chunk_coords[dim]) for dim in dims)
+        for delayed, data_name, dtype in zip(multi_delayed, data_names, dtypes):
+            array = dask.array.from_delayed(delayed, shape=shape, dtype=dtype)
+            dataset_graph[(f'{base_name}-{data_name}', *chunk_pos)] = (array.name,) + (0, ) * len(dims)
+            dependencies.append(array)
+
+    shape = list(len(coords[dim]) for dim in dims)
+    return xr.Dataset({
+        data_name: xr.DataArray(
+            dask.array.Array(
+                name=f'{base_name}-{data_name}',
+                dask=dask.highlevelgraph.HighLevelGraph.from_collections(
+                    f'{base_name}-{data_name}',
+                    dataset_graph,
+                    dependencies=dependencies
+                ),
+                chunks=chunks,
+                shape=shape,
+                dtype=dtype
+            ),
+            dims=dims,
+            coords=coords
+        )
+        for data_name, dtype in zip(data_names, dtypes)
+    })
 
