@@ -79,10 +79,56 @@ class TestAlgorithms:
                         expected = xr.DataArray(expected.values, coords=arr.coords, dims=arr.dims)
                         assert expected.equals(rolling_arr)
 
+    def test_replace(self):
+        arr = xr.DataArray(
+            [
+                [1, 2, 3],
+                [4, 4, 1],
+                [5, 2, 3],
+                [np.nan, 3, 0],
+                [8, 7, 9]
+            ],
+            dims=['a', 'b'],
+            coords={'a': list(range(5)), 'b': list(range(3))}
+        ).chunk((3, 1))
+
+        df = pd.DataFrame(arr.values, index=arr.a.values, columns=arr.b.values)
+
+        to_replace = {
+            1: 11,
+            2: 12,
+            3: 13,
+            4: 14,
+            5: 15,
+            7: 16
+        }
+
+        for method in ('vectorized', 'unique'):
+            for default_value in [None, np.nan]:
+                new_data = Algorithms.replace(
+                    new_data=arr,
+                    method=method,
+                    to_replace=to_replace,
+                    dtype=float,
+                    default_value=default_value
+                )
+                replaced_df = df.replace(to_replace)
+                if default_value is not None:
+                    replaced_df.values[~np.isin(df.values, list(to_replace.keys()))] = default_value
+
+                assert xr.DataArray(
+                    replaced_df.values,
+                    coords={'a': replaced_df.index, 'b': replaced_df.columns},
+                    dims=['a', 'b']
+                ).equals(
+                    new_data
+                )
+
 
 if __name__ == "__main__":
     test = TestAlgorithms()
-    test.test_ffill()
+    # test.test_ffill()
+    test.test_replace()
     # test.test_append_data(remote=False)
     # test.test_update_data()
     # test.test_backup()

@@ -321,7 +321,7 @@ class TensorClient(Algorithms):
             method_parameters = descriptor.parameters
             if descriptor.method_name in definition:
                 method_parameters = {**method_parameters, **definition[descriptor.method_name].dict(exclude_unset=True)}
-            result = func(**get_parameters(func, method_parameters, parameters))
+            result = func(**get_parameters(func, parameters, method_parameters))
 
             if descriptor.result_name is not None:
                 parameters.update({descriptor.result_name: result})
@@ -329,29 +329,6 @@ class TensorClient(Algorithms):
                 parameters.update(result if isinstance(result, dict) else {'new_data': result})
 
         return parameters['new_data']
-
-    @validate_arguments
-    def customize_storage_method(self, path: str, method_name: str, parameters: Dict[str, Any]):
-        definition = self.get_tensor_definition(path)
-        method_settings = definition.get(method_name, {})
-        parameters.update({'definition': definition})
-        if 'substitute_method' in method_settings:
-            func = getattr(self, method_settings['substitute_method'])
-            if func.__name__ in self.internal_actions:
-                return func(path=path, **parameters)
-            return func(**get_parameters(func, parameters, definition.get(func.__name__, {})))
-
-        storage = self.get_storage(path=path, definition=definition)
-        if 'data_transformation' in method_settings:
-            parameters['new_data'] = self.apply_data_transformation(
-                data_transformation=method_settings['data_transformation'],
-                storage=storage,
-                definition=definition,
-                parameters=parameters
-            )
-
-        func = getattr(storage, method_name)
-        return func(**get_parameters(func, parameters))
 
     @validate_arguments
     def storage_method_caller(
@@ -388,8 +365,12 @@ class TensorClient(Algorithms):
         tensor_definition = self.get_tensor_definition(path) if isinstance(path, str) else path
         definition = tensor_definition.definition
 
-        parameters.update({'definition': definition})
         storage = self.get_storage(path=tensor_definition)
+        parameters.update({
+            'definition': definition,
+            'original_path': path if isinstance(path, str) else path.path,
+            'storage': storage
+        })
 
         if method_name in definition:
             method_settings = definition[method_name]
@@ -411,6 +392,8 @@ class TensorClient(Algorithms):
                     definition=definition,
                     parameters=parameters
                 )
+                if method_name == 'read':
+                    return parameters['new_data']
 
         func = getattr(storage, method_name)
         return func(**get_parameters(func, parameters))
@@ -532,6 +515,8 @@ class TensorClient(Algorithms):
             self,
             formula: str,
             use_exec: bool = False,
+            original_path: str = None,
+            storage: BaseStorage = None,
             **kwargs
     ) -> xr.DataArray:
         """
@@ -560,6 +545,13 @@ class TensorClient(Algorithms):
         use_exec: bool = False
             Indicate if you want to use python exec or eval to evaluate the formula, it must always create
             a variable called new_data inside the code.
+
+        original_path: str = None
+            Useful to identify the original tensor path and avoid recursive reads
+
+        storage: BaseStorage = None
+            Storage of the actual tensor that is being read, this is the storage of the original_path
+            useful for self reading, is normally send by the TensorClient class
 
         **kwargs: Dict
             It's use as the locals dictionary of the eval and exec functions, it is automatically
@@ -617,7 +609,12 @@ class TensorClient(Algorithms):
         data_fields_intervals = np.array([i for i, c in enumerate(formula) if c == '`'])
         for i in range(0, len(data_fields_intervals), 2):
             name_data_field = formula[data_fields_intervals[i] + 1: data_fields_intervals[i + 1]]
-            data_fields[name_data_field] = self.read(name_data_field)
+            if original_path is not None and original_path == name_data_field:
+                if storage is None:
+                    raise ValueError(f'You can not make a self read without sending the storage parameter')
+                data_fields[name_data_field] = storage.read()
+            else:
+                data_fields[name_data_field] = self.read(name_data_field)
 
         for name, dataset in data_fields.items():
             formula = formula.replace(f"`{name}`", f"data_fields['{name}']")
