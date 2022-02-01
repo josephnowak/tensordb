@@ -2,8 +2,10 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import dask.array as da
+import string
 
-from typing import Union, List, Dict, Literal
+from typing import Union, List, Dict, Literal, Any
+from loguru import logger
 
 
 class Algorithms:
@@ -17,51 +19,7 @@ class Algorithms:
             until_last_valid: Union[xr.DataArray, bool] = False,
     ) -> xr.DataArray:
 
-        from bottleneck import push
-
-        # TODO delete the forward fill logic once I solve https://github.com/pydata/xarray/issues/6112
-
-        def _fill_with_last_one(a, b):
-            # cumreduction apply the push func over all the blocks first so,
-            # the only missing part is filling the missing values using
-            # the last data for every one of them
-            return np.where(~np.isnan(b), b, a)
-
-        def _ffill(x):
-            return xr.DataArray(
-                da.reductions.cumreduction(
-                    func=push,
-                    binop=_fill_with_last_one,
-                    ident=np.nan,
-                    x=x.data,
-                    axis=x.dims.index(dim),
-                    dtype=x.dtype,
-                    method="sequential",
-                ),
-                dims=x.dims,
-                coords=x.coords
-            )
-
-        result = _ffill(new_data)
-        if limit is not None:
-            axis = new_data.dims.index(dim)
-            arange = xr.DataArray(
-                da.broadcast_to(
-                    da.arange(
-                        new_data.shape[axis],
-                        chunks=new_data.chunks[axis],
-                        dtype=new_data.dtype
-                    ).reshape(
-                        tuple(size if i == axis else 1 for i, size in enumerate(new_data.shape))
-                    ),
-                    new_data.shape,
-                    new_data.chunks
-                ),
-                coords=new_data.coords,
-                dims=new_data.dims
-            )
-            valid_limits = (arange - _ffill(arange.where(new_data.notnull(), np.nan))) <= limit
-            result = result.where(valid_limits, np.nan)
+        result = new_data.ffill(dim=dim, limit=limit)
 
         if isinstance(until_last_valid, bool) and until_last_valid:
             until_last_valid = new_data.notnull().cumsum(dim=dim).idxmax(dim=dim)
@@ -169,3 +127,41 @@ class Algorithms:
             coords=new_data.coords,
             dims=new_data.dims
         )
+
+    @classmethod
+    def replace(
+            cls,
+            new_data: xr.DataArray,
+            to_replace: Dict,
+            dtype: Any = None,
+            method: Literal['unique', 'vectorized'] = 'unique',
+            default_value: Union[Any, None] = np.nan
+    ):
+        dtype = dtype if dtype else new_data.dtype
+        to_replace = pd.Series(to_replace).drop_duplicates().sort_index()
+        vectorized_map = np.vectorize(
+            lambda e: to_replace.get(e, e if default_value is None else default_value),
+            otypes=[dtype],
+            signature='()->()'
+        )
+
+        if method == 'vectorized':
+            _replace = vectorized_map
+        elif method == 'unique':
+            def _replace(x):
+                unique_elements, rebuild_index = np.unique(x, return_inverse=True)
+                return vectorized_map(unique_elements)[rebuild_index].reshape(x.shape)
+        else:
+            raise NotImplemented(f'The method {method} is not implemented')
+
+        return xr.DataArray(
+            da.map_blocks(
+                _replace,
+                new_data.data,
+                dtype=dtype,
+                chunks=new_data.chunks
+            ),
+            coords=new_data.coords,
+            dims=new_data.dims
+        )
+

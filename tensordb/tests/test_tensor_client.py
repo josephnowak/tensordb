@@ -143,6 +143,56 @@ class TestTensorClient:
         data_two = self.tensor_client.read(path='data_two')
         assert data_four.equals((data_one * data_two).rolling({'index': 3}).sum())
 
+    def test_self_read_from_formula(self):
+        definition = TensorDefinition(
+            path='data_four',
+            definition={
+                'read': {
+                    'substitute_method': 'read_from_formula',
+                },
+                'read_from_formula': {
+                    'formula': "`data_four` * `data_two`",
+                }
+            }
+        )
+        self.tensor_client.create_tensor(definition=definition)
+        self.tensor_client.store('data_four', new_data=self.arr)
+        assert self.tensor_client.read('data_four').equals(self.arr * self.arr2)
+
+    def test_read_data_transformation(self):
+        definition = TensorDefinition(
+            path='data_four',
+            definition={
+                'read': {
+                    'data_transformation': [
+                        {
+                            'method_name': 'read_from_formula',
+                            'parameters': {'formula': '`data_one` * `data_two`'}
+                        }
+                    ],
+                },
+            }
+        )
+        self.tensor_client.create_tensor(definition=definition)
+        assert self.tensor_client.read('data_four').equals(self.arr * self.arr2)
+
+    def test_data_transformation_parameters_priority(self):
+        definition = TensorDefinition(
+            path='data_four',
+            definition={
+                'read': {
+                    'data_transformation': [
+                        {
+                            'method_name': 'read_from_formula',
+                            'parameters': {'formula': '`data_one` * `data_two`'}
+                        }
+                    ],
+                },
+            }
+        )
+        self.tensor_client.create_tensor(definition=definition)
+        assert self.tensor_client.read('data_four', formula='`data_three`').equals(self.arr3)
+
     def test_specifics_definition(self):
         definition = TensorDefinition(
             path='specific_definition',
