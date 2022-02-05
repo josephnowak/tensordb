@@ -3,4 +3,5 @@ from tensordb import storages
 from tensordb import tensor_definition
 from tensordb import tensor_translator
 from tensordb.tensor_definition import TensorDefinition
+from tensordb.algorithms import Algorithms
 

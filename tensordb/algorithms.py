@@ -178,6 +178,10 @@ class Algorithms:
         equal = True
         for i, dim in enumerate(new_data.dims):
             if dim in coords and not np.array_equal(coords[dim], new_data.coords[dim]):
+                if not new_data.indexes[dim].is_unique:
+                    raise xr.errors.DuplicateLabelError(
+                        f'vindex require unique coords on the new_data, delete the duplicates on the dim {dim}'
+                    )
                 int_coord = new_data.indexes[dim].get_indexer(coords[dim])
                 data_slices = (slice(None),) * i + (int_coord,) + (slice(None),) * (len(new_data.dims) - i - 1)
                 arr = da.moveaxis(arr.vindex[data_slices], 0, i)
