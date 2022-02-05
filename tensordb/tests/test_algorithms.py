@@ -124,6 +124,46 @@ class TestAlgorithms:
                     new_data
                 )
 
+    def test_vindex(self):
+        arr = xr.DataArray(
+            [
+                [[1, 3], [4, 1], [5, 2]],
+                [[4, 2], [5, 1], [3, 4]],
+                [[5, 1], [2, -1], [3, -5]],
+                [[np.nan, 1], [3, 3], [0, -2]],
+                [[8, 3], [7, 5], [9, 11]]
+            ],
+            dims=['a', 'b', 'c'],
+            coords={'a': list(range(5)), 'b': list(range(3)), 'c': list(range(2))}
+        ).chunk((3, 2, 1))
+
+        for i_coord in [None, [0, 3, 1, 4], [3, 4, 2, 1], [1, 1, 1]]:
+            for j_coord in [None, [1, 0, 2], [2, 1, 0], [0, 0 ,0], [1, 0]]:
+                for k_coord in [None, [0, 1], [1, 0], [0], [1]]:
+                    coords = {'a': i_coord, 'b': j_coord, 'c': k_coord}
+                    coords = {k: v for k, v in coords.items() if v is not None}
+                    if len(coords) == 0:
+                        continue
+                    expected = arr.reindex(coords)
+                    result = Algorithms.vindex(arr, coords)
+                    assert expected.equals(result)
+
+    def test_merge_duplicates_coord(self):
+        arr = xr.DataArray(
+            [
+                [1, 2, 3, 4, 3],
+                [4, 4, 1, 3, 5],
+                [5, 2, 3, 2, 1],
+                [np.nan, 3, 0, 5, 4],
+                [8, 7, 9, 6, 7]
+            ],
+            dims=['a', 'b'],
+            coords={'a': list(range(5)), 'b': [0, 1, 1, 0, -1]}
+        ).chunk((3, 2))
+
+        g = arr.groupby('b').max('b')
+        assert g.equals(Algorithms.merge_duplicates_coord(arr, 'b','max'))
+
 
 if __name__ == "__main__":
     test = TestAlgorithms()

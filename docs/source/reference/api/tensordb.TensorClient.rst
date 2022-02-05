@@ -17,7 +17,6 @@
       ~TensorClient.append
       ~TensorClient.apply_data_transformation
       ~TensorClient.create_tensor
-      ~TensorClient.customize_storage_method
       ~TensorClient.delete_tensor
       ~TensorClient.drop
       ~TensorClient.exec_on_dag_order
@@ -30,7 +29,9 @@
       ~TensorClient.rank
       ~TensorClient.read
       ~TensorClient.read_from_formula
-      ~TensorClient.shift_on_valids
+      ~TensorClient.replace
+      ~TensorClient.rolling_along_axis
+      ~TensorClient.shift_on_valid
       ~TensorClient.storage_method_caller
       ~TensorClient.store
       ~TensorClient.update

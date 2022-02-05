@@ -258,22 +258,19 @@ xr.DataArray when you read it</p>
 <tr class="row-even"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.exist.html#tensordb.storages.BaseStorage.exist" title="tensordb.storages.BaseStorage.exist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exist</span></code></a>(**kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to check if the tensor exist or not.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_base_map_write</span></code>()</p></td>
-<td><p>If the base_map has the local_file cache option active it is going to give a KeyError: '.zmetadata' when the tensor is being writted, so this method omit the cache of the base_map in case that it exist</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_data_names_list</span></code>()</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_data_names_list</span></code>()</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.read.html#tensordb.storages.BaseStorage.read" title="tensordb.storages.BaseStorage.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(**kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.read.html#tensordb.storages.BaseStorage.read" title="tensordb.storages.BaseStorage.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(**kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to read an existing file.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.store.html#tensordb.storages.BaseStorage.store" title="tensordb.storages.BaseStorage.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">store</span></code></a>(new_data, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.store.html#tensordb.storages.BaseStorage.store" title="tensordb.storages.BaseStorage.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">store</span></code></a>(new_data, **kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to store new_data to an existing file, so it must create the necessaries files, folders and metadata for the corresponding tensor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.update.html#tensordb.storages.BaseStorage.update" title="tensordb.storages.BaseStorage.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(new_data, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.update.html#tensordb.storages.BaseStorage.update" title="tensordb.storages.BaseStorage.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(new_data, **kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to update new_data to an existing file, so it must not insert any new coords, it must only replace elements inside the stored tensor.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.upsert.html#tensordb.storages.BaseStorage.upsert" title="tensordb.storages.BaseStorage.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">upsert</span></code></a>(new_data, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.upsert.html#tensordb.storages.BaseStorage.upsert" title="tensordb.storages.BaseStorage.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">upsert</span></code></a>(new_data, **kwargs)</p></td>
 <td><p>This abstracmethod must be overwrited to update and append new_data to an existing file, so basically it must be a combination between update and append.</p></td>
 </tr>
 </tbody>

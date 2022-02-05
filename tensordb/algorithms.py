@@ -4,7 +4,7 @@ import xarray as xr
 import dask.array as da
 import string
 
-from typing import Union, List, Dict, Literal, Any
+from typing import Union, List, Dict, Literal, Any, Tuple
 from loguru import logger
 
 
@@ -164,4 +164,50 @@ class Algorithms:
             coords=new_data.coords,
             dims=new_data.dims
         )
+
+    @classmethod
+    def vindex(
+            cls,
+            new_data: Union[xr.DataArray, xr.Dataset],
+            coords: Dict,
+    ):
+        """
+        Implementation of dask vindex using xarray
+        """
+        arr = new_data.data
+        equal = True
+        for i, dim in enumerate(new_data.dims):
+            if dim in coords and not np.array_equal(coords[dim], new_data.coords[dim]):
+                int_coord = new_data.indexes[dim].get_indexer(coords[dim])
+                data_slices = (slice(None),) * i + (int_coord,) + (slice(None),) * (len(new_data.dims) - i - 1)
+                arr = da.moveaxis(arr.vindex[data_slices], 0, i)
+                equal = False
+
+        if equal:
+            return new_data
+
+        return xr.DataArray(
+            arr,
+            dims=new_data.dims,
+            coords={
+                dim: coords.get(dim, coord) for dim, coord in new_data.coords.items()
+            }
+        )
+
+    @classmethod
+    def merge_duplicates_coord(
+            cls,
+            new_data,
+            dim: str,
+            method: str = 'max'
+    ):
+        # TODO: Delete this once Xarray merge flox to speed up the groupby and avoid this kind of optimizations
+        duplicated = np.unique(new_data.indexes[dim][new_data.indexes[dim].duplicated()])
+        if len(duplicated) > 0:
+            valid = new_data.coords[dim].isin(duplicated)
+            duplicate_data = getattr(new_data.sel({dim: valid}).groupby(dim), method)(dim)
+            tmp_data = xr.concat([duplicate_data, new_data.sel({dim: ~valid})], dim)
+            new_data = cls.vindex(tmp_data, {dim: np.unique(new_data.indexes[dim])})
+
+        return new_data
 
