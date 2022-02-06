@@ -16,7 +16,7 @@ def defined_translation(
         func: Callable,
         dims: List[Hashable],
         coords: Dict[Hashable, Union[List, np.ndarray]],
-        chunks: List[int],
+        chunks: List[Union[int, None]],
         dtypes: Union[List[Any], Any],
         data_names: List[Hashable] = None,
         func_parameters: Dict[str, Any] = None,
