@@ -138,7 +138,7 @@ class TestAlgorithms:
         ).chunk((3, 2, 1))
 
         for i_coord in [None, [0, 3, 1, 4], [3, 4, 2, 1], [1, 1, 1]]:
-            for j_coord in [None, [1, 0, 2], [2, 1, 0], [0, 0 ,0], [1, 0]]:
+            for j_coord in [None, [1, 0, 2], [2, 1, 0], [0, 0, 0], [1, 0]]:
                 for k_coord in [None, [0, 1], [1, 0], [0], [1]]:
                     coords = {'a': i_coord, 'b': j_coord, 'c': k_coord}
                     coords = {k: v for k, v in coords.items() if v is not None}
@@ -148,7 +148,8 @@ class TestAlgorithms:
                     result = Algorithms.vindex(arr, coords)
                     assert expected.equals(result)
 
-    def test_merge_duplicates_coord(self):
+    @pytest.mark.parametrize('dim', ['a', 'b'])
+    def test_merge_duplicates_coord(self, dim):
         arr = xr.DataArray(
             [
                 [1, 2, 3, 4, 3],
@@ -158,11 +159,12 @@ class TestAlgorithms:
                 [8, 7, 9, 6, 7]
             ],
             dims=['a', 'b'],
-            coords={'a': list(range(5)), 'b': [0, 1, 1, 0, -1]}
+            coords={'a': [1, 5, 5, 0, 1], 'b': [0, 1, 1, 0, -1]}
         ).chunk((3, 2))
 
-        g = arr.groupby('b').max('b')
-        assert g.equals(Algorithms.merge_duplicates_coord(arr, 'b','max'))
+        g = arr.groupby(dim).max(dim)
+        arr = Algorithms.merge_duplicates_coord(arr, dim, 'nanmax')
+        assert g.equals(arr)
 
 
 if __name__ == "__main__":

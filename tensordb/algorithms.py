@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import dask.array as da
-import string
+import numpy_groupies as npg
 
 from typing import Union, List, Dict, Literal, Any, Tuple
 from loguru import logger
@@ -203,15 +203,30 @@ class Algorithms:
             cls,
             new_data,
             dim: str,
-            method: str = 'max'
+            func: str,
+            fill_value: int = np.nan
     ):
-        # TODO: Delete this once Xarray merge flox to speed up the groupby and avoid this kind of optimizations
-        duplicated = np.unique(new_data.indexes[dim][new_data.indexes[dim].duplicated()])
-        if len(duplicated) > 0:
-            valid = new_data.coords[dim].isin(duplicated)
-            duplicate_data = getattr(new_data.sel({dim: valid}).groupby(dim), method)(dim)
-            tmp_data = xr.concat([duplicate_data, new_data.sel({dim: ~valid})], dim)
-            new_data = cls.vindex(tmp_data, {dim: np.unique(new_data.indexes[dim])})
 
-        return new_data
+        # TODO: Delete this method once Xarray merge flox to speed up the groupby and avoid this kind of optimizations
+        if new_data.indexes[dim].is_unique:
+            return new_data
+
+        axis = new_data.dims.index(dim)
+        chunk_axis = new_data.chunks[:axis] + (new_data.sizes[dim], ) + new_data.chunks[axis + 1:]
+        data = new_data.data.rechunk(chunk_axis)
+        unique_coord = pd.Index(np.unique(new_data.indexes[dim]))
+        group_idx = unique_coord.get_indexer_for(new_data.coords[dim].values)
+
+        def _reduce(x):
+            return npg.aggregate(group_idx, x, axis=axis, func=func, fill_value=fill_value)
+
+        return xr.DataArray(
+            data.map_blocks(
+                func=_reduce,
+                dtype=data.dtype,
+                chunks=new_data.chunks[:axis] + (len(unique_coord), ) + new_data.chunks[axis + 1:]
+            ),
+            coords={d: unique_coord if d == dim else v for d, v in new_data.coords.items()},
+            dims=new_data.dims
+        )
 
