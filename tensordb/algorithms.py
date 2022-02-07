@@ -179,7 +179,7 @@ class Algorithms:
         for i, dim in enumerate(new_data.dims):
             if dim in coords and not np.array_equal(coords[dim], new_data.coords[dim]):
                 if not new_data.indexes[dim].is_unique:
-                    raise xr.errors.DuplicateLabelError(
+                    raise pd.errors.DuplicateLabelError(
                         f'vindex require unique coords on the new_data, delete the duplicates on the dim {dim}'
                     )
                 int_coord = new_data.indexes[dim].get_indexer(coords[dim])
