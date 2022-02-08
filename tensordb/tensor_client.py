@@ -235,6 +235,8 @@ class TensorClient(Algorithms):
 
         Parameters
         ----------
+        path: str
+            path of the tensor
 
         only_data: bool, default False
             If this option is marked as True only the data will be erased and not the definition
@@ -285,7 +287,8 @@ class TensorClient(Algorithms):
             client: dask.distributed.Client = None,
             compute: bool = False,
             call_pool: Literal['thread', 'process'] = 'thread',
-            scheduler: str = None
+            scheduler: str = None,
+            sequential: bool = False
     ):
         kwargs_groups = {} if kwargs_groups is None else kwargs_groups
         if tensors_path is None:
@@ -295,28 +298,37 @@ class TensorClient(Algorithms):
 
         method = getattr(self, method)
         client = dask if client is None else client
-        call_pool = concurrent.futures.ThreadPoolExecutor
         if call_pool == 'process':
             call_pool = concurrent.futures.ProcessPoolExecutor
+        else:
+            call_pool = concurrent.futures.ThreadPoolExecutor
 
         for level in dag.get_tensor_dag(tensors):
             logger.info([tensor.path for tensor in level])
-            with call_pool(len(level)) as pool:
-                futures = [
-                    pool.submit(
-                        method,
+            if sequential:
+                for tensor in level:
+                    method(
                         path=tensor.path,
-                        compute=compute,
+                        compute=True,
                         **kwargs_groups.get(tensor.dag.group, {})
                     )
-                    for tensor in level
-                ]
-                is_computed = 'computed' if compute else 'uncomputed'
-                logger.info(f'Waiting for the {is_computed} execution of the method on all the tensor')
-                futures = [future.result() for future in futures]
-            if not compute:
-                logger.info('Calling compute over all the delayed tensors')
-                client.compute(futures, scheduler=scheduler)
+            else:
+                with call_pool(len(level)) as pool:
+                    futures = [
+                        pool.submit(
+                            method,
+                            path=tensor.path,
+                            compute=compute,
+                            **kwargs_groups.get(tensor.dag.group, {})
+                        )
+                        for tensor in level
+                    ]
+                    is_computed = 'computed' if compute else 'delayed'
+                    logger.info(f'Waiting for the {is_computed} execution of the method on all the tensor')
+                    futures = [future.result() for future in futures]
+                if not compute:
+                    logger.info('Calling compute over all the delayed tensors')
+                    client.compute(futures, scheduler=scheduler)
 
     def apply_data_transformation(
             self,
