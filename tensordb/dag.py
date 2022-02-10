@@ -14,7 +14,7 @@ def get_tensor_dag(
 ) -> List[List[TensorDefinition]]:
 
     tensor_search = {tensor.path: tensor for tensor in tensors}
-    # Create the dag based on the dependencies, so the node used as Key depend of the Nodes in the values
+    # Create the dag based on the dependencies, so the node used as Key depends on the Nodes in the values
     # It's like there is an array from every node in the values to the Key node
     dag = {tensor.path: set(tensor.dag.depends) for tensor in tensors}
 
@@ -38,3 +38,11 @@ def get_tensor_dag(
         )
 
     return ordered_tensors
+
+
+def get_dependencies(
+    tensors: List[TensorDefinition]
+) -> List[TensorDefinition]:
+    # TODO: Implement this
+    return tensors
+

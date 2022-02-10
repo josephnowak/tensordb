@@ -18,9 +18,14 @@ class DAGOrder(BaseModel):
 
     group: Optional[str], default 'regular'
         Useful to send parameters by groups on the exec_on_dag_order method of the tensor client
+
+    omit: bool, default False
+        Indicate if the tensor must be omitted from the execution, useful for generating reference nodes or
+        avoid calling methods on tensors that are simply formulas but other tensors use them.
     """
     depends: Optional[List[str]]
     group: Optional[str] = 'regular'
+    omit: bool = False
 
 
 class StorageDefinition(BaseModel):

@@ -288,13 +288,16 @@ class TensorClient(Algorithms):
             compute: bool = False,
             call_pool: Literal['thread', 'process'] = 'thread',
             scheduler: str = None,
-            sequential: bool = False
+            sequential: bool = False,
+            apply_on_dependencies: bool = False
     ):
         kwargs_groups = {} if kwargs_groups is None else kwargs_groups
         if tensors_path is None:
             tensors = [tensor for tensor in self.get_all_tensors_definition() if tensor.dag is not None]
         else:
             tensors = [self.get_tensor_definition(path) for path in tensors_path]
+            if apply_on_dependencies:
+                tensors = dag.get_dependencies(tensors)
 
         method = getattr(self, method)
         client = dask if client is None else client
@@ -304,6 +307,8 @@ class TensorClient(Algorithms):
             call_pool = concurrent.futures.ThreadPoolExecutor
 
         for level in dag.get_tensor_dag(tensors):
+            # Filter the tensors base on the omit parameter
+            level = [tensor for tensor in level if not tensor.dag.omit]
             logger.info([tensor.path for tensor in level])
             if sequential:
                 for tensor in level:

@@ -247,9 +247,9 @@ class ZarrStorage(BaseStorage):
         """
         Replace data on an existing Zarr files based on the new_data, internally calls the
         `to_zarr method <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_ using the
-        region parameter, so it automatically create this region based on your new_data, in some
+        region parameter, so it automatically creates this region based on your new_data, in some
         cases it could even replace all the data in the file even if you only has two coords in your new_data
-        this happend due that Xarray only allows to write in contigous blocks (region)
+        this happened due that Xarray only allows to write in contiguous blocks (region)
         (read carefully how the region parameter works in Xarray)
 
         Parameters
@@ -266,7 +266,7 @@ class ZarrStorage(BaseStorage):
         Returns
         -------
 
-        An xr.backends.ZarrStore produced by the
+        A xr.backends.ZarrStore produced by the
         `to_zarr method <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         """
 
