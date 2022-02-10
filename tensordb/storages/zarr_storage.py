@@ -21,13 +21,13 @@ class ZarrStorage(BaseStorage):
 
     chunks: Dict[str, int], default None
         Define the chunks of the Zarr files, read the doc of the Xarray method
-        `to_zarr <http://xr.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
+        `to_zarr <https://xr.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
         in the parameter 'chunks' for more details.
 
     synchronizer: {'thread', 'process'}, default None
         Depending on the option send it will create a zarr.sync.ThreadSynchronizer or a zarr.sync.ProcessSynchronizer
         for more info read the doc of `Zarr synchronizer <https://zarr.readthedocs.io/en/stable/api/sync.html>`_
-        and the Xarray `to_zarr method <http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
+        and the Xarray `to_zarr method <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         in the parameter 'synchronizer'.
 
 
@@ -98,7 +98,7 @@ class ZarrStorage(BaseStorage):
         """
         Store the data, the dtype and all the details will depend of what you pass in the new_data
         parameter, internally this method calls the
-        `to_zarr method <http://xarray.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
+        `to_zarr method <https://xarray.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         with a 'w' mode using that data.
 
         Parameters
@@ -107,15 +107,17 @@ class ZarrStorage(BaseStorage):
         new_data: Union[xr.DataArray, xr.Dataset]
             This is the data that want to be stored
 
+        compute: bool, default True
+            Same meaning that in xarray
+
         rewrite: bool, default False
             If it is True, it allows to overwrite the tensor using it's own data, this can be inefficient due that
-            first it has to store the tensor on a temporal localtion to then write it on the original and delete
+            first it has to store the tensor on a temporal location to then write it on the original and delete
             the temporal.
             The compute option is always set as True if the rewrite option is active
 
         Returns
         -------
-
         An xr.backends.ZarrStore produced by the
         `to_zarr method`_
 
@@ -168,7 +170,7 @@ class ZarrStorage(BaseStorage):
         """
         Append data at the end of a Zarr file (in case that the file does not exist it will call the store method),
         internally it calls the
-        `to_zarr method <http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
+        `to_zarr method <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         for every dimension of your data.
 
         Parameters
@@ -244,7 +246,7 @@ class ZarrStorage(BaseStorage):
     ) -> xr.backends.ZarrStore:
         """
         Replace data on an existing Zarr files based on the new_data, internally calls the
-        `to_zarr method <http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_ using the
+        `to_zarr method <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_ using the
         region parameter, so it automatically create this region based on your new_data, in some
         cases it could even replace all the data in the file even if you only has two coords in your new_data
         this happend due that Xarray only allows to write in contigous blocks (region)
@@ -265,7 +267,7 @@ class ZarrStorage(BaseStorage):
         -------
 
         An xr.backends.ZarrStore produced by the
-        `to_zarr method <http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
+        `to_zarr method <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         """
 
         act_data = self._transform_to_dataset(self.read(), chunk_data=False)
@@ -348,16 +350,15 @@ class ZarrStorage(BaseStorage):
     def read(self) -> Union[xr.DataArray, xr.Dataset]:
         """
         Read a tensor stored, internally it use
-        `open_zarr method <http://xr.pydata.org/en/stable/generated/xr.open_zarr.html>`_.
+        `open_zarr method <https://xr.pydata.org/en/stable/generated/xr.open_zarr.html>`_.
 
         Parameters
         ----------
 
         Returns
         -------
-
         An xr.DataArray or xr.Dataset that allow to read your tensor, that is the same result that you get with
-        `open_zarr <http://xr.pydata.org/en/stable/generated/xr.open_zarr.html>`_ and then using the '[]'
+        `open_zarr <https://xr.pydata.org/en/stable/generated/xr.open_zarr.html>`_ and then using the '[]'
         with some names or a name
         """
 
