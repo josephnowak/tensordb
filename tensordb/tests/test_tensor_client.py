@@ -193,6 +193,23 @@ class TestTensorClient:
         self.tensor_client.create_tensor(definition=definition)
         assert self.tensor_client.read('data_four', formula='`data_three`').equals(self.arr3)
 
+        definition = TensorDefinition(
+            path='data_five',
+            definition={
+                'read': {
+                    'data_transformation': [
+                        {
+                            'method_name': 'read_from_formula',
+                            'parameters': {'formula': '`data_three`'}
+                        }
+                    ],
+                },
+                'read_from_formula': {'formula': '`data_one` * `data_two`'}
+            }
+        )
+        self.tensor_client.create_tensor(definition=definition)
+        assert self.tensor_client.read('data_five').equals(self.arr3)
+
     def test_specifics_definition(self):
         definition = TensorDefinition(
             path='specific_definition',

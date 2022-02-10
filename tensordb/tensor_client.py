@@ -351,7 +351,7 @@ class TensorClient(Algorithms):
 
             method_parameters = descriptor.parameters
             if descriptor.method_name in definition:
-                method_parameters = {**method_parameters, **definition[descriptor.method_name].dict(exclude_unset=True)}
+                method_parameters = {**definition[descriptor.method_name].dict(exclude_unset=True), **method_parameters}
             result = func(**get_parameters(func, parameters, method_parameters))
 
             if descriptor.result_name is not None:
