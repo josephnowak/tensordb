@@ -312,6 +312,7 @@ class TensorClient(Algorithms):
             logger.info([tensor.path for tensor in level])
             if sequential:
                 for tensor in level:
+                    logger.info(f'processing the tensor: {tensor.path}')
                     method(
                         path=tensor.path,
                         compute=True,

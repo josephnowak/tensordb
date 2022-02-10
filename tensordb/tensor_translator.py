@@ -2,7 +2,6 @@ import xarray as xr
 import dask
 import numpy as np
 import itertools
-import uuid
 
 from typing import Iterable, Callable, Union, Dict, Any, List, Tuple, Optional, Literal, Hashable, Generator
 from math import ceil
