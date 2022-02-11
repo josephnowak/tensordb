@@ -104,18 +104,22 @@ class TestZarrStorage:
             assert storage.read().equals(self.arr2)
 
     @pytest.mark.parametrize('keep_order', [True, False])
-    def test_append_data(self, keep_order: bool):
+    @pytest.mark.parametrize('as_dask', [False, False])
+    def test_append_data(self, keep_order: bool, as_dask: bool):
         storage = self.storage_sorted_unique if keep_order else self.storage
 
         storage.delete_tensor()
+        arr, arr2 = self.arr, self.arr2
+        if as_dask:
+            arr, arr2 = arr.chunk((2, 3)), arr2.chunk((1, 4))
 
-        for i in range(len(self.arr.index)):
-            storage.append(self.arr.isel(index=[i]))
+        for i in range(len(arr.index)):
+            storage.append(arr.isel(index=[i]))
 
-        for i in range(len(self.arr2.index)):
-            storage.append(self.arr2.isel(index=[i]))
+        for i in range(len(arr2.index)):
+            storage.append(arr2.isel(index=[i]))
 
-        total_data = xr.concat([self.arr, self.arr2], dim='index')
+        total_data = xr.concat([arr, arr2], dim='index')
         if keep_order:
             assert storage.read().equals(
                 total_data.sel(index=total_data.index[::-1], columns=total_data.columns[::-1])

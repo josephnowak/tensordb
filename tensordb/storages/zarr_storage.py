@@ -1,3 +1,4 @@
+import dask.array as da
 import xarray as xr
 import numpy as np
 import zarr
@@ -6,6 +7,7 @@ from typing import Dict, List, Union, Any, Literal, Tuple
 from loguru import logger
 
 from tensordb.storages.base_storage import BaseStorage
+from tensordb.algorithms import Algorithms
 
 
 class ZarrStorage(BaseStorage):
@@ -34,7 +36,7 @@ class ZarrStorage(BaseStorage):
 
     def __init__(self,
                  chunks: Dict[str, int] = None,
-                 synchronizer: Union[Literal['process', 'thread'], None] = None,
+                 synchronizer: Union[Literal['process', 'thread'], None] = 'thread',
                  process_synchronizer_path: str = '',
                  unique_coords: bool = False,
                  sorted_coords: Dict[str, bool] = None,
@@ -63,11 +65,15 @@ class ZarrStorage(BaseStorage):
         if not self.sorted_coords:
             return new_data
 
-        return new_data.sel({
+        sorted_coords = {
             k: v.sort_values(ascending=self.sorted_coords[k])
             for k, v in new_data.indexes.items()
             if k in self.sorted_coords
-        })
+        }
+        if new_data.chunks and all(v.is_unique for v in sorted_coords.values()):
+            return Algorithms.vindex(new_data, sorted_coords)
+
+        return new_data.sel(sorted_coords)
 
     def _transform_to_dataset(self, new_data, chunk_data: bool = True) -> xr.Dataset:
         if isinstance(new_data, xr.Dataset):
