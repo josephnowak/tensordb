@@ -212,9 +212,8 @@ class ZarrStorage(BaseStorage):
                 k: coord_to_append if k == dim else act_coord
                 for k, act_coord in act_coords.items()
             }
-            data_to_append = new_data.reindex(reindex_coords)
             act_coords[dim] = np.concatenate([act_coords[dim], coord_to_append])
-            concat_data[dim] = data_to_append
+            concat_data[dim] = new_data.reindex(reindex_coords)
 
         delayed_appends = []
         for dim in new_data.dims:

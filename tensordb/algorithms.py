@@ -49,7 +49,8 @@ class Algorithms:
                         name: cls.rank(data, dim, method, rank_nan)
                         for name, data in new_data.items()
                     },
-                    coords=new_data.coords
+                    coords=new_data.coords,
+                    attrs=new_data.attrs
                 )
 
             from scipy.stats import rankdata
@@ -72,7 +73,8 @@ class Algorithms:
                     shape=(new_data.sizes[dim],),
                 ),
                 coords=new_data.coords,
-                dims=new_data.dims
+                dims=new_data.dims,
+                attrs=new_data.attrs
             )
 
     @classmethod
@@ -88,7 +90,8 @@ class Algorithms:
                     name: cls.shift_on_valid(data, dim, shift)
                     for name, data in new_data.items()
                 },
-                coords=new_data.coords
+                coords=new_data.coords,
+                attrs=new_data.attrs
             )
 
         def _shift(a):
@@ -110,7 +113,8 @@ class Algorithms:
                 shape=(new_data.sizes[dim],),
             ),
             coords=new_data.coords,
-            dims=new_data.dims
+            dims=new_data.dims,
+            attrs=new_data.attrs
         )
 
     @classmethod
@@ -130,7 +134,8 @@ class Algorithms:
                     name: cls.rolling_along_axis(data, dim, window, operator, min_periods, drop_nan, fill_method)
                     for name, data in new_data.items()
                 },
-                coords=new_data.coords
+                coords=new_data.coords,
+                attrs=new_data.attrs
             )
 
         def _apply_rolling_operator(a):
@@ -152,7 +157,8 @@ class Algorithms:
                 shape=(new_data.sizes[dim],),
             ),
             coords=new_data.coords,
-            dims=new_data.dims
+            dims=new_data.dims,
+            attrs=new_data.attrs
         )
 
     @classmethod
@@ -170,7 +176,8 @@ class Algorithms:
                     name: cls.replace(data, to_replace, dtype, method, default_value)
                     for name, data in new_data.items()
                 },
-                coords=new_data.coords
+                coords=new_data.coords,
+                attrs=new_data.attrs
             )
 
         dtype = dtype if dtype else new_data.dtype
@@ -198,7 +205,8 @@ class Algorithms:
                 chunks=new_data.chunks
             ),
             coords=new_data.coords,
-            dims=new_data.dims
+            dims=new_data.dims,
+            attrs=new_data.attrs
         )
 
     @classmethod
@@ -218,7 +226,8 @@ class Algorithms:
                 },
                 coords={
                     dim: coords.get(dim, coord) for dim, coord in new_data.coords.items()
-                }
+                },
+                attrs=new_data.attrs
             )
 
         arr = new_data.data
@@ -238,7 +247,8 @@ class Algorithms:
             dims=new_data.dims,
             coords={
                 dim: coords.get(dim, coord) for dim, coord in new_data.coords.items()
-            }
+            },
+            attrs=new_data.attrs
         )
 
     @classmethod
@@ -257,7 +267,8 @@ class Algorithms:
                 },
                 coords={
                     dim: coords.get(dim, coord) for dim, coord in new_data.coords.items()
-                }
+                },
+                attrs=new_data.attrs
             )
 
         # TODO: Delete this method once Xarray merge flox to speed up the groupby and avoid this kind of optimizations
@@ -280,5 +291,6 @@ class Algorithms:
                 chunks=new_data.chunks[:axis] + (len(unique_coord),) + new_data.chunks[axis + 1:]
             ),
             coords={d: unique_coord if d == dim else v for d, v in new_data.coords.items()},
-            dims=new_data.dims
+            dims=new_data.dims,
+            attrs=new_data.attrs
         )
