@@ -220,10 +220,10 @@
 <dt class="sig sig-object py" id="tensordb.storages.ZarrStorage.update">
 <span class="sig-prename descclassname"><span class="pre">ZarrStorage.</span></span><span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">complete_update_dims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xarray.backends.zarr.ZarrStore</span></span></span><a class="headerlink" href="#tensordb.storages.ZarrStorage.update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Replace data on an existing Zarr files based on the new_data, internally calls the
-<a class="reference external" href="http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a> using the
-region parameter, so it automatically create this region based on your new_data, in some
+<a class="reference external" href="https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a> using the
+region parameter, so it automatically creates this region based on your new_data, in some
 cases it could even replace all the data in the file even if you only has two coords in your new_data
-this happend due that Xarray only allows to write in contigous blocks (region)
+this happened due that Xarray only allows to write in contiguous blocks (region)
 (read carefully how the region parameter works in Xarray)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -238,8 +238,8 @@ array that are not in the coords of new_data.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
-<dt>An xr.backends.ZarrStore produced by the</dt><dd></dd>
-<dt><a class="reference external" href="http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a></dt><dd></dd>
+<dt>A xr.backends.ZarrStore produced by the</dt><dd></dd>
+<dt><a class="reference external" href="https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a></dt><dd></dd>
 </dl>
 </dd>
 </dl>

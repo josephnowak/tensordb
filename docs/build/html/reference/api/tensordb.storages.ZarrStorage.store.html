@@ -221,15 +221,17 @@
 <span class="sig-prename descclassname"><span class="pre">ZarrStorage.</span></span><span class="sig-name descname"><span class="pre">store</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rewrite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xarray.backends.zarr.ZarrStore</span></span></span><a class="headerlink" href="#tensordb.storages.ZarrStorage.store" title="Permalink to this definition">¶</a></dt>
 <dd><p>Store the data, the dtype and all the details will depend of what you pass in the new_data
 parameter, internally this method calls the
-<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a>
+<a class="reference external" href="https://xarray.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a>
 with a ‘w’ mode using that data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>new_data: Union[xr.DataArray, xr.Dataset]</strong></dt><dd><p>This is the data that want to be stored</p>
 </dd>
+<dt><strong>compute: bool, default True</strong></dt><dd><p>Same meaning that in xarray</p>
+</dd>
 <dt><strong>rewrite: bool, default False</strong></dt><dd><p>If it is True, it allows to overwrite the tensor using it’s own data, this can be inefficient due that
-first it has to store the tensor on a temporal localtion to then write it on the original and delete
+first it has to store the tensor on a temporal location to then write it on the original and delete
 the temporal.
 The compute option is always set as True if the rewrite option is active</p>
 </dd>
@@ -238,7 +240,7 @@ The compute option is always set as True if the rewrite option is active</p>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
 <dt>An xr.backends.ZarrStore produced by the</dt><dd></dd>
-<dt><a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a></dt><dd></dd>
+<dt><a class="reference external" href="https://xarray.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a></dt><dd></dd>
 </dl>
 </dd>
 </dl>

@@ -464,35 +464,41 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
 <tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.get_tensor_definition.html#tensordb.TensorClient.get_tensor_definition" title="tensordb.TensorClient.get_tensor_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_tensor_definition</span></code></a>(path)</p></td>
 <td><p>Retrieve the tensor definition of an specific tensor.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.rank.html#tensordb.TensorClient.rank" title="tensordb.TensorClient.rank"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rank</span></code></a>(new_data, dim[, method, rank_nan])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge_duplicates_coord</span></code>(new_data, dim, func)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.read.html#tensordb.TensorClient.read" title="tensordb.TensorClient.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(path, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.rank.html#tensordb.TensorClient.rank" title="tensordb.TensorClient.rank"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rank</span></code></a>(new_data, dim[, method, rank_nan])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.read.html#tensordb.TensorClient.read" title="tensordb.TensorClient.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with read as method_name (has the same parameters).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.read_from_formula.html#tensordb.TensorClient.read_from_formula" title="tensordb.TensorClient.read_from_formula"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_from_formula</span></code></a>(formula[, use_exec, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.read_from_formula.html#tensordb.TensorClient.read_from_formula" title="tensordb.TensorClient.read_from_formula"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_from_formula</span></code></a>(formula[, use_exec, ...])</p></td>
 <td><p>This is one of the most important methods of the <cite>TensorClient</cite> class, basically it allows to define formulas that use the tensors stored with a simple strings, so you can create new tensors from this formulas (make use of python eval and the same syntax that you use with Xarray).</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">replace</span></code>(new_data, to_replace[, dtype, ...])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">replace</span></code>(new_data, to_replace[, dtype, ...])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rolling_along_axis</span></code>(new_data, dim, window, ...)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rolling_along_axis</span></code>(new_data, dim, window, ...)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">shift_on_valid</span></code>(new_data, dim, shift)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">shift_on_valid</span></code>(new_data, dim, shift)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-obj docutils literal notranslate"><span class="pre">storage_method_caller</span></code></a>(path, method_name, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-obj docutils literal notranslate"><span class="pre">storage_method_caller</span></code></a>(path, method_name, ...)</p></td>
 <td><p>Calls an specific method of a Storage, this include send the parameters specified in the tensor_definition or modifying the behaviour of the method based in your tensor_definition (read <code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorDefinition()</span></code> for more info of how to personalize your method).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.store.html#tensordb.TensorClient.store" title="tensordb.TensorClient.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">store</span></code></a>(path, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.store.html#tensordb.TensorClient.store" title="tensordb.TensorClient.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">store</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with store as method_name (has the same parameters).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.update.html#tensordb.TensorClient.update" title="tensordb.TensorClient.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(path, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.update.html#tensordb.TensorClient.update" title="tensordb.TensorClient.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with update as method_name (has the same parameters).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.upsert.html#tensordb.TensorClient.upsert" title="tensordb.TensorClient.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">upsert</span></code></a>(path, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.upsert.html#tensordb.TensorClient.upsert" title="tensordb.TensorClient.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">upsert</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with upsert as method_name (has the same parameters).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">vindex</span></code>(new_data, coords)</p></td>
+<td><p>Implementation of dask vindex using xarray</p></td>
 </tr>
 </tbody>
 </table>

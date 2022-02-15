@@ -201,7 +201,7 @@
 <h1>tensordb.tensor_definition.DAGOrder<a class="headerlink" href="#tensordb-tensor-definition-dagorder" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="tensordb.tensor_definition.DAGOrder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tensordb.tensor_definition.</span></span><span class="sig-name descname"><span class="pre">DAGOrder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depends</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'regular'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.tensor_definition.DAGOrder" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tensordb.tensor_definition.</span></span><span class="sig-name descname"><span class="pre">DAGOrder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depends</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'regular'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omit_on</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'append'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'update'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'store'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'upsert'</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.tensor_definition.DAGOrder" title="Permalink to this definition">¶</a></dt>
 <dd><p>As the tensor has relations between them it is possible to create a DAG that facilities the process
 of updating everyone of them, so the idea is that this class keep the necessary information for sorting the
 tensor execution.</p>
@@ -212,6 +212,10 @@ tensor execution.</p>
 of the list has an edge to this tensor B, so Ai-&gt;B for every i.</p>
 </dd>
 <dt><strong>group: Optional[str], default ‘regular’</strong></dt><dd><p>Useful to send parameters by groups on the exec_on_dag_order method of the tensor client</p>
+</dd>
+<dt><strong>omit_on: List[Literal[‘append’, ‘update’, ‘store’, ‘upsert’]], default None</strong></dt><dd><p>Indicate if the tensor must be ommited on the methods inside the list,
+useful for generating reference nodes or avoid calling methods on tensors that are simply formulas
+but other tensors use them.</p>
 </dd>
 </dl>
 </dd>
@@ -282,6 +286,9 @@ of the list has an edge to this tensor B, so Ai-&gt;B for every i.</p>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">group</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">omit_on</span></code></p></td>
 <td><p></p></td>
 </tr>
 </tbody>

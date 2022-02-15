@@ -254,21 +254,21 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.read.html#tensordb.storages.ZarrStorage.read" title="tensordb.storages.ZarrStorage.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.read</span></code></a>()</p></td>
-<td><p>Read a tensor stored, internally it use <a class="reference external" href="http://xr.pydata.org/en/stable/generated/xr.open_zarr.html">open_zarr method</a>.</p></td>
+<td><p>Read a tensor stored, internally it use <a class="reference external" href="https://xr.pydata.org/en/stable/generated/xr.open_zarr.html">open_zarr method</a>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.store.html#tensordb.storages.ZarrStorage.store" title="tensordb.storages.ZarrStorage.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.store</span></code></a>(new_data[, compute, restore])</p></td>
-<td><p>Store the data, the dtype and all the details will depend of what you pass in the new_data parameter, internally this method calls the <a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a> with a 'w' mode using that data.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.store.html#tensordb.storages.ZarrStorage.store" title="tensordb.storages.ZarrStorage.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.store</span></code></a>(new_data[, compute, rewrite])</p></td>
+<td><p>Store the data, the dtype and all the details will depend of what you pass in the new_data parameter, internally this method calls the <a class="reference external" href="https://xarray.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a> with a 'w' mode using that data.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.append.html#tensordb.storages.ZarrStorage.append" title="tensordb.storages.ZarrStorage.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.append</span></code></a>(new_data[, compute])</p></td>
-<td><p><p>Append data at the end of a Zarr file (in case that the file does not exist it will call the store method), internally it calls the <a class="reference external" href="http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a> for every dimension of your data.</p>
+<td><p><p>Append data at the end of a Zarr file (in case that the file does not exist it will call the store method), internally it calls the <a class="reference external" href="https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a> for every dimension of your data.</p>
 </p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.update.html#tensordb.storages.ZarrStorage.update" title="tensordb.storages.ZarrStorage.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.update</span></code></a>(new_data[, compute, ...])</p></td>
-<td><p><p>Replace data on an existing Zarr files based on the new_data, internally calls the <a class="reference external" href="http://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a> using the region parameter, so it automatically create this region based on your new_data, in some cases it could even replace all the data in the file even if you only has two coords in your new_data this happend due that Xarray only allows to write in contigous blocks (region) (read carefully how the region parameter works in Xarray)</p>
+<td><p><p>Replace data on an existing Zarr files based on the new_data, internally calls the <a class="reference external" href="https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a> using the region parameter, so it automatically creates this region based on your new_data, in some cases it could even replace all the data in the file even if you only has two coords in your new_data this happened due that Xarray only allows to write in contiguous blocks (region) (read carefully how the region parameter works in Xarray)</p>
 </p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.drop.html#tensordb.storages.ZarrStorage.drop" title="tensordb.storages.ZarrStorage.drop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.drop</span></code></a>(coords[, compute])</p></td>
-<td><p>Drop coords of the tensor, this will rewrite the hole tensor using the restore option</p></td>
+<td><p>Drop coords of the tensor, this will rewrite the hole tensor using the rewrite option of store</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.ZarrStorage.upsert.html#tensordb.storages.ZarrStorage.upsert" title="tensordb.storages.ZarrStorage.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZarrStorage.upsert</span></code></a>(new_data[, compute, ...])</p></td>
 <td><p>Calls the update and then the append method</p></td>

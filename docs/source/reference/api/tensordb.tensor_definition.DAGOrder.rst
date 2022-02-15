@@ -37,5 +37,6 @@
    
       ~DAGOrder.depends
       ~DAGOrder.group
+      ~DAGOrder.omit_on
    
    

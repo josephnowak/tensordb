@@ -308,7 +308,7 @@ class TensorClient(Algorithms):
 
         for level in dag.get_tensor_dag(tensors):
             # Filter the tensors base on the omit parameter
-            level = [tensor for tensor in level if not tensor.dag.omit]
+            level = [tensor for tensor in level if method.__name__ not in tensor.dag.omit_on]
             logger.info([tensor.path for tensor in level])
             if sequential:
                 for tensor in level:

@@ -222,7 +222,7 @@ any tensor using the tensor_client class</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.StorageDefinition.html#tensordb.tensor_definition.StorageDefinition" title="tensordb.tensor_definition.StorageDefinition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StorageDefinition</span></code></a>(*[, storage_name, ...])</p></td>
 <td><p>Definition of the storage of the tensor</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.DAGOrder.html#tensordb.tensor_definition.DAGOrder" title="tensordb.tensor_definition.DAGOrder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DAGOrder</span></code></a>(*[, depends, group])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.DAGOrder.html#tensordb.tensor_definition.DAGOrder" title="tensordb.tensor_definition.DAGOrder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DAGOrder</span></code></a>(*[, depends, group, omit_on])</p></td>
 <td><p>As the tensor has relations between them it is possible to create a DAG that facilities the process of updating everyone of them, so the idea is that this class keep the necessary information for sorting the tensor execution.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.MethodDescriptor.html#tensordb.tensor_definition.MethodDescriptor" title="tensordb.tensor_definition.MethodDescriptor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MethodDescriptor</span></code></a>(*, method_name[, ...])</p></td>

@@ -26,6 +26,7 @@
       ~TensorClient.get_cached_storage
       ~TensorClient.get_storage
       ~TensorClient.get_tensor_definition
+      ~TensorClient.merge_duplicates_coord
       ~TensorClient.rank
       ~TensorClient.read
       ~TensorClient.read_from_formula
@@ -36,6 +37,7 @@
       ~TensorClient.store
       ~TensorClient.update
       ~TensorClient.upsert
+      ~TensorClient.vindex
    
    
 
