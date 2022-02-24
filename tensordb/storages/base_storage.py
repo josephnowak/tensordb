@@ -50,6 +50,15 @@ class BaseStorage:
     def get_data_names_list(self) -> List[str]:
         return self.data_names if isinstance(self.data_names, list) else [self.data_names]
 
+    def get_store_base_map(self):
+        if isinstance(self.base_map.fs, CachingFileSystem):
+            return self.base_map.fs.fs.get_mapper(self.base_map.root)
+        return self.base_map
+
+    def del_to_store(self, path):
+        base_map = self.get_store_base_map()
+        base_map.delete(base_map.root + path)
+
     def _get_root(self) -> str:
         try:
             return self.base_map.root

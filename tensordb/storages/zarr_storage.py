@@ -148,8 +148,13 @@ class ZarrStorage(BaseStorage):
                 synchronizer=self.synchronizer,
             )
 
+        base_map = self.get_store_base_map()
+        try:
+            base_map.fs.delete(base_map.root, recursive=True)
+        except FileNotFoundError:
+            pass
         delayed_write = new_data.to_zarr(
-            self.base_map,
+            base_map,
             mode='w',
             compute=compute,
             consolidated=True,
@@ -158,8 +163,7 @@ class ZarrStorage(BaseStorage):
         )
 
         if rewrite:
-            self.tmp_map.clear()
-            self.tmp_map.fs.rmdir(self.tmp_map.root)
+            self.tmp_map.fs.delete(self.tmp_map.root, recursive=True)
 
         return delayed_write
 
@@ -189,7 +193,7 @@ class ZarrStorage(BaseStorage):
 
         """
         if not self.exist():
-            return self.store(new_data=new_data, compute=compute)
+            return [self.store(new_data=new_data, compute=compute)]
 
         act_data = self._transform_to_dataset(self.read(), chunk_data=False)
         new_data = self._keep_unique_coords(new_data)
@@ -350,7 +354,7 @@ class ZarrStorage(BaseStorage):
 
     def read(self) -> Union[xr.DataArray, xr.Dataset]:
         """
-        Read a tensor stored, internally it use
+        Read a tensor stored, internally it uses
         `open_zarr method <https://xr.pydata.org/en/stable/generated/xr.open_zarr.html>`_.
 
         Parameters
@@ -400,3 +404,4 @@ class ZarrStorage(BaseStorage):
 
         """
         self.base_map.clear()
+        # self.base_map.fs.delete(self.base_map.root, recursive=True)
