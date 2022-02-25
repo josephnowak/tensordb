@@ -1,8 +1,9 @@
+import fsspec
 import xarray as xr
 
 from abc import abstractmethod
 from collections.abc import MutableMapping
-from typing import Dict, List, Union, Tuple, Iterable
+from typing import Dict, List, Union, Tuple, Iterable, Literal, Any
 
 from loguru import logger
 from fsspec.implementations.cached import CachingFileSystem
@@ -22,6 +23,15 @@ class BaseStorage:
     base_map: MutableMapping
         It's the same parameter that you send to the :meth:`TensorClient.__init__` (TensorClient send it automatically)
 
+    tmp_map: MutableMapping
+        Temporal location for rewriting the tensor.
+
+    local_cache_protocol: Literal['simplecache', 'filecache', 'cached']
+        Fsspec protocol for local file caching, useful for speed up the reads when using a cloud fs
+
+    local_cache_options: Dict[str, Any]
+        Options of the Fsspec local file cache
+
     data_names: Union[str, List[str]], default "data"
         Names of the data vars inside your dataset, if the data_names is a str then the system must return an
         xr.DataArray when you read it
@@ -31,42 +41,59 @@ class BaseStorage:
     def __init__(self,
                  base_map: MutableMapping,
                  tmp_map: MutableMapping,
+                 path: str,
+                 local_cache_protocol: Literal['simplecache', 'filecache', 'cached'] = None,
+                 local_cache_options: Dict[str, Any] = None,
                  data_names: Union[str, List[str]] = "data",
-                 path: str = None,
                  **kwargs):
-        self.base_map = base_map
+
+        if isinstance(base_map.fs, CachingFileSystem):
+            raise ValueError(
+                f'BaseStorage do not support directly a cache file system, use the local_cache_protocol parameter'
+            )
+        self.tmp_map = tmp_map.fs.get_mapper(tmp_map.root + f'/{path}')
+        self.base_map = base_map.fs.get_mapper(base_map.root + f'/{path}')
         self.data_names = data_names
         self.group = None
-        # TODO: Add the option for tmp_map of use a group
-        self.tmp_map = tmp_map
-        if path is not None:
-            self.tmp_map = tmp_map.fs.get_mapper(tmp_map.root + '/' + path)
-            root = self._get_root()
-            if root == "":
-                self.group = path
-            else:
-                self.base_map = base_map.fs.get_mapper(root + '/' + path)
+
+        if local_cache_protocol:
+            local_cache_options = local_cache_options or {}
+            self.base_map = fsspec.filesystem(
+                local_cache_protocol,
+                fs=self.base_map.fs,
+                **local_cache_options
+            ).get_mapper(
+                self.base_map.root
+            )
 
     def get_data_names_list(self) -> List[str]:
         return self.data_names if isinstance(self.data_names, list) else [self.data_names]
 
-    def get_store_base_map(self):
+    def get_write_base_map(self):
         if isinstance(self.base_map.fs, CachingFileSystem):
             return self.base_map.fs.fs.get_mapper(self.base_map.root)
         return self.base_map
 
-    def del_to_store(self, path):
-        base_map = self.get_store_base_map()
-        base_map.delete(base_map.root + path)
-
-    def _get_root(self) -> str:
-        try:
-            return self.base_map.root
-        except AttributeError:
+    def clear_cache(self):
+        if isinstance(self.base_map.fs, CachingFileSystem):
             try:
-                return self.base_map.map.root
-            except:
-                return ""
+                self.base_map.fs.clear_cache()
+            except FileNotFoundError:
+                pass
+
+    def delete_tensor(self):
+        """
+        Delete the tensor
+
+        Parameters
+        ----------
+
+        """
+        # self.base_map.clear()
+        try:
+            self.base_map.fs.delete(self.base_map.root, recursive=True)
+        except FileNotFoundError:
+            pass
 
     @abstractmethod
     def append(
@@ -186,7 +213,7 @@ class BaseStorage:
     @abstractmethod
     def read(self, **kwargs) -> Union[xr.DataArray, xr.Dataset]:
         """
-        This abstracmethod must be overwrited to read an existing file. Reference :meth:`ZarrStorage.read`
+        This abstracmethod must be overwritten to read an existing file. Reference :meth:`ZarrStorage.read`
 
         Parameters
         ----------

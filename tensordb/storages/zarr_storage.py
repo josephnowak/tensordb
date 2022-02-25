@@ -135,7 +135,7 @@ class ZarrStorage(BaseStorage):
             for v in new_data:
                 new_data[v].encoding.pop('chunks', None)
 
-            new_data.to_zarr(
+            new_data.compute().to_zarr(
                 self.tmp_map,
                 mode='w',
                 compute=compute,
@@ -148,11 +148,13 @@ class ZarrStorage(BaseStorage):
                 synchronizer=self.synchronizer,
             )
 
-        base_map = self.get_store_base_map()
+        base_map = self.get_write_base_map()
+
         try:
             base_map.fs.delete(base_map.root, recursive=True)
         except FileNotFoundError:
             pass
+
         delayed_write = new_data.to_zarr(
             base_map,
             mode='w',
@@ -164,6 +166,8 @@ class ZarrStorage(BaseStorage):
 
         if rewrite:
             self.tmp_map.fs.delete(self.tmp_map.root, recursive=True)
+
+        self.clear_cache()
 
         return delayed_write
 
@@ -185,17 +189,19 @@ class ZarrStorage(BaseStorage):
         new_data: Union[xr.DataArray, xr.Dataset]
             This is the data that want to be appended at the end
 
+        compute: bool, default True
+            Same meaning that in xarray
+
         Returns
         -------
 
-        A list of xr.backends.ZarrStore produced by the to_zarr method
-        method executed in every dimension
+        A list of xr.backends.ZarrStore produced by the to_zarr method executed in every dimension
 
         """
         if not self.exist():
             return [self.store(new_data=new_data, compute=compute)]
 
-        act_data = self._transform_to_dataset(self.read(), chunk_data=False)
+        act_data = self._transform_to_dataset(self.read(cache=False), chunk_data=False)
         new_data = self._keep_unique_coords(new_data)
         new_data = self._keep_sorted_coords(new_data)
         new_data = self._transform_to_dataset(new_data, chunk_data=False)
@@ -203,6 +209,7 @@ class ZarrStorage(BaseStorage):
         rewrite = False
         act_coords = {k: coord for k, coord in act_data.indexes.items()}
         concat_data = {}
+        base_map = self.get_write_base_map()
 
         for dim, new_coord in new_data.indexes.items():
             coord_to_append = new_coord[~new_coord.isin(act_coords[dim])]
@@ -220,6 +227,7 @@ class ZarrStorage(BaseStorage):
             concat_data[dim] = new_data.reindex(reindex_coords)
 
         delayed_appends = []
+
         for dim in new_data.dims:
             if dim not in concat_data:
                 continue
@@ -229,7 +237,7 @@ class ZarrStorage(BaseStorage):
             else:
                 delayed_appends.append(
                     concat_data[dim].to_zarr(
-                        self.base_map,
+                        base_map,
                         append_dim=dim,
                         compute=compute,
                         synchronizer=self.synchronizer,
@@ -240,6 +248,8 @@ class ZarrStorage(BaseStorage):
 
         if rewrite:
             return [self.store(new_data=act_data, compute=compute, rewrite=True)]
+
+        self.clear_cache()
 
         return delayed_appends
 
@@ -268,6 +278,9 @@ class ZarrStorage(BaseStorage):
             complete_update_dims are used to reindex new_data and put NaN whenever there are coords of the original
             array that are not in the coords of new_data.
 
+        compute: bool, default True
+            Same meaning that in xarray
+
         Returns
         -------
 
@@ -275,7 +288,7 @@ class ZarrStorage(BaseStorage):
         `to_zarr method <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         """
 
-        act_data = self._transform_to_dataset(self.read(), chunk_data=False)
+        act_data = self._transform_to_dataset(self.read(cache=False), chunk_data=False)
         new_data = self._transform_to_dataset(new_data)
 
         act_coords = {k: coord for k, coord in act_data.coords.items()}
@@ -299,12 +312,13 @@ class ZarrStorage(BaseStorage):
         act_data = act_data.where(~bitmask, new_data)
 
         delayed_write = act_data.to_zarr(
-            self.base_map,
+            self.get_write_base_map(),
             group=self.group,
             compute=compute,
             synchronizer=self.synchronizer,
             region=regions
         )
+        self.clear_cache()
         return delayed_write
 
     def upsert(
@@ -343,16 +357,19 @@ class ZarrStorage(BaseStorage):
         coords: Dict
             Coords that are going to be deleted from the tensor
 
+        compute: bool, default True
+            Same meaning that in xarray
+
         Returns
         -------
         An xr.backends.ZarrStore produced by the store method
 
         """
-        new_data = self.read()
+        new_data = self.read(cache=False)
         new_data = new_data.drop_sel(coords)
         return self.store(new_data=new_data, compute=compute, rewrite=True)
 
-    def read(self) -> Union[xr.DataArray, xr.Dataset]:
+    def read(self, cache: bool = True) -> Union[xr.DataArray, xr.Dataset]:
         """
         Read a tensor stored, internally it uses
         `open_zarr method <https://xr.pydata.org/en/stable/generated/xr.open_zarr.html>`_.
@@ -366,9 +383,9 @@ class ZarrStorage(BaseStorage):
         `open_zarr <https://xr.pydata.org/en/stable/generated/xr.open_zarr.html>`_ and then using the '[]'
         with some names or a name
         """
-
+        base_map = self.base_map if cache else self.get_write_base_map()
         arr = xr.open_zarr(
-            self.base_map,
+            base_map,
             consolidated=True,
             synchronizer=self.synchronizer,
             group=self.group
@@ -390,18 +407,7 @@ class ZarrStorage(BaseStorage):
 
         # return '.zmetadata' in self.base_map, I don't know why that code can return False even if the file exist
         try:
-            self.read()
+            self.read(cache=False)
             return True
         except:
             return False
-
-    def delete_tensor(self):
-        """
-        Delete the tensor
-
-        Parameters
-        ----------
-
-        """
-        self.base_map.clear()
-        # self.base_map.fs.delete(self.base_map.root, recursive=True)

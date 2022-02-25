@@ -37,7 +37,8 @@ class TestTensorClient:
         self.tensor_client = TensorClient(
             base_map=fsspec.get_mapper(path),
             tmp_map=fsspec.get_mapper(path + '/tmp'),
-            synchronizer='thread'
+            synchronizer='thread',
+            local_cache_protocol='filecache'
         )
         self.arr = xr.DataArray(
             data=np.array([

@@ -6,11 +6,12 @@ import dask
 import dask.array as da
 import concurrent
 
-from typing import Dict, List, Any, Union, Tuple, Literal
+from typing import Dict, List, Any, Union, Tuple, Literal, Optional
 from collections.abc import MutableMapping
 
 from loguru import logger
 from pydantic import validate_arguments
+from fsspec.implementations.cached import CachingFileSystem
 
 from tensordb.storages import (
     BaseStorage,
@@ -53,8 +54,11 @@ class TensorClient(Algorithms):
     base_map: fsspec.FSMap (or any File System that implement the MutabbleMapping Interface)
        File system to store all tensors.
 
+    tmp_map: fsspec.FSMap (or any File System that implement the MutabbleMapping Interface)
+       File system only used for rewriting the tensor, useful for mantaining the coords sorted after appending data.
+
     synchronizer: str
-        Some of the Storages used to handle the files support a synchronizer, this parameter is used as a default
+        Some Storages used to handle the files support a synchronizer, this parameter is used as a default
         synchronizer option for everyone of them (you can pass different synchronizer to every tensor).
 
     **kwargs: Dict
@@ -179,12 +183,20 @@ class TensorClient(Algorithms):
             self,
             base_map: MutableMapping,
             tmp_map: MutableMapping = None,
+            local_cache_protocol: Literal['simplecache', 'filecache', 'cached'] = None,
+            local_cache_options: Dict[str, Any] = None,
             synchronizer: str = None,
             **kwargs
     ):
+        if isinstance(base_map.fs, CachingFileSystem):
+            raise ValueError(
+                f'TensorDB do not support directly a cache file system, use the local_cache_protocol parameter'
+            )
 
         self.base_map = base_map
         self.tmp_map = fsspec.get_mapper('tmp') if tmp_map is None else tmp_map
+        self.local_cache_protocol = local_cache_protocol
+        self.local_cache_options = local_cache_options
         self.synchronizer = synchronizer
         self._tensors_definition = JsonStorage(
             path='_tensors_definition',
@@ -244,8 +256,7 @@ class TensorClient(Algorithms):
         """
 
         storage = self.get_storage(path)
-        storage.base_map.clear()
-        self.base_map.fs.rmdir(storage.base_map.root)
+        storage.delete_tensor()
         if not only_data:
             self._tensors_definition.delete_file(path)
 
@@ -275,6 +286,8 @@ class TensorClient(Algorithms):
             base_map=self.base_map,
             tmp_map=self.tmp_map,
             path=definition.path,
+            local_cache_protocol=self.local_cache_protocol,
+            local_cache_options=self.local_cache_options,
             **definition.storage.dict(exclude_unset=True)
         )
         return storage

@@ -18,7 +18,7 @@ class JsonStorage(BaseStorage):
 
     def store(self, name: str, new_data: Dict):
         new_name = name.replace('\\', '/').replace('/', self.default_character)
-        self.base_map[new_name] = orjson.dumps(new_data)
+        self.get_write_base_map()[new_name] = orjson.dumps(new_data)
 
     def append(self, name: str, new_data: Dict):
         raise NotImplemented('Use upsert')

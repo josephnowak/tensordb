@@ -19,19 +19,24 @@ class TestZarrStorage:
     @pytest.fixture(autouse=True)
     def setup_tests(self, tmpdir):
         sub_path = tmpdir.strpath
+        cache_protocol = 'simplecache'
         self.storage = ZarrStorage(
             base_map=fsspec.get_mapper(sub_path),
             tmp_map=fsspec.get_mapper(sub_path + '/tmp'),
             path='zarr',
             data_names='data_test',
             chunks={'index': 3, 'columns': 2},
+            synchronizer='thread',
+            cache_protocol=cache_protocol
         )
         self.storage_dataset = ZarrStorage(
             base_map=fsspec.get_mapper(sub_path),
             tmp_map=fsspec.get_mapper(sub_path + '/tmp'),
             path='zarr_dataset',
             data_names=['a', 'b', 'c'],
-            chunks={'index': 3, 'columns': 2}
+            chunks={'index': 3, 'columns': 2},
+            synchronizer='thread',
+            cache_protocol=cache_protocol
         )
         self.storage_sorted_unique = ZarrStorage(
             base_map=fsspec.get_mapper(sub_path),
@@ -40,7 +45,9 @@ class TestZarrStorage:
             data_names='data_test',
             chunks={'index': 3, 'columns': 2},
             unique_coords=True,
-            sorted_coords={'index': False, 'columns': False}
+            sorted_coords={'index': False, 'columns': False},
+            synchronizer='thread',
+            cache_protocol=cache_protocol
         )
         self.storage_dataset_sorted_unique = ZarrStorage(
             base_map=fsspec.get_mapper(sub_path),
@@ -49,7 +56,9 @@ class TestZarrStorage:
             data_names=['a', 'b', 'c'],
             chunks={'index': 3, 'columns': 2},
             unique_coords=True,
-            sorted_coords={'index': False, 'columns': False}
+            sorted_coords={'index': False, 'columns': False},
+            synchronizer='thread',
+            cache_protocol=cache_protocol
         )
         self.arr = xr.DataArray(
             data=np.array([
@@ -104,11 +113,10 @@ class TestZarrStorage:
             assert storage.read().equals(self.arr2)
 
     @pytest.mark.parametrize('keep_order', [True, False])
-    @pytest.mark.parametrize('as_dask', [False, False])
+    @pytest.mark.parametrize('as_dask', [True, False])
     def test_append_data(self, keep_order: bool, as_dask: bool):
         storage = self.storage_sorted_unique if keep_order else self.storage
 
-        storage.delete_tensor()
         arr, arr2 = self.arr, self.arr2
         if as_dask:
             arr, arr2 = arr.chunk((2, 3)), arr2.chunk((1, 4))
@@ -121,11 +129,13 @@ class TestZarrStorage:
 
         total_data = xr.concat([arr, arr2], dim='index')
         if keep_order:
-            assert storage.read().equals(
+            assert storage.read(cache=True).equals(
                 total_data.sel(index=total_data.index[::-1], columns=total_data.columns[::-1])
             )
         else:
-            assert storage.read().equals(total_data)
+            assert storage.read(cache=True).equals(total_data)
+
+        storage.delete_tensor()
 
     def test_update_data(self):
         self.storage.store(self.arr)
@@ -154,6 +164,7 @@ class TestZarrStorage:
     def test_append_dataset(self, keep_order: bool):
         storage_dataset = self.storage_dataset_sorted_unique if keep_order else self.storage_dataset
         storage_dataset.store(self.dataset)
+
         dataset = self.dataset.reindex(
             index=list(self.dataset.index.values) + [self.dataset.index.values[-1] + 1],
             fill_value=1
@@ -168,6 +179,7 @@ class TestZarrStorage:
 
     def test_update_dataset(self):
         self.storage_dataset.store(self.dataset)
+
         expected = xr.concat([
             self.dataset.sel(index=slice(0, 1)),
             self.dataset.sel(index=slice(2, None)) + 5
