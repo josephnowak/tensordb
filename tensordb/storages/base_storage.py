@@ -1,3 +1,5 @@
+import os
+
 import fsspec
 import xarray as xr
 
@@ -11,7 +13,7 @@ from fsspec.implementations.cached import CachingFileSystem
 
 class BaseStorage:
     """
-    Obligatory interface used for the Storage classes created, this define the abstract methods for every Storage
+    Obligatory interface used for the Storage classes created, this defines the abstract methods for every Storage
     and allow their use with TensorClient.
 
     Parameters
@@ -20,10 +22,10 @@ class BaseStorage:
     path: str
         Relative path of your tensor, the TensorClient provide this parameter when it create the Storage
 
-    base_map: MutableMapping
+    base_map: fsspec.FSMap
         It's the same parameter that you send to the :meth:`TensorClient.__init__` (TensorClient send it automatically)
 
-    tmp_map: MutableMapping
+    tmp_map: fsspec.FSMap
         Temporal location for rewriting the tensor.
 
     local_cache_protocol: Literal['simplecache', 'filecache', 'cached']
@@ -39,8 +41,8 @@ class BaseStorage:
     """
 
     def __init__(self,
-                 base_map: MutableMapping,
-                 tmp_map: MutableMapping,
+                 base_map: fsspec.FSMap,
+                 tmp_map: fsspec.FSMap,
                  path: str,
                  local_cache_protocol: Literal['simplecache', 'filecache', 'cached'] = None,
                  local_cache_options: Dict[str, Any] = None,
@@ -61,6 +63,7 @@ class BaseStorage:
             self.base_map = fsspec.filesystem(
                 local_cache_protocol,
                 fs=self.base_map.fs,
+                cache_storage=os.path.join(tmp_map.root, '_local_cache_file', path),
                 **local_cache_options
             ).get_mapper(
                 self.base_map.root
@@ -91,6 +94,7 @@ class BaseStorage:
         """
         # self.base_map.clear()
         try:
+            self.clear_cache()
             self.base_map.fs.delete(self.base_map.root, recursive=True)
         except FileNotFoundError:
             pass
@@ -102,8 +106,8 @@ class BaseStorage:
             **kwargs
     ) -> List[xr.backends.common.AbstractWritableDataStore]:
         """
-        This abstracmethod must be overwrited to append new_data to an existing file, the way that it append the data
-        will depend of the implementation of the Storage. For example :meth:`ZarrStorage.append`
+        This abstractmethod must be overwritten to append new_data to an existing file, the way that it append the data
+        will depend on the implementation of the Storage. For example :meth:`ZarrStorage.append`
         only append data at the end of the file (probably there will an insert method in the future)
 
         Parameters
@@ -128,7 +132,7 @@ class BaseStorage:
             **kwargs
     ) -> xr.backends.common.AbstractWritableDataStore:
         """
-        This abstracmethod must be overwrited to update new_data to an existing file, so it must not insert any new
+        This abstractmethod must be overwritten to update new_data to an existing file, so it must not insert any new
         coords, it must only replace elements inside the stored tensor. Reference :meth:`ZarrStorage.update`
 
         Parameters
@@ -154,7 +158,7 @@ class BaseStorage:
             **kwargs
     ) -> xr.backends.common.AbstractWritableDataStore:
         """
-        This abstracmethod must be overwrited to store new_data to an existing file, so it must create
+        This abstractmethod must be overwritten to store new_data to an existing file, so it must create
         the necessaries files, folders and metadata for the corresponding tensor. Reference :meth:`ZarrStorage.store`
 
         Parameters
@@ -178,7 +182,7 @@ class BaseStorage:
             **kwargs
     ) -> List[xr.backends.common.AbstractWritableDataStore]:
         """
-        This abstracmethod must be overwrited to update and append new_data to an existing file,
+        This abstractmethod must be overwritten to update and append new_data to an existing file,
         so basically it must be a combination between update and append. Reference :meth:`ZarrStorage.upsert`
 
         Parameters
@@ -213,7 +217,7 @@ class BaseStorage:
     @abstractmethod
     def read(self, **kwargs) -> Union[xr.DataArray, xr.Dataset]:
         """
-        This abstracmethod must be overwritten to read an existing file. Reference :meth:`ZarrStorage.read`
+        This abstractmethod must be overwritten to read an existing file. Reference :meth:`ZarrStorage.read`
 
         Parameters
         ----------
@@ -230,7 +234,7 @@ class BaseStorage:
     @abstractmethod
     def exist(self, **kwargs) -> bool:
         """
-        This abstracmethod must be overwrited to check if the tensor exist or not.
+        This abstractmethod must be overwritten to check if the tensor exist or not.
         Reference :meth:`ZarrStorage.exist`
 
         Parameters

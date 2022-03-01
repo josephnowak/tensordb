@@ -19,7 +19,7 @@ class TestZarrStorage:
     @pytest.fixture(autouse=True)
     def setup_tests(self, tmpdir):
         sub_path = tmpdir.strpath
-        cache_protocol = 'simplecache'
+        local_cache_protocol = None
         self.storage = ZarrStorage(
             base_map=fsspec.get_mapper(sub_path),
             tmp_map=fsspec.get_mapper(sub_path + '/tmp'),
@@ -27,7 +27,7 @@ class TestZarrStorage:
             data_names='data_test',
             chunks={'index': 3, 'columns': 2},
             synchronizer='thread',
-            cache_protocol=cache_protocol
+            local_cache_protocol=local_cache_protocol
         )
         self.storage_dataset = ZarrStorage(
             base_map=fsspec.get_mapper(sub_path),
@@ -36,7 +36,7 @@ class TestZarrStorage:
             data_names=['a', 'b', 'c'],
             chunks={'index': 3, 'columns': 2},
             synchronizer='thread',
-            cache_protocol=cache_protocol
+            local_cache_protocol=local_cache_protocol
         )
         self.storage_sorted_unique = ZarrStorage(
             base_map=fsspec.get_mapper(sub_path),
@@ -47,7 +47,7 @@ class TestZarrStorage:
             unique_coords=True,
             sorted_coords={'index': False, 'columns': False},
             synchronizer='thread',
-            cache_protocol=cache_protocol
+            local_cache_protocol=local_cache_protocol
         )
         self.storage_dataset_sorted_unique = ZarrStorage(
             base_map=fsspec.get_mapper(sub_path),
@@ -58,7 +58,7 @@ class TestZarrStorage:
             unique_coords=True,
             sorted_coords={'index': False, 'columns': False},
             synchronizer='thread',
-            cache_protocol=cache_protocol
+            local_cache_protocol=local_cache_protocol
         )
         self.arr = xr.DataArray(
             data=np.array([
@@ -129,11 +129,11 @@ class TestZarrStorage:
 
         total_data = xr.concat([arr, arr2], dim='index')
         if keep_order:
-            assert storage.read(cache=True).equals(
+            assert storage.read().equals(
                 total_data.sel(index=total_data.index[::-1], columns=total_data.columns[::-1])
             )
         else:
-            assert storage.read(cache=True).equals(total_data)
+            assert storage.read().equals(total_data)
 
         storage.delete_tensor()
 

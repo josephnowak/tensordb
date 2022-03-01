@@ -4,12 +4,13 @@ import numpy as np
 import pytest
 
 from loguru import logger
-from dask.distributed import Client
 
 from tensordb import TensorClient
 from tensordb.tensor_definition import TensorDefinition
 
 # TODO: Add more tests that validate the internal behaviour of the storage settings
+# TODO: Fix the use of fsspec cached protocol when there are multiple threads or process reading the same file
+#  It can produce unexpected errors during the read of the files
 
 
 def create_dummy_array(n_rows, n_cols, coords=None, dtype=None) -> xr.DataArray:
@@ -36,9 +37,10 @@ class TestTensorClient:
         path = tmpdir.strpath
         self.tensor_client = TensorClient(
             base_map=fsspec.get_mapper(path),
-            tmp_map=fsspec.get_mapper(path + '/tmp'),
+            tmp_map=fsspec.get_mapper(f'{path}/tmp'),
             synchronizer='thread',
-            local_cache_protocol='filecache'
+            local_cache_protocol=None,
+            local_cache_options={'check_files': True}
         )
         self.arr = xr.DataArray(
             data=np.array([
@@ -306,6 +308,9 @@ class TestTensorClient:
         assert self.tensor_client.read('1').equals(self.arr * 2)
         assert self.tensor_client.read('2').equals(self.arr + 1)
         assert self.tensor_client.read('3').equals(self.arr + 1 + self.arr * 2)
+
+        for path in ['0', '1', '2', '3']:
+            self.tensor_client.get_storage(path).clear_cache()
 
 
 if __name__ == "__main__":

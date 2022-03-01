@@ -1,4 +1,3 @@
-import dask.array as da
 import xarray as xr
 import numpy as np
 import zarr
@@ -35,22 +34,26 @@ class ZarrStorage(BaseStorage):
     """
 
     def __init__(self,
+                 tmp_map,
+                 path: str,
                  chunks: Dict[str, int] = None,
                  synchronizer: Union[Literal['process', 'thread'], None] = 'thread',
-                 process_synchronizer_path: str = '',
                  unique_coords: bool = False,
                  sorted_coords: Dict[str, bool] = None,
                  **kwargs):
-        super().__init__(**kwargs)
-        self.synchronizer = None
+
+        synchronizer = synchronizer
         if synchronizer == 'process':
-            self.synchronizer = zarr.ProcessSynchronizer(process_synchronizer_path)
+            synchronizer = zarr.ProcessSynchronizer(f'{tmp_map.root}/_zarr_process_lock/{path}')
         elif synchronizer == 'thread':
-            self.synchronizer = zarr.ThreadSynchronizer()
+            synchronizer = zarr.ThreadSynchronizer()
         elif synchronizer is not None:
             raise NotImplemented(f"{synchronizer} is not a valid option for the synchronizer")
 
+        super().__init__(tmp_map=tmp_map, path=path, **kwargs)
+
         self.chunks = chunks
+        self.synchronizer = synchronizer
         self.unique_coords = unique_coords
         self.sorted_coords = {} if sorted_coords is None else sorted_coords
 
@@ -201,7 +204,7 @@ class ZarrStorage(BaseStorage):
         if not self.exist():
             return [self.store(new_data=new_data, compute=compute)]
 
-        act_data = self._transform_to_dataset(self.read(cache=False), chunk_data=False)
+        act_data = self._transform_to_dataset(self.read(), chunk_data=False)
         new_data = self._keep_unique_coords(new_data)
         new_data = self._keep_sorted_coords(new_data)
         new_data = self._transform_to_dataset(new_data, chunk_data=False)
@@ -288,7 +291,7 @@ class ZarrStorage(BaseStorage):
         `to_zarr method <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         """
 
-        act_data = self._transform_to_dataset(self.read(cache=False), chunk_data=False)
+        act_data = self._transform_to_dataset(self.read(), chunk_data=False)
         new_data = self._transform_to_dataset(new_data)
 
         act_coords = {k: coord for k, coord in act_data.coords.items()}
@@ -365,11 +368,11 @@ class ZarrStorage(BaseStorage):
         An xr.backends.ZarrStore produced by the store method
 
         """
-        new_data = self.read(cache=False)
+        new_data = self.read()
         new_data = new_data.drop_sel(coords)
         return self.store(new_data=new_data, compute=compute, rewrite=True)
 
-    def read(self, cache: bool = True) -> Union[xr.DataArray, xr.Dataset]:
+    def read(self) -> Union[xr.DataArray, xr.Dataset]:
         """
         Read a tensor stored, internally it uses
         `open_zarr method <https://xr.pydata.org/en/stable/generated/xr.open_zarr.html>`_.
@@ -383,9 +386,8 @@ class ZarrStorage(BaseStorage):
         `open_zarr <https://xr.pydata.org/en/stable/generated/xr.open_zarr.html>`_ and then using the '[]'
         with some names or a name
         """
-        base_map = self.base_map if cache else self.get_write_base_map()
         arr = xr.open_zarr(
-            base_map,
+            self.base_map,
             consolidated=True,
             synchronizer=self.synchronizer,
             group=self.group
@@ -407,7 +409,7 @@ class ZarrStorage(BaseStorage):
 
         # return '.zmetadata' in self.base_map, I don't know why that code can return False even if the file exist
         try:
-            self.read(cache=False)
+            self.read()
             return True
         except:
             return False

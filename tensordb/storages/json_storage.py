@@ -2,6 +2,7 @@ import xarray as xr
 import orjson
 
 from typing import Dict
+from loguru import logger
 
 from tensordb.storages.base_storage import BaseStorage
 
@@ -32,7 +33,7 @@ class JsonStorage(BaseStorage):
         d.update(new_data)
         self.store(name=name, new_data=d)
 
-    def read(self, name: str) -> xr.DataArray:
+    def read(self, name: str) -> Dict:
         new_name = name.replace('\\', '/').replace('/', self.default_character)
         return orjson.loads(self.base_map[new_name])
 

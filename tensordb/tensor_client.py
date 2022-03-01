@@ -55,11 +55,19 @@ class TensorClient(Algorithms):
        File system to store all tensors.
 
     tmp_map: fsspec.FSMap (or any File System that implement the MutabbleMapping Interface)
-       File system only used for rewriting the tensor, useful for mantaining the coords sorted after appending data.
+        File system for storing the temporal cache local file and also the rewrites of the tensors,
+        the cache local file are stored on the path {tmp_map.root}/_local_cache_file/tensor_path
+
+    local_cache_protocol: Literal['simplecache', 'filecache', 'cached']
+        Indicate the kind of local cache filesystem that want to be use for all the tensors,
+        Read fsspec fileprotocol for more info about the local cache protocols.
+
+    local_cache_options: Dict[str, Any]
+        Parameters of the local cache filesystem
 
     synchronizer: str
         Some Storages used to handle the files support a synchronizer, this parameter is used as a default
-        synchronizer option for everyone of them (you can pass different synchronizer to every tensor).
+        synchronizer option for every one of them (you can pass different synchronizer to every tensor).
 
     **kwargs: Dict
         Useful when you want to inherent from this class.
@@ -181,8 +189,8 @@ class TensorClient(Algorithms):
 
     def __init__(
             self,
-            base_map: MutableMapping,
-            tmp_map: MutableMapping = None,
+            base_map: fsspec.FSMap,
+            tmp_map: fsspec.FSMap = None,
             local_cache_protocol: Literal['simplecache', 'filecache', 'cached'] = None,
             local_cache_options: Dict[str, Any] = None,
             synchronizer: str = None,
@@ -201,7 +209,8 @@ class TensorClient(Algorithms):
         self._tensors_definition = JsonStorage(
             path='_tensors_definition',
             base_map=self.base_map,
-            tmp_map=self.tmp_map
+            tmp_map=self.tmp_map,
+            # local_cache_protocol=self.local_cache_protocol
         )
 
     @validate_arguments
@@ -300,11 +309,12 @@ class TensorClient(Algorithms):
             client: dask.distributed.Client = None,
             compute: bool = False,
             call_pool: Literal['thread', 'process'] = 'thread',
-            scheduler: str = None,
+            compute_kwargs: Dict[str, Any] = None,
             sequential: bool = False,
             apply_on_dependencies: bool = False
     ):
-        kwargs_groups = {} if kwargs_groups is None else kwargs_groups
+        kwargs_groups = kwargs_groups or {}
+        compute_kwargs = compute_kwargs or {}
         if tensors_path is None:
             tensors = [tensor for tensor in self.get_all_tensors_definition() if tensor.dag is not None]
         else:
@@ -347,7 +357,7 @@ class TensorClient(Algorithms):
                     futures = [future.result() for future in futures]
                 if not compute:
                     logger.info('Calling compute over all the delayed tensors')
-                    client.compute(futures, scheduler=scheduler)
+                    client.compute(futures, **compute_kwargs)
 
     def apply_data_transformation(
             self,
@@ -382,7 +392,7 @@ class TensorClient(Algorithms):
             parameters: Dict[str, Any]
     ) -> Any:
         """
-        Calls an specific method of a Storage, this include send the parameters specified in the tensor_definition
+        Calls a specific method of a Storage, this includes send the parameters specified in the tensor_definition
         or modifying the behaviour of the method based in your tensor_definition
         (read :meth:`TensorDefinition` for more info of how to personalize your method).
 
@@ -561,18 +571,18 @@ class TensorClient(Algorithms):
             use_exec: bool = False,
             original_path: str = None,
             storage: BaseStorage = None,
-            **kwargs
-    ) -> xr.DataArray:
+            **kwargs: Dict[str, Any]
+    ) -> Union[xr.DataArray, xr.Dataset]:
         """
-        This is one of the most important methods of the `TensorClient` class, basically it allows to define
-        formulas that use the tensors stored with a simple strings, so you can create new tensors from this formulas
+        This is one of the most important methods of the `TensorClient` class, basically it allows defining
+        formulas that use the tensors stored with a simple strings, so you can create new tensors from these formulas
         (make use of python eval and the same syntax that you use with Xarray).
         This is very flexible, you can even create relations between tensor and the only extra thing
         you need to know is that you have to wrap the path of your tensor with "`" to be parsed and
         read automatically.
 
         Another important chracteristic is that you can even pass entiere python codes to create this new tensors
-        (it make use of python exec so use use_exec parameter as True).
+        (it makes use of python exec so use use_exec parameter as True).
 
         Note: The globals dictionary use in eval is the following:
         {'xr': xr, 'np': np, 'pd': pd, 'da': da, 'dask': dask, 'self': self}.
@@ -583,7 +593,7 @@ class TensorClient(Algorithms):
 
         formula: str
             The formula is a string that is use in the python eval or exec function, this string is first analyzed
-            to extract the tensor paths inside of it to read them before execute the evaluation of the string,
+            to extract the tensor paths inside it to read them before execute the evaluation of the string,
             so, use the following syntax to indicate the part of the string that is a path of a tensor
 
         use_exec: bool = False
@@ -598,7 +608,7 @@ class TensorClient(Algorithms):
             useful for self reading, is normally send by the TensorClient class
 
         **kwargs: Dict
-            It's use as the locals dictionary of the eval and exec functions, it is automatically
+            It's use as the local dictionary of the eval and exec functions, it is automatically
             filled by the apply_data_transformation with all the previously stored data.
 
         Examples
@@ -645,7 +655,7 @@ class TensorClient(Algorithms):
 
         Returns
         -------
-        An xr.DataArray object created from the formula.
+        An xr.DataArray or xr.Dataset object created from the formula.
 
         """
 
