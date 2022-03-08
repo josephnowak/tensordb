@@ -1,7 +1,6 @@
-from tensordb.tensor_client import TensorClient
-from tensordb import storages
-from tensordb import tensor_definition
-from tensordb import tensor_translator
-from tensordb.tensor_definition import TensorDefinition
-from tensordb.algorithms import Algorithms
+from .tensor_client import TensorClient
+from .tensor_definition import TensorDefinition
+from .algorithms import Algorithms
+from . import tensor_translator
+from . import tensor_definition
 

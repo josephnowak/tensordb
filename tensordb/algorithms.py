@@ -181,7 +181,6 @@ class Algorithms:
             )
 
         dtype = dtype if dtype else new_data.dtype
-        to_replace = pd.Series(to_replace).drop_duplicates().sort_index()
         vectorized_map = np.vectorize(
             lambda e: to_replace.get(e, e if default_value is None else default_value),
             otypes=[dtype],
