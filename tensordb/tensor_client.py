@@ -378,12 +378,14 @@ class TensorClient(Algorithms):
                 # filter the invalid groups
                 level = [tensor for tensor in level if tensor.dag.group in only_on_groups]
 
+            if not level:
+                continue
+
             logger.info([tensor.path for tensor in level])
 
             max_level_execution = min(max_parallelization, len(level))
             with call_pool(max_level_execution) as pool:
                 for i in range(0, len(level), max_level_execution):
-                    logger.info([p.path for p in level[i: i + max_level_execution]])
                     futures = [
                         pool.submit(
                             method,
