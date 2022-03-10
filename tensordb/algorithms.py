@@ -71,6 +71,7 @@ class Algorithms:
                     arr=new_data.data,
                     dtype=float,
                     shape=(new_data.sizes[dim],),
+                    method=method,
                 ),
                 coords=new_data.coords,
                 dims=new_data.dims,

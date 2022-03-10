@@ -40,6 +40,45 @@ class TestAlgorithms:
             )
         )
 
+    @pytest.mark.parametrize(
+        'method, rank_nan',
+        [
+            ('average', True),
+            ('min', False),
+            ('max', False),
+            ('ordinal', True),
+            ('dense', False)
+        ]
+    )
+    def test_rank(self, method, rank_nan):
+        arr = xr.DataArray(
+            [
+                [1, 2, 3],
+                [4, 4, 1],
+                [5, 2, 3],
+                [np.nan, 3, 0],
+                [8, 7, 9]
+            ],
+            dims=['a', 'b'],
+            coords={'a': list(range(5)), 'b': list(range(3))}
+        ).chunk((3, 1))
+        df = pd.DataFrame(arr.values, index=arr.a.values, columns=arr.b.values)
+        result = Algorithms.rank(
+            arr,
+            'b',
+            method=method,
+            rank_nan=rank_nan
+        )
+        rank_pandas_method = 'first' if method == 'ordinal' else method
+        expected = df.rank(axis=1, method=rank_pandas_method, na_option='bottom' if rank_nan else 'keep')
+        assert result.equals(
+            xr.DataArray(
+                expected.values,
+                dims=arr.dims,
+                coords=arr.coords
+            )
+        )
+
     def test_rolling_along_axis(self):
         arr = xr.DataArray(
             [
