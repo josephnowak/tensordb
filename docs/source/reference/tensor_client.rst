@@ -29,6 +29,7 @@ Storage Methods
    :toctree: api/
 
    TensorClient.storage_method_caller
+   TensorClient.exec_on_dag_order
    TensorClient.read
    TensorClient.store
    TensorClient.drop
@@ -51,3 +52,8 @@ Tensor Calculation Methods
     TensorClient.read_from_formula
     TensorClient.ffill
     TensorClient.rank
+    TensorClient.shift_on_valid
+    TensorClient.rolling_along_axis
+    TensorClient.replace
+    TensorClient.vindex
+    TensorClient.merge_duplicates_coord

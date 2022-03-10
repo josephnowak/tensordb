@@ -8,26 +8,26 @@
 
     <title>tensordb.TensorClient &#8212; TensorDB 0.1 documentation</title>
     
-  <link href="../../_static/css/theme.css" rel="stylesheet">
-  <link href="../../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
-
+    <link href="../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+  
     
-  <link rel="stylesheet"
-    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
-
+    <link rel="stylesheet"
+      href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
     
       
-
+  
     
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/css/blank.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/pydata-sphinx-theme.css" />
     
-  <link rel="preload" as="script" href="../../_static/js/index.be7d3bbb2ef33a8344ce.js">
-
+    <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
@@ -130,7 +130,8 @@
           
             
             <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+            <div class="col-12 col-md-3 bd-sidebar">
+              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
@@ -236,6 +237,9 @@
 
   </div>
 </nav>
+              </div>
+              <div class="sidebar-end-items">
+              </div>
             </div>
             
           
@@ -272,7 +276,7 @@
 <h1>tensordb.TensorClient<a class="headerlink" href="#tensordb-tensorclient" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="tensordb.TensorClient">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tensordb.</span></span><span class="sig-name descname"><span class="pre">TensorClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">collections.abc.MutableMapping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">collections.abc.MutableMapping</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synchronizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.TensorClient" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tensordb.</span></span><span class="sig-name descname"><span class="pre">TensorClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_map</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">fsspec.mapping.FSMap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_map</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">fsspec.mapping.FSMap</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_cache_protocol</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="pre">'simplecache'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'filecache'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'cached'</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_cache_options</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synchronizer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.TensorClient" title="Permalink to this definition">¶</a></dt>
 <dd><p>The client was designed to handle multiple tensors data in a simpler way using Xarray in the background,
 it can support the same files than Xarray but those formats needs to be implemented
 using the <cite>BaseStorage</cite> interface proposed in this package.</p>
@@ -298,8 +302,16 @@ so you don’t have to always use files, you can even store the tensors in
 <dd class="field-odd"><dl class="simple">
 <dt><strong>base_map: fsspec.FSMap (or any File System that implement the MutabbleMapping Interface)</strong></dt><dd><p>File system to store all tensors.</p>
 </dd>
-<dt><strong>synchronizer: str</strong></dt><dd><p>Some of the Storages used to handle the files support a synchronizer, this parameter is used as a default
-synchronizer option for everyone of them (you can pass different synchronizer to every tensor).</p>
+<dt><strong>tmp_map: fsspec.FSMap (or any File System that implement the MutabbleMapping Interface)</strong></dt><dd><p>File system for storing the temporal cache local file and also the rewrites of the tensors,
+the cache local file are stored on the path {tmp_map.root}/_local_cache_file/tensor_path</p>
+</dd>
+<dt><strong>local_cache_protocol: Literal[‘simplecache’, ‘filecache’, ‘cached’]</strong></dt><dd><p>Indicate the kind of local cache filesystem that want to be use for all the tensors,
+Read fsspec fileprotocol for more info about the local cache protocols.</p>
+</dd>
+<dt><strong>local_cache_options: Dict[str, Any]</strong></dt><dd><p>Parameters of the local cache filesystem</p>
+</dd>
+<dt><strong>synchronizer: str</strong></dt><dd><p>Some Storages used to handle the files support a synchronizer, this parameter is used as a default
+synchronizer option for every one of them (you can pass different synchronizer to every tensor).</p>
 </dd>
 <dt><strong>**kwargs: Dict</strong></dt><dd><p>Useful when you want to inherent from this class.</p>
 </dd>
@@ -415,7 +427,7 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
 </div>
 <dl class="py method">
 <dt class="sig sig-object py" id="tensordb.TensorClient.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">collections.abc.MutableMapping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">collections.abc.MutableMapping</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synchronizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.TensorClient.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_map</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">fsspec.mapping.FSMap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_map</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">fsspec.mapping.FSMap</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_cache_protocol</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="pre">'simplecache'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'filecache'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'cached'</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_cache_options</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synchronizer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.TensorClient.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -425,7 +437,7 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#tensordb.TensorClient.__init__" title="tensordb.TensorClient.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(base_map[, tmp_map, synchronizer])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#tensordb.TensorClient.__init__" title="tensordb.TensorClient.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(base_map[, tmp_map, ...])</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.append.html#tensordb.TensorClient.append" title="tensordb.TensorClient.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">append</span></code></a>(path, **kwargs)</p></td>
@@ -444,7 +456,7 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
 <td><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with drop as method_name (has the same parameters).</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">exec_on_dag_order</span></code>(method[, kwargs_groups, ...])</p></td>
-<td><p></p></td>
+<td><p>This method was designed to execute multiple methods of the client on parallel and following the dag order, this is useful for update/store multiple tensors that have dependencies between them in a fast way</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.exist.html#tensordb.TensorClient.exist" title="tensordb.TensorClient.exist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exist</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with exist as method_name (has the same parameters).</p></td>
@@ -474,7 +486,7 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
 <td><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with read as method_name (has the same parameters).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.read_from_formula.html#tensordb.TensorClient.read_from_formula" title="tensordb.TensorClient.read_from_formula"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_from_formula</span></code></a>(formula[, use_exec, ...])</p></td>
-<td><p>This is one of the most important methods of the <cite>TensorClient</cite> class, basically it allows to define formulas that use the tensors stored with a simple strings, so you can create new tensors from this formulas (make use of python eval and the same syntax that you use with Xarray).</p></td>
+<td><p>This is one of the most important methods of the <cite>TensorClient</cite> class, basically it allows defining formulas that use the tensors stored with a simple strings, so you can create new tensors from these formulas (make use of python eval and the same syntax that you use with Xarray).</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">replace</span></code>(new_data, to_replace[, dtype, ...])</p></td>
 <td><p></p></td>
@@ -486,7 +498,7 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
 <td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-obj docutils literal notranslate"><span class="pre">storage_method_caller</span></code></a>(path, method_name, ...)</p></td>
-<td><p>Calls an specific method of a Storage, this include send the parameters specified in the tensor_definition or modifying the behaviour of the method based in your tensor_definition (read <code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorDefinition()</span></code> for more info of how to personalize your method).</p></td>
+<td><p>Calls a specific method of a Storage, this includes send the parameters specified in the tensor_definition or modifying the behaviour of the method based in your tensor_definition (read <code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorDefinition()</span></code> for more info of how to personalize your method).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.store.html#tensordb.TensorClient.store" title="tensordb.TensorClient.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">store</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with store as method_name (has the same parameters).</p></td>
@@ -523,7 +535,7 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
               
               
               <!-- Previous / next buttons -->
-<div class='prev-next-area'> 
+<div class='prev-next-area'>
     <a class='left-prev' id="prev-link" href="../tensor_client.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
@@ -546,8 +558,8 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
       </div>
     </div>
   
-  <script src="../../_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
-<footer class="footer mt-5 mt-md-0">
+    <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  <footer class="footer mt-5 mt-md-0">
   <div class="container">
     
     <div class="footer-item">
@@ -558,7 +570,7 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
     
     <div class="footer-item">
       <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.3.2.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0.<br>
 </p>
     </div>
     

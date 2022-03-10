@@ -1,0 +1,393 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>tensordb.TensorClient.exec_on_dag_order &#8212; TensorDB 0.1 documentation</title>
+    
+    <link href="../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+  
+    
+    <link rel="stylesheet"
+      href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
+    
+      
+  
+    
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/pydata-sphinx-theme.css" />
+    
+    <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="tensordb.TensorClient.read" href="tensordb.TensorClient.read.html" />
+    <link rel="prev" title="tensordb.TensorClient.storage_method_caller" href="tensordb.TensorClient.storage_method_caller.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+  <div id="navbar-start">
+    
+    
+<a class="navbar-brand" href="../../index.html">
+<p class="title">TensorDB</p>
+</a>
+
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 current active nav-item">
+ <a class="reference internal nav-link" href="../tensor_client.html">
+  TensorClient
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../base_storage.html">
+  BaseStorage
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../cached_storage.html">
+  CachedStorage
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../zarr_storage.html">
+  ZarrStorage
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../tensor_translator.html">
+  Tensor Translator
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../tensor_definition.html">
+  Tensor Definition
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar">
+              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    <ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.html">
+   tensordb.TensorClient
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.create_tensor.html">
+   tensordb.TensorClient.create_tensor
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.get_tensor_definition.html">
+   tensordb.TensorClient.get_tensor_definition
+  </a>
+ </li>
+</ul>
+<ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html">
+   tensordb.TensorClient.storage_method_caller
+  </a>
+ </li>
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   tensordb.TensorClient.exec_on_dag_order
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.read.html">
+   tensordb.TensorClient.read
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.store.html">
+   tensordb.TensorClient.store
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.drop.html">
+   tensordb.TensorClient.drop
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.append.html">
+   tensordb.TensorClient.append
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.update.html">
+   tensordb.TensorClient.update
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.upsert.html">
+   tensordb.TensorClient.upsert
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.delete_tensor.html">
+   tensordb.TensorClient.delete_tensor
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.exist.html">
+   tensordb.TensorClient.exist
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.get_cached_storage.html">
+   tensordb.TensorClient.get_cached_storage
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.apply_data_transformation.html">
+   tensordb.TensorClient.apply_data_transformation
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.get_storage.html">
+   tensordb.TensorClient.get_storage
+  </a>
+ </li>
+</ul>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.read_from_formula.html">
+   tensordb.TensorClient.read_from_formula
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.ffill.html">
+   tensordb.TensorClient.ffill
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.rank.html">
+   tensordb.TensorClient.rank
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.shift_on_valid.html">
+   tensordb.TensorClient.shift_on_valid
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.rolling_along_axis.html">
+   tensordb.TensorClient.rolling_along_axis
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.replace.html">
+   tensordb.TensorClient.replace
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.vindex.html">
+   tensordb.TensorClient.vindex
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.merge_duplicates_coord.html">
+   tensordb.TensorClient.merge_duplicates_coord
+  </a>
+ </li>
+</ul>
+
+  </div>
+</nav>
+              </div>
+              <div class="sidebar-end-items">
+              </div>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+              
+              <div class="toc-item">
+                
+
+<nav id="bd-toc-nav">
+    
+</nav>
+              </div>
+              
+              <div class="toc-item">
+                
+              </div>
+              
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <section id="tensordb-tensorclient-exec-on-dag-order">
+<h1>tensordb.TensorClient.exec_on_dag_order<a class="headerlink" href="#tensordb-tensorclient-exec-on-dag-order" title="Permalink to this headline">¶</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="tensordb.TensorClient.exec_on_dag_order">
+<span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">exec_on_dag_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="pre">'append'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'update'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'store'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'upsert'</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs_groups</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tensors_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_parallelization</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">distributed.client.Client</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">call_pool</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="pre">'thread'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'process'</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'thread'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_kwargs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_on_dependencies</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_on_groups</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">set</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.TensorClient.exec_on_dag_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method was designed to execute multiple methods of the client on parallel and following the dag
+order, this is useful for update/store multiple tensors that have dependencies between them in a fast way</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>method: Literal[‘append’, ‘update’, ‘store’, ‘upsert’]</strong></dt><dd><p>method of the tensor client that is going to be executed on parallel</p>
+</dd>
+<dt><strong>kwargs_groups: Dict[str, Dict[str, Any]]</strong></dt><dd><p>Parameters that are sent to the method during the execution, read the DAG model on tensor_definition for
+more info</p>
+</dd>
+<dt><strong>tensors_path: List[str], default None</strong></dt><dd><p>Indicates the tensors on which the operation will be applied</p>
+</dd>
+<dt><strong>max_parallelization: int, default None</strong></dt><dd><p>Indicates the maximum number of parallel calls of the method, useful to restrict the parallelization
+and avoid overflow the server or any DB.
+None means call all in parallel</p>
+</dd>
+<dt><strong>compute: bool, default True</strong></dt><dd><p>Indicate if the computation must be delayed or not, read the use on zarr_storage doc for more info</p>
+</dd>
+<dt><strong>client: dask.distributed.Client, default None</strong></dt><dd><p>Dask client, useful for in combination with the compute parameter</p>
+</dd>
+<dt><strong>call_pool: Literal[‘thread’, ‘process’], default ‘thread’</strong></dt><dd><p>Internally this method use a Pool of process/thread to apply the method on all the tensors
+this indicates the kind of pool</p>
+</dd>
+<dt><strong>compute_kwargs: Dict[str, Any], default None</strong></dt><dd><p>Parameters of the dask.compute or client.compute</p>
+</dd>
+<dt><strong>apply_on_dependencies: bool, default False</strong></dt><dd><p>Not implemented, but is going to automatically fill the tensors_path</p>
+</dd>
+<dt><strong>only_on_groups: set, default None</strong></dt><dd><p>Useful for filters the tensors base on the DAG groups (read the DAG models of tensordb)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+              </div>
+              
+              
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="tensordb.TensorClient.storage_method_caller.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">tensordb.TensorClient.storage_method_caller</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="tensordb.TensorClient.read.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">tensordb.TensorClient.read</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+    <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright 2021, Joseph Nowak.<br>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0.<br>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>

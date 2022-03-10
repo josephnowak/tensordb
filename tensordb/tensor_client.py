@@ -4,9 +4,9 @@ import numpy as np
 import pandas as pd
 import dask
 import dask.array as da
-import concurrent
 
 from typing import Dict, List, Any, Union, Tuple, Literal, Optional
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from collections.abc import MutableMapping
 
 from loguru import logger
@@ -306,15 +306,64 @@ class TensorClient(Algorithms):
             method: Literal['append', 'update', 'store', 'upsert'],
             kwargs_groups: Dict[str, Dict[str, Any]] = None,
             tensors_path: List[str] = None,
-            client: dask.distributed.Client = None,
+            max_parallelization: int = None,
             compute: bool = False,
+            client: dask.distributed.Client = None,
             call_pool: Literal['thread', 'process'] = 'thread',
             compute_kwargs: Dict[str, Any] = None,
-            sequential: bool = False,
-            apply_on_dependencies: bool = False
+            apply_on_dependencies: bool = False,
+            only_on_groups: set = None
     ):
+        """
+        This method was designed to execute multiple methods of the client on parallel and following the dag
+        order, this is useful for update/store multiple tensors that have dependencies between them in a fast way
+
+        Parameters
+        ----------
+
+        method: Literal['append', 'update', 'store', 'upsert']
+            method of the tensor client that is going to be executed on parallel
+
+        kwargs_groups: Dict[str, Dict[str, Any]]
+            Parameters that are sent to the method during the execution, read the DAG model on tensor_definition for
+            more info
+
+        tensors_path: List[str], default None
+            Indicates the tensors on which the operation will be applied
+
+        max_parallelization: int, default None
+            Indicates the maximum number of parallel calls of the method, useful to restrict the parallelization
+            and avoid overflow the server or any DB.
+            None means call all in parallel
+
+        compute: bool, default True
+            Indicate if the computation must be delayed or not, read the use on zarr_storage doc for more info
+
+        client: dask.distributed.Client, default None
+            Dask client, useful for in combination with the compute parameter
+
+        call_pool: Literal['thread', 'process'], default 'thread'
+            Internally this method use a Pool of process/thread to apply the method on all the tensors
+            this indicates the kind of pool
+
+        compute_kwargs: Dict[str, Any], default None
+            Parameters of the dask.compute or client.compute
+
+        apply_on_dependencies: bool, default False
+            Not implemented, but is going to automatically fill the tensors_path
+
+        only_on_groups: set, default None
+            Useful for filters the tensors base on the DAG groups (read the DAG models of tensordb)
+
+
+        """
         kwargs_groups = kwargs_groups or {}
         compute_kwargs = compute_kwargs or {}
+        max_parallelization = np.inf if max_parallelization is None else max_parallelization
+        method = getattr(self, method)
+        client = dask if client is None else client
+        call_pool = ThreadPoolExecutor if call_pool == 'thread' else ProcessPoolExecutor
+
         if tensors_path is None:
             tensors = [tensor for tensor in self.get_all_tensors_definition() if tensor.dag is not None]
         else:
@@ -322,27 +371,19 @@ class TensorClient(Algorithms):
             if apply_on_dependencies:
                 tensors = dag.get_dependencies(tensors)
 
-        method = getattr(self, method)
-        client = dask if client is None else client
-        if call_pool == 'process':
-            call_pool = concurrent.futures.ProcessPoolExecutor
-        else:
-            call_pool = concurrent.futures.ThreadPoolExecutor
-
         for level in dag.get_tensor_dag(tensors):
             # Filter the tensors base on the omit parameter
             level = [tensor for tensor in level if method.__name__ not in tensor.dag.omit_on]
+            if only_on_groups:
+                # filter the invalid groups
+                level = [tensor for tensor in level if tensor.dag.group in only_on_groups]
+
             logger.info([tensor.path for tensor in level])
-            if sequential:
-                for tensor in level:
-                    logger.info(f'processing the tensor: {tensor.path}')
-                    method(
-                        path=tensor.path,
-                        compute=True,
-                        **kwargs_groups.get(tensor.dag.group, {})
-                    )
-            else:
-                with call_pool(len(level)) as pool:
+
+            max_level_execution = min(max_parallelization, len(level))
+            with call_pool(max_level_execution) as pool:
+                for i in range(0, len(level), max_level_execution):
+                    logger.info([p.path for p in level[i: i + max_level_execution]])
                     futures = [
                         pool.submit(
                             method,
@@ -350,14 +391,17 @@ class TensorClient(Algorithms):
                             compute=compute,
                             **kwargs_groups.get(tensor.dag.group, {})
                         )
-                        for tensor in level
+                        for tensor in level[i: i + max_level_execution]
                     ]
-                    is_computed = 'computed' if compute else 'delayed'
-                    logger.info(f'Waiting for the {is_computed} execution of the method on all the tensor')
+                    logger.info(
+                        f'Waiting for the {"computed" if compute else "delayed"} '
+                        f'execution of the method on all the tensor'
+                    )
                     futures = [future.result() for future in futures]
-                if not compute:
-                    logger.info('Calling compute over all the delayed tensors')
-                    client.compute(futures, **compute_kwargs)
+
+                    if not compute:
+                        logger.info('Calling compute over all the delayed tensors')
+                        client.compute(futures, **compute_kwargs)
 
     def apply_data_transformation(
             self,

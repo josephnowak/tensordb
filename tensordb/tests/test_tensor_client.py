@@ -242,14 +242,15 @@ class TestTensorClient:
         assert {'a': 100} == self.tensor_client.read(path='different_client', name='different_client')
 
     @pytest.mark.parametrize(
-        'sequential, compute',
+        'max_parallelization, compute',
         [
-            (True, False),
-            (False, True),
-            (False, False),
+            (1, False),
+            (2, True),
+            (4, False),
+            (None, True),
         ]
     )
-    def test_exec_on_dag_order(self, sequential, compute):
+    def test_exec_on_dag_order(self, max_parallelization, compute):
         definitions = [
             TensorDefinition(
                 path='0',
@@ -302,7 +303,7 @@ class TestTensorClient:
         self.tensor_client.exec_on_dag_order(
             method='store',
             compute=compute,
-            sequential=sequential
+            max_parallelization=max_parallelization
         )
         assert self.tensor_client.read('0').equals(self.arr)
         assert self.tensor_client.read('1').equals(self.arr * 2)

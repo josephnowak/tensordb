@@ -8,26 +8,26 @@
 
     <title>tensordb.storages.BaseStorage &#8212; TensorDB 0.1 documentation</title>
     
-  <link href="../../_static/css/theme.css" rel="stylesheet">
-  <link href="../../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
-
+    <link href="../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+  
     
-  <link rel="stylesheet"
-    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
-
+    <link rel="stylesheet"
+      href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
     
       
-
+  
     
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/css/blank.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/pydata-sphinx-theme.css" />
     
-  <link rel="preload" as="script" href="../../_static/js/index.be7d3bbb2ef33a8344ce.js">
-
+    <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
@@ -130,7 +130,8 @@
           
             
             <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+            <div class="col-12 col-md-3 bd-sidebar">
+              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
@@ -182,6 +183,9 @@
 
   </div>
 </nav>
+              </div>
+              <div class="sidebar-end-items">
+              </div>
             </div>
             
           
@@ -218,15 +222,21 @@
 <h1>tensordb.storages.BaseStorage<a class="headerlink" href="#tensordb-storages-basestorage" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="tensordb.storages.BaseStorage">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tensordb.storages.</span></span><span class="sig-name descname"><span class="pre">BaseStorage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">collections.abc.MutableMapping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">collections.abc.MutableMapping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'data'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.storages.BaseStorage" title="Permalink to this definition">¶</a></dt>
-<dd><p>Obligatory interface used for the Storage classes created, this define the abstract methods for every Storage
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tensordb.storages.</span></span><span class="sig-name descname"><span class="pre">BaseStorage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_map</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">fsspec.mapping.FSMap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_map</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">fsspec.mapping.FSMap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_cache_protocol</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="pre">'simplecache'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'filecache'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'cached'</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_cache_options</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_names</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'data'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.storages.BaseStorage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obligatory interface used for the Storage classes created, this defines the abstract methods for every Storage
 and allow their use with TensorClient.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>path: str</strong></dt><dd><p>Relative path of your tensor, the TensorClient provide this parameter when it create the Storage</p>
 </dd>
-<dt><strong>base_map: MutableMapping</strong></dt><dd><p>It’s the same parameter that you send to the <code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.__init__()</span></code> (TensorClient send it automatically)</p>
+<dt><strong>base_map: fsspec.FSMap</strong></dt><dd><p>It’s the same parameter that you send to the <code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.__init__()</span></code> (TensorClient send it automatically)</p>
+</dd>
+<dt><strong>tmp_map: fsspec.FSMap</strong></dt><dd><p>Temporal location for rewriting the tensor.</p>
+</dd>
+<dt><strong>local_cache_protocol: Literal[‘simplecache’, ‘filecache’, ‘cached’]</strong></dt><dd><p>Fsspec protocol for local file caching, useful for speed up the reads when using a cloud fs</p>
+</dd>
+<dt><strong>local_cache_options: Dict[str, Any]</strong></dt><dd><p>Options of the Fsspec local file cache</p>
 </dd>
 <dt><strong>data_names: Union[str, List[str]], default “data”</strong></dt><dd><p>Names of the data vars inside your dataset, if the data_names is a str then the system must return an
 xr.DataArray when you read it</p>
@@ -236,7 +246,7 @@ xr.DataArray when you read it</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="tensordb.storages.BaseStorage.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">collections.abc.MutableMapping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">collections.abc.MutableMapping</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'data'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.storages.BaseStorage.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_map</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">fsspec.mapping.FSMap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_map</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">fsspec.mapping.FSMap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_cache_protocol</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="pre">'simplecache'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'filecache'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'cached'</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_cache_options</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_names</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'data'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.storages.BaseStorage.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -246,32 +256,41 @@ xr.DataArray when you read it</p>
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#tensordb.storages.BaseStorage.__init__" title="tensordb.storages.BaseStorage.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(base_map, tmp_map[, data_names, path])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#tensordb.storages.BaseStorage.__init__" title="tensordb.storages.BaseStorage.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(base_map, tmp_map, path[, ...])</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.append.html#tensordb.storages.BaseStorage.append" title="tensordb.storages.BaseStorage.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">append</span></code></a>(new_data, **kwargs)</p></td>
-<td><p>This abstracmethod must be overwrited to append new_data to an existing file, the way that it append the data will depend of the implementation of the Storage.</p></td>
+<td><p>This abstractmethod must be overwritten to append new_data to an existing file, the way that it append the data will depend on the implementation of the Storage.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear_cache</span></code>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">delete_tensor</span></code>()</p></td>
+<td><p>Delete the tensor</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.drop.html#tensordb.storages.BaseStorage.drop" title="tensordb.storages.BaseStorage.drop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drop</span></code></a>(coords, **kwargs)</p></td>
 <td><p>Drop coords of the tensor, this can rewrite the hole file depending on the storage</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.exist.html#tensordb.storages.BaseStorage.exist" title="tensordb.storages.BaseStorage.exist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exist</span></code></a>(**kwargs)</p></td>
-<td><p>This abstracmethod must be overwrited to check if the tensor exist or not.</p></td>
+<td><p>This abstractmethod must be overwritten to check if the tensor exist or not.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_data_names_list</span></code>()</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.read.html#tensordb.storages.BaseStorage.read" title="tensordb.storages.BaseStorage.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(**kwargs)</p></td>
-<td><p>This abstracmethod must be overwrited to read an existing file.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_write_base_map</span></code>()</p></td>
+<td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.store.html#tensordb.storages.BaseStorage.store" title="tensordb.storages.BaseStorage.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">store</span></code></a>(new_data, **kwargs)</p></td>
-<td><p>This abstracmethod must be overwrited to store new_data to an existing file, so it must create the necessaries files, folders and metadata for the corresponding tensor.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.read.html#tensordb.storages.BaseStorage.read" title="tensordb.storages.BaseStorage.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(**kwargs)</p></td>
+<td><p>This abstractmethod must be overwritten to read an existing file.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.update.html#tensordb.storages.BaseStorage.update" title="tensordb.storages.BaseStorage.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(new_data, **kwargs)</p></td>
-<td><p>This abstracmethod must be overwrited to update new_data to an existing file, so it must not insert any new coords, it must only replace elements inside the stored tensor.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.store.html#tensordb.storages.BaseStorage.store" title="tensordb.storages.BaseStorage.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">store</span></code></a>(new_data, **kwargs)</p></td>
+<td><p>This abstractmethod must be overwritten to store new_data to an existing file, so it must create the necessaries files, folders and metadata for the corresponding tensor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.upsert.html#tensordb.storages.BaseStorage.upsert" title="tensordb.storages.BaseStorage.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">upsert</span></code></a>(new_data, **kwargs)</p></td>
-<td><p>This abstracmethod must be overwrited to update and append new_data to an existing file, so basically it must be a combination between update and append.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.update.html#tensordb.storages.BaseStorage.update" title="tensordb.storages.BaseStorage.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(new_data, **kwargs)</p></td>
+<td><p>This abstractmethod must be overwritten to update new_data to an existing file, so it must not insert any new coords, it must only replace elements inside the stored tensor.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.storages.BaseStorage.upsert.html#tensordb.storages.BaseStorage.upsert" title="tensordb.storages.BaseStorage.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">upsert</span></code></a>(new_data, **kwargs)</p></td>
+<td><p>This abstractmethod must be overwritten to update and append new_data to an existing file, so basically it must be a combination between update and append.</p></td>
 </tr>
 </tbody>
 </table>
@@ -284,7 +303,7 @@ xr.DataArray when you read it</p>
               
               
               <!-- Previous / next buttons -->
-<div class='prev-next-area'> 
+<div class='prev-next-area'>
     <a class='left-prev' id="prev-link" href="../base_storage.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
@@ -307,8 +326,8 @@ xr.DataArray when you read it</p>
       </div>
     </div>
   
-  <script src="../../_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
-<footer class="footer mt-5 mt-md-0">
+    <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  <footer class="footer mt-5 mt-md-0">
   <div class="container">
     
     <div class="footer-item">
@@ -319,7 +338,7 @@ xr.DataArray when you read it</p>
     
     <div class="footer-item">
       <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.3.2.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0.<br>
 </p>
     </div>
     
