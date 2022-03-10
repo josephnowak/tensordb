@@ -20,6 +20,7 @@
       ~TensorClient.delete_tensor
       ~TensorClient.drop
       ~TensorClient.exec_on_dag_order
+      ~TensorClient.exec_on_parallel
       ~TensorClient.exist
       ~TensorClient.ffill
       ~TensorClient.get_all_tensors_definition

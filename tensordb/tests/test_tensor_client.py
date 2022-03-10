@@ -302,8 +302,10 @@ class TestTensorClient:
 
         self.tensor_client.exec_on_dag_order(
             method='store',
-            compute=compute,
-            max_parallelization=max_parallelization
+            parallelization_kwargs={
+                'compute': compute,
+                'max_parallelization': max_parallelization
+            }
         )
         assert self.tensor_client.read('0').equals(self.arr)
         assert self.tensor_client.read('1').equals(self.arr * 2)

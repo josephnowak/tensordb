@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>tensordb.TensorClient.append &#8212; TensorDB 0.1 documentation</title>
+    <title>tensordb.TensorClient.exec_on_parallel &#8212; TensorDB 0.1 documentation</title>
     
     <link href="../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="../../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -34,8 +34,8 @@
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="tensordb.TensorClient.update" href="tensordb.TensorClient.update.html" />
-    <link rel="prev" title="tensordb.TensorClient.drop" href="tensordb.TensorClient.drop.html" />
+    <link rel="next" title="tensordb.TensorClient.read" href="tensordb.TensorClient.read.html" />
+    <link rel="prev" title="tensordb.TensorClient.exec_on_dag_order" href="tensordb.TensorClient.exec_on_dag_order.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en">
     
@@ -166,8 +166,8 @@
    tensordb.TensorClient.exec_on_dag_order
   </a>
  </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.exec_on_parallel.html">
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
    tensordb.TensorClient.exec_on_parallel
   </a>
  </li>
@@ -186,8 +186,8 @@
    tensordb.TensorClient.drop
   </a>
  </li>
- <li class="toctree-l1 current active">
-  <a class="current reference internal" href="#">
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.append.html">
    tensordb.TensorClient.append
   </a>
  </li>
@@ -307,17 +307,32 @@
               
               <div>
                 
-  <section id="tensordb-tensorclient-append">
-<h1>tensordb.TensorClient.append<a class="headerlink" href="#tensordb-tensorclient-append" title="Permalink to this headline">¶</a></h1>
+  <section id="tensordb-tensorclient-exec-on-parallel">
+<h1>tensordb.TensorClient.exec_on_parallel<a class="headerlink" href="#tensordb-tensorclient-exec-on-parallel" title="Permalink to this headline">¶</a></h1>
 <dl class="py method">
-<dt class="sig sig-object py" id="tensordb.TensorClient.append">
-<span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.backends.common.AbstractWritableDataStore</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tensordb.TensorClient.append" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with append as method_name (has the same parameters).</p>
+<dt class="sig sig-object py" id="tensordb.TensorClient.exec_on_parallel">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">exec_on_parallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths_kwargs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_parallelization</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">distributed.client.Client</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">call_pool</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="pre">'thread'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'process'</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'thread'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_kwargs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.TensorClient.exec_on_parallel" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method was designed to execute multiple methods of the client on parallel</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt>Returns a List of xr.backends.common.AbstractWritableDataStore objects,</dt><dd></dd>
-<dt>which is used as an interface for the corresponding backend that you select in xarray (the Storage).</dt><dd></dd>
+<dt><strong>method: Callable</strong></dt><dd><p>method of the tensor client that is going to be executed on parallel</p>
+</dd>
+<dt><strong>paths_kwargs: Dict[str, Dict[str, Any]]</strong></dt><dd><p>The key represents the paths of the tensors and the values the kwargs for the method</p>
+</dd>
+<dt><strong>max_parallelization: int, default None</strong></dt><dd><p>Indicates the maximum number of parallel calls of the method, useful to restrict the parallelization
+and avoid overflow the server or any DB.
+None means call all in parallel</p>
+</dd>
+<dt><strong>compute: bool, default True</strong></dt><dd><p>Indicate if the computation must be delayed or not, read the use on zarr_storage doc for more info</p>
+</dd>
+<dt><strong>client: dask.distributed.Client, default None</strong></dt><dd><p>Dask client, useful for in combination with the compute parameter</p>
+</dd>
+<dt><strong>call_pool: Literal[‘thread’, ‘process’], default ‘thread’</strong></dt><dd><p>Internally this method use a Pool of process/thread to apply the method on all the tensors
+this indicates the kind of pool</p>
+</dd>
+<dt><strong>compute_kwargs: Dict[str, Any], default None</strong></dt><dd><p>Parameters of the dask.compute or client.compute</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -331,17 +346,17 @@
               
               <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="tensordb.TensorClient.drop.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="tensordb.TensorClient.exec_on_dag_order.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">tensordb.TensorClient.drop</p>
+            <p class="prev-next-title">tensordb.TensorClient.exec_on_dag_order</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="tensordb.TensorClient.update.html" title="next page">
+    <a class='right-next' id="next-link" href="tensordb.TensorClient.read.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">tensordb.TensorClient.update</p>
+        <p class="prev-next-title">tensordb.TensorClient.read</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>

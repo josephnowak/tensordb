@@ -30,6 +30,7 @@ Storage Methods
 
    TensorClient.storage_method_caller
    TensorClient.exec_on_dag_order
+   TensorClient.exec_on_parallel
    TensorClient.read
    TensorClient.store
    TensorClient.drop

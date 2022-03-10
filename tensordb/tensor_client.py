@@ -5,7 +5,7 @@ import pandas as pd
 import dask
 import dask.array as da
 
-from typing import Dict, List, Any, Union, Tuple, Literal, Optional
+from typing import Dict, List, Any, Union, Tuple, Literal, Optional, Callable
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from collections.abc import MutableMapping
 
@@ -21,7 +21,7 @@ from tensordb.storages import (
 )
 from tensordb.utils.method_inspector import get_parameters
 from tensordb.algorithms import Algorithms
-from tensordb.tensor_definition import TensorDefinition, MethodDescriptor, Definition
+from tensordb.tensor_definition import TensorDefinition, MethodDescriptor, Definition, DAGOrder
 from tensordb import dag
 
 
@@ -301,35 +301,28 @@ class TensorClient(Algorithms):
         )
         return storage
 
-    def exec_on_dag_order(
-            self,
-            method: Literal['append', 'update', 'store', 'upsert'],
-            kwargs_groups: Dict[str, Dict[str, Any]] = None,
-            tensors_path: List[str] = None,
+    @classmethod
+    def exec_on_parallel(
+            cls,
+            method: Callable,
+            paths_kwargs: Dict[str, Dict[str, Any]],
             max_parallelization: int = None,
             compute: bool = False,
             client: dask.distributed.Client = None,
             call_pool: Literal['thread', 'process'] = 'thread',
             compute_kwargs: Dict[str, Any] = None,
-            apply_on_dependencies: bool = False,
-            only_on_groups: set = None
     ):
         """
-        This method was designed to execute multiple methods of the client on parallel and following the dag
-        order, this is useful for update/store multiple tensors that have dependencies between them in a fast way
+        This method was designed to execute multiple methods of the client on parallel
 
         Parameters
         ----------
 
-        method: Literal['append', 'update', 'store', 'upsert']
+        method: Callable
             method of the tensor client that is going to be executed on parallel
 
-        kwargs_groups: Dict[str, Dict[str, Any]]
-            Parameters that are sent to the method during the execution, read the DAG model on tensor_definition for
-            more info
-
-        tensors_path: List[str], default None
-            Indicates the tensors on which the operation will be applied
+        paths_kwargs: Dict[str, Dict[str, Any]]
+            The key represents the paths of the tensors and the values the kwargs for the method
 
         max_parallelization: int, default None
             Indicates the maximum number of parallel calls of the method, useful to restrict the parallelization
@@ -348,6 +341,64 @@ class TensorClient(Algorithms):
 
         compute_kwargs: Dict[str, Any], default None
             Parameters of the dask.compute or client.compute
+        """
+        paths = list(paths_kwargs.keys())
+
+        call_pool = ThreadPoolExecutor if call_pool == 'thread' else ProcessPoolExecutor
+        max_parallelization = np.inf if max_parallelization is None else max_parallelization
+        max_parallelization = min(max_parallelization, len(paths))
+        compute_kwargs = compute_kwargs or {}
+        client = dask if client is None else client
+
+        with call_pool(max_parallelization) as pool:
+            for i in range(0, len(paths), max_parallelization):
+                futures = [
+                    pool.submit(
+                        method,
+                        path=path,
+                        compute=compute,
+                        **paths_kwargs[path]
+                    )
+                    for path in paths[i: i + max_parallelization]
+                ]
+                logger.info(
+                    f'Waiting for the {"computed" if compute else "delayed"} '
+                    f'execution of the method on all the tensor'
+                )
+                futures = [future.result() for future in futures]
+
+                if not compute:
+                    logger.info('Calling compute over all the delayed tensors')
+                    client.compute(futures, **compute_kwargs)
+
+    def exec_on_dag_order(
+            self,
+            method: Literal['append', 'update', 'store', 'upsert'],
+            kwargs_groups: Dict[str, Dict[str, Any]] = None,
+            tensors_path: List[str] = None,
+            parallelization_kwargs: Dict[str, Any] = None,
+            apply_on_dependencies: bool = False,
+            only_on_groups: set = None,
+    ):
+        """
+        This method was designed to execute multiple methods of the client on parallel and following the dag
+        order, this is useful for update/store multiple tensors that have dependencies between them in a fast way.
+        Internally calls the :meth:`TensorClient.exec_on_parallel` for every level of the created DAG
+
+        Parameters
+        ----------
+
+        method: Literal['append', 'update', 'store', 'upsert']
+            method of the tensor client that is going to be executed on parallel
+
+        kwargs_groups: Dict[str, Dict[str, Any]]
+            Kwargs sent to the method base on the DAG groups, read the docs of :meth:`DAGOrder` for more info
+
+        tensors_path: List[str], default None
+            Indicates the tensors on which the operation will be applied
+
+        parallelization_kwargs: Dict[str, Any]
+            Kwargs sent to :meth:`TensorClient.exec_on_parallel`
 
         apply_on_dependencies: bool, default False
             Not implemented, but is going to automatically fill the tensors_path
@@ -355,14 +406,10 @@ class TensorClient(Algorithms):
         only_on_groups: set, default None
             Useful for filters the tensors base on the DAG groups (read the DAG models of tensordb)
 
-
         """
         kwargs_groups = kwargs_groups or {}
-        compute_kwargs = compute_kwargs or {}
-        max_parallelization = np.inf if max_parallelization is None else max_parallelization
+        parallelization_kwargs = parallelization_kwargs or {}
         method = getattr(self, method)
-        client = dask if client is None else client
-        call_pool = ThreadPoolExecutor if call_pool == 'thread' else ProcessPoolExecutor
 
         if tensors_path is None:
             tensors = [tensor for tensor in self.get_all_tensors_definition() if tensor.dag is not None]
@@ -377,33 +424,17 @@ class TensorClient(Algorithms):
             if only_on_groups:
                 # filter the invalid groups
                 level = [tensor for tensor in level if tensor.dag.group in only_on_groups]
-
             if not level:
                 continue
-
-            logger.info([tensor.path for tensor in level])
-
-            max_level_execution = min(max_parallelization, len(level))
-            with call_pool(max_level_execution) as pool:
-                for i in range(0, len(level), max_level_execution):
-                    futures = [
-                        pool.submit(
-                            method,
-                            path=tensor.path,
-                            compute=compute,
-                            **kwargs_groups.get(tensor.dag.group, {})
-                        )
-                        for tensor in level[i: i + max_level_execution]
-                    ]
-                    logger.info(
-                        f'Waiting for the {"computed" if compute else "delayed"} '
-                        f'execution of the method on all the tensor'
-                    )
-                    futures = [future.result() for future in futures]
-
-                    if not compute:
-                        logger.info('Calling compute over all the delayed tensors')
-                        client.compute(futures, **compute_kwargs)
+            paths_kwargs = {
+                tensor.path: kwargs_groups.get(tensor.dag.group, {})
+                for tensor in level
+            }
+            self.exec_on_parallel(
+                method=method,
+                paths_kwargs=paths_kwargs,
+                **parallelization_kwargs
+            )
 
     def apply_data_transformation(
             self,
