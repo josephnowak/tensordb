@@ -306,8 +306,8 @@ class Algorithms:
 
         def _reduce(x):
             arr = npg.aggregate(group_idx, x, axis=axis, func=func, fill_value=fill_value)
-            if keep_shape and len(arr) != len(group_idx):
-                arr = arr[group_idx]
+            if keep_shape:
+                arr = np.take(arr, group_idx, axis=axis)
             return arr
 
         chunk_axis = new_data.chunks[:axis] + (new_data.sizes[dim],) + new_data.chunks[axis + 1:]

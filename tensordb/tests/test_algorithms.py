@@ -187,6 +187,42 @@ class TestAlgorithms:
                     result = Algorithms.vindex(arr, coords)
                     assert expected.equals(result)
 
+    @pytest.mark.parametrize(
+        'dim, keep_shape',
+        [
+            ('a', False),
+            ('b', False),
+            ('a', True),
+            ('b', True),
+        ]
+    )
+    def test_apply_on_groups(self, dim, keep_shape):
+        arr = xr.DataArray(
+            [
+                [1, 2, 3, 4, 3],
+                [4, 4, 1, 3, 5],
+                [5, 2, 3, 2, 1],
+                [np.nan, 3, 0, 5, 4],
+                [8, 7, 9, 6, 7]
+            ],
+            dims=['a', 'b'],
+            coords={'a': [1, 2, 3, 4, 5], 'b': [0, 1, 2, 3, 4]}
+        ).chunk((3, 2))
+        grouper = {
+            'a': [1, 5, 5, 0, 1],
+            'b': [0, 1, 1, 0, -1]
+        }
+        groups = {k: v for k, v in zip(arr.coords[dim].values, grouper[dim])}
+
+        g = arr.groupby(xr.IndexVariable(dim, grouper[dim])).max(dim)
+        arr = Algorithms.apply_on_groups(arr, groups=groups, dim=dim, func='nanmax', keep_shape=keep_shape)
+
+        if keep_shape:
+            g = g.reindex({dim: grouper[dim]})
+            g.coords[dim] = arr.coords[dim].values
+
+        assert g.equals(arr)
+
     @pytest.mark.parametrize('dim', ['a', 'b'])
     def test_merge_duplicates_coord(self, dim):
         arr = xr.DataArray(
