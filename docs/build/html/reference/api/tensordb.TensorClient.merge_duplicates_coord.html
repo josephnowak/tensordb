@@ -35,7 +35,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="BaseStorage" href="../base_storage.html" />
-    <link rel="prev" title="tensordb.TensorClient.vindex" href="tensordb.TensorClient.vindex.html" />
+    <link rel="prev" title="tensordb.TensorClient.apply_on_groups" href="tensordb.TensorClient.apply_on_groups.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en">
     
@@ -167,6 +167,11 @@
   </a>
  </li>
  <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.exec_on_parallel.html">
+   tensordb.TensorClient.exec_on_parallel
+  </a>
+ </li>
+ <li class="toctree-l1">
   <a class="reference internal" href="tensordb.TensorClient.read.html">
    tensordb.TensorClient.read
   </a>
@@ -258,6 +263,11 @@
    tensordb.TensorClient.vindex
   </a>
  </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.apply_on_groups.html">
+   tensordb.TensorClient.apply_on_groups
+  </a>
+ </li>
  <li class="toctree-l1 current active">
   <a class="current reference internal" href="#">
    tensordb.TensorClient.merge_duplicates_coord
@@ -307,7 +317,10 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="tensordb.TensorClient.merge_duplicates_coord">
 <em class="property"><span class="pre">classmethod</span> </em><span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">merge_duplicates_coord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">nan</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.TensorClient.merge_duplicates_coord" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Group and merge duplicates coord base on a function, this can be a sum or a max. Read numpy-groupies
+docs for more info.
+Internally it calls <code class="xref py py-meth docutils literal notranslate"><span class="pre">Algorithms.apply_on_groups()</span></code></p>
+</dd></dl>
 
 </section>
 
@@ -317,11 +330,11 @@
               
               <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="tensordb.TensorClient.vindex.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="tensordb.TensorClient.apply_on_groups.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">tensordb.TensorClient.vindex</p>
+            <p class="prev-next-title">tensordb.TensorClient.apply_on_groups</p>
         </div>
     </a>
     <a class='right-next' id="next-link" href="../base_storage.html" title="next page">

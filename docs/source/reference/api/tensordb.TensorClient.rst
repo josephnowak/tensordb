@@ -16,6 +16,7 @@
       ~TensorClient.__init__
       ~TensorClient.append
       ~TensorClient.apply_data_transformation
+      ~TensorClient.apply_on_groups
       ~TensorClient.create_tensor
       ~TensorClient.delete_tensor
       ~TensorClient.drop

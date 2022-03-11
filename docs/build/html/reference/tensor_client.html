@@ -264,6 +264,11 @@
   </a>
  </li>
  <li class="toctree-l1">
+  <a class="reference internal" href="api/tensordb.TensorClient.apply_on_groups.html">
+   tensordb.TensorClient.apply_on_groups
+  </a>
+ </li>
+ <li class="toctree-l1">
   <a class="reference internal" href="api/tensordb.TensorClient.merge_duplicates_coord.html">
    tensordb.TensorClient.merge_duplicates_coord
   </a>
@@ -447,8 +452,11 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.TensorClient.vindex.html#tensordb.TensorClient.vindex" title="tensordb.TensorClient.vindex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.vindex</span></code></a>(new_data, coords)</p></td>
 <td><p>Implementation of dask vindex using xarray</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.TensorClient.merge_duplicates_coord.html#tensordb.TensorClient.merge_duplicates_coord" title="tensordb.TensorClient.merge_duplicates_coord"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.merge_duplicates_coord</span></code></a>(...[, ...])</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.TensorClient.apply_on_groups.html#tensordb.TensorClient.apply_on_groups" title="tensordb.TensorClient.apply_on_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.apply_on_groups</span></code></a>(new_data, ...)</p></td>
+<td><p>Method created as a replacement for the xarray groupby that right now has performance problems, this is going to unify the chunks along the dim, so it is memory inefficient.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.TensorClient.merge_duplicates_coord.html#tensordb.TensorClient.merge_duplicates_coord" title="tensordb.TensorClient.merge_duplicates_coord"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorClient.merge_duplicates_coord</span></code></a>(...[, ...])</p></td>
+<td><p>Group and merge duplicates coord base on a function, this can be a sum or a max.</p></td>
 </tr>
 </tbody>
 </table>

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>tensordb.TensorClient.ffill &#8212; TensorDB 0.1 documentation</title>
+    <title>tensordb.TensorClient.apply_on_groups &#8212; TensorDB 0.1 documentation</title>
     
     <link href="../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="../../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -34,8 +34,8 @@
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="tensordb.TensorClient.rank" href="tensordb.TensorClient.rank.html" />
-    <link rel="prev" title="tensordb.TensorClient.read_from_formula" href="tensordb.TensorClient.read_from_formula.html" />
+    <link rel="next" title="tensordb.TensorClient.merge_duplicates_coord" href="tensordb.TensorClient.merge_duplicates_coord.html" />
+    <link rel="prev" title="tensordb.TensorClient.vindex" href="tensordb.TensorClient.vindex.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en">
     
@@ -233,8 +233,8 @@
    tensordb.TensorClient.read_from_formula
   </a>
  </li>
- <li class="toctree-l1 current active">
-  <a class="current reference internal" href="#">
+ <li class="toctree-l1">
+  <a class="reference internal" href="tensordb.TensorClient.ffill.html">
    tensordb.TensorClient.ffill
   </a>
  </li>
@@ -263,8 +263,8 @@
    tensordb.TensorClient.vindex
   </a>
  </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tensordb.TensorClient.apply_on_groups.html">
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
    tensordb.TensorClient.apply_on_groups
   </a>
  </li>
@@ -312,12 +312,34 @@
               
               <div>
                 
-  <section id="tensordb-tensorclient-ffill">
-<h1>tensordb.TensorClient.ffill<a class="headerlink" href="#tensordb-tensorclient-ffill" title="Permalink to this headline">¶</a></h1>
+  <section id="tensordb-tensorclient-apply-on-groups">
+<h1>tensordb.TensorClient.apply_on_groups<a class="headerlink" href="#tensordb-tensorclient-apply-on-groups" title="Permalink to this headline">¶</a></h1>
 <dl class="py method">
-<dt class="sig sig-object py" id="tensordb.TensorClient.ffill">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">ffill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">until_last_valid</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xarray.core.dataarray.DataArray</span></span></span><a class="headerlink" href="#tensordb.TensorClient.ffill" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="tensordb.TensorClient.apply_on_groups">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-prename descclassname"><span class="pre">TensorClient.</span></span><span class="sig-name descname"><span class="pre">apply_on_groups</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataarray.DataArray</span><span class="p"><span class="pre">,</span> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">nan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.TensorClient.apply_on_groups" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method created as a replacement for the xarray groupby that right now has performance problems,
+this is going to unify the chunks along the dim, so it is memory inefficient.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>new_data: Union[xr.DataArray, xr.Dataset]</strong></dt><dd><p>Data on which apply the groupby</p>
+</dd>
+<dt><strong>groups: Dict</strong></dt><dd><p>The key represent the coords of the dimension and the value the group to which it belongs, this is use
+for create the group_idx of numpy-groupies</p>
+</dd>
+<dt><strong>dim: str</strong></dt><dd><p>Dimension on which apply the groupby</p>
+</dd>
+<dt><strong>func: str</strong></dt><dd><p>Function to be applied on the groupby, read numpy-groupies docs</p>
+</dd>
+<dt><strong>fill_value: Any</strong></dt><dd><p>Read numpy-groupies docs for more info</p>
+</dd>
+<dt><strong>keep_shape: bool, default False</strong></dt><dd><p>Indicate if the array want to be reduced or not base on the groups, to preserve the shape this algorithm
+is going to replace the original value by its corresponding result of the groupby algorithm</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 </section>
 
@@ -327,17 +349,17 @@
               
               <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="tensordb.TensorClient.read_from_formula.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="tensordb.TensorClient.vindex.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">tensordb.TensorClient.read_from_formula</p>
+            <p class="prev-next-title">tensordb.TensorClient.vindex</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="tensordb.TensorClient.rank.html" title="next page">
+    <a class='right-next' id="next-link" href="tensordb.TensorClient.merge_duplicates_coord.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">tensordb.TensorClient.rank</p>
+        <p class="prev-next-title">tensordb.TensorClient.merge_duplicates_coord</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>

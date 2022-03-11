@@ -57,4 +57,5 @@ Tensor Calculation Methods
     TensorClient.rolling_along_axis
     TensorClient.replace
     TensorClient.vindex
+    TensorClient.apply_on_groups
     TensorClient.merge_duplicates_coord

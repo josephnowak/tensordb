@@ -252,6 +252,79 @@ class Algorithms:
         )
 
     @classmethod
+    def apply_on_groups(
+            cls,
+            new_data: Union[xr.DataArray, xr.Dataset],
+            groups: Dict,
+            dim: str,
+            func: str,
+            fill_value: Any = np.nan,
+            keep_shape: bool = False
+    ):
+        """
+        Method created as a replacement for the xarray groupby that right now has performance problems,
+        this is going to unify the chunks along the dim, so it is memory inefficient.
+
+        Parameters
+        ----------
+        new_data: Union[xr.DataArray, xr.Dataset]
+            Data on which apply the groupby
+
+        groups: Dict
+            The key represent the coords of the dimension and the value the group to which it belongs, this is use
+            for create the group_idx of numpy-groupies
+
+        dim: str
+            Dimension on which apply the groupby
+
+        func: str
+            Function to be applied on the groupby, read numpy-groupies docs
+
+        fill_value: Any
+            Read numpy-groupies docs for more info
+
+        keep_shape: bool, default False
+            Indicate if the array want to be reduced or not base on the groups, to preserve the shape this algorithm
+            is going to replace the original value by its corresponding result of the groupby algorithm
+        """
+        if isinstance(new_data, xr.Dataset):
+            return xr.Dataset(
+                {
+                    name: cls.apply_on_groups(data, groups, dim, func, fill_value, keep_shape)
+                    for name, data in new_data.items()
+                },
+                attrs=new_data.attrs
+            )
+
+        axis = new_data.dims.index(dim)
+
+        unique_groups = pd.Index(np.unique(list(groups.values())))
+        group_idx = unique_groups.get_indexer_for([groups[v] for v in new_data.coords[dim].values])
+        new_coord = unique_groups
+        if keep_shape:
+            new_coord = new_data.coords[dim].values
+
+        def _reduce(x):
+            arr = npg.aggregate(group_idx, x, axis=axis, func=func, fill_value=fill_value)
+            if keep_shape and len(arr) != len(group_idx):
+                arr = arr[group_idx]
+            return arr
+
+        chunk_axis = new_data.chunks[:axis] + (new_data.sizes[dim],) + new_data.chunks[axis + 1:]
+        data = new_data.data.rechunk(chunk_axis)
+
+        return xr.DataArray(
+            data.map_blocks(
+                func=_reduce,
+                dtype=data.dtype,
+                chunks=new_data.chunks[:axis] + (len(new_coord),) + new_data.chunks[axis + 1:]
+            ),
+            coords={d: new_coord if d == dim else v for d, v in new_data.coords.items()},
+            dims=new_data.dims,
+            attrs=new_data.attrs
+        )
+
+    @classmethod
     def merge_duplicates_coord(
             cls,
             new_data: Union[xr.DataArray, xr.Dataset],
@@ -259,38 +332,20 @@ class Algorithms:
             func: str,
             fill_value: int = np.nan
     ):
-        if isinstance(new_data, xr.Dataset):
-            return xr.Dataset(
-                {
-                    name: cls.merge_duplicates_coord(data, dim, func, fill_value)
-                    for name, data in new_data.items()
-                },
-                coords={
-                    dim: coords.get(dim, coord) for dim, coord in new_data.coords.items()
-                },
-                attrs=new_data.attrs
-            )
-
-        # TODO: Delete this method once Xarray merge flox to speed up the groupby and avoid this kind of optimizations
+        """
+        Group and merge duplicates coord base on a function, this can be a sum or a max. Read numpy-groupies
+        docs for more info.
+        Internally it calls :meth:`Algorithms.apply_on_groups`
+        """
         if new_data.indexes[dim].is_unique:
             return new_data
 
-        axis = new_data.dims.index(dim)
-        chunk_axis = new_data.chunks[:axis] + (new_data.sizes[dim],) + new_data.chunks[axis + 1:]
-        data = new_data.data.rechunk(chunk_axis)
-        unique_coord = pd.Index(np.unique(new_data.indexes[dim]))
-        group_idx = unique_coord.get_indexer_for(new_data.coords[dim].values)
-
-        def _reduce(x):
-            return npg.aggregate(group_idx, x, axis=axis, func=func, fill_value=fill_value)
-
-        return xr.DataArray(
-            data.map_blocks(
-                func=_reduce,
-                dtype=data.dtype,
-                chunks=new_data.chunks[:axis] + (len(unique_coord),) + new_data.chunks[axis + 1:]
-            ),
-            coords={d: unique_coord if d == dim else v for d, v in new_data.coords.items()},
-            dims=new_data.dims,
-            attrs=new_data.attrs
+        return cls.apply_on_groups(
+            new_data=new_data,
+            groups={v: v for v in new_data.indexes[dim]},
+            dim=dim,
+            func=func,
+            fill_value=fill_value,
+            keep_shape=False
         )
+
