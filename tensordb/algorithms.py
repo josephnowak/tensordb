@@ -35,8 +35,17 @@ class Algorithms:
             new_data: Union[xr.DataArray, xr.Dataset],
             dim: str,
             method: Literal['average', 'min', 'max', 'dense', 'ordinal'] = 'ordinal',
-            rank_nan: bool = False
+            rank_nan: bool = False,
+            use_map_block: bool = False
     ) -> xr.DataArray:
+        """
+        This is an implementation of scipy rankdata on xarray, with the possibility to avoid the rank of the nans.
+
+        Note:
+        there are two implementations of the algorithm, one using dask map_blocks with an axis on the rankdata func
+        and the other using dask apply_along_axis without an axis on the rankdata func, I think that the last one
+        is better when there are many nans on the data
+        """
         try:
             if method == 'average' and not rank_nan:
                 return new_data.rank(dim=dim)
@@ -55,24 +64,37 @@ class Algorithms:
 
             from scipy.stats import rankdata
 
-            def _nanrankdata_1d(a, method):
-                y = np.empty(a.shape, dtype=np.float64)
-                y.fill(np.nan)
-                idx = ~np.isnan(a)
-                y[idx] = rankdata(a[idx], method=method)
-                return y
+            if use_map_block:
+                def _nanrankdata(a, method, axis):
+                    return np.where(np.isnan(a), np.nan, rankdata(a, method=method, axis=axis))
 
-            func = rankdata if rank_nan else _nanrankdata_1d
+                func = rankdata if rank_nan else _nanrankdata
+                data = new_data.chunk({dim: None}).data
+                ranked = data.map_blocks(
+                    func=func,
+                    dtype=np.float64,
+                    chunks=data.chunks,
+                    axis=new_data.dims.index(dim),
+                    method=method
+                )
+            else:
+                def _nanrankdata_1d(a, method):
+                    idx = ~np.isnan(a)
+                    a[idx] = rankdata(a[idx], method=method)
+                    return a
 
-            return xr.DataArray(
-                da.apply_along_axis(
+                func = rankdata if rank_nan else _nanrankdata_1d
+                ranked = da.apply_along_axis(
                     func1d=func,
                     axis=new_data.dims.index(dim),
                     arr=new_data.data,
                     dtype=float,
                     shape=(new_data.sizes[dim],),
                     method=method,
-                ),
+                )
+
+            return xr.DataArray(
+                ranked,
                 coords=new_data.coords,
                 dims=new_data.dims,
                 attrs=new_data.attrs
@@ -310,8 +332,7 @@ class Algorithms:
                 arr = np.take(arr, group_idx, axis=axis)
             return arr
 
-        chunk_axis = new_data.chunks[:axis] + (new_data.sizes[dim],) + new_data.chunks[axis + 1:]
-        data = new_data.data.rechunk(chunk_axis)
+        data = new_data.chunk({dim: None}).data
 
         return xr.DataArray(
             data.map_blocks(
@@ -348,4 +369,3 @@ class Algorithms:
             fill_value=fill_value,
             keep_shape=False
         )
-
