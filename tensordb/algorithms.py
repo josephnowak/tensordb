@@ -190,13 +190,11 @@ class Algorithms:
             new_data: Union[xr.DataArray, xr.Dataset],
             to_replace: Dict,
             dtype: Any = None,
-            method: Literal['unique', 'vectorized'] = 'unique',
-            default_value: Union[Any, None] = np.nan
     ):
         if isinstance(new_data, xr.Dataset):
             return xr.Dataset(
                 {
-                    name: cls.replace(data, to_replace, dtype, method, default_value)
+                    name: cls.replace(data, to_replace, dtype)
                     for name, data in new_data.items()
                 },
                 coords=new_data.coords,
@@ -204,20 +202,13 @@ class Algorithms:
             )
 
         dtype = dtype if dtype else new_data.dtype
-        vectorized_map = np.vectorize(
-            lambda e: to_replace.get(e, e if default_value is None else default_value),
-            otypes=[dtype],
-            signature='()->()'
-        )
+        sorted_key_groups = np.array(sorted(list(to_replace.keys())))
+        group_values = np.array([to_replace[v] for v in sorted_key_groups])
 
-        if method == 'vectorized':
-            _replace = vectorized_map
-        elif method == 'unique':
-            def _replace(x):
-                unique_elements, rebuild_index = np.unique(x, return_inverse=True)
-                return vectorized_map(unique_elements)[rebuild_index].reshape(x.shape)
-        else:
-            raise NotImplemented(f'The method {method} is not implemented')
+        def _replace(x):
+            valid_replace = np.isin(x, sorted_key_groups)
+            positions = np.searchsorted(sorted_key_groups, x) * valid_replace
+            return np.where(valid_replace, group_values[positions], x)
 
         return xr.DataArray(
             da.map_blocks(

@@ -82,11 +82,11 @@ class TestAlgorithms:
     def test_rolling_along_axis(self):
         arr = xr.DataArray(
             [
-                [1,         np.nan, 3],
-                [np.nan,    4,      6],
-                [np.nan,    5,      np.nan],
-                [3,         np.nan, 7],
-                [7,         6,      np.nan]
+                [1, np.nan, 3],
+                [np.nan, 4, 6],
+                [np.nan, 5, np.nan],
+                [3, np.nan, 7],
+                [7, 6, np.nan]
             ],
             dims=['a', 'b'],
             coords={'a': list(range(5)), 'b': list(range(3))}
@@ -143,25 +143,21 @@ class TestAlgorithms:
         }
 
         for method in ('vectorized', 'unique'):
-            for default_value in [None, np.nan]:
-                new_data = Algorithms.replace(
-                    new_data=arr,
-                    method=method,
-                    to_replace=to_replace,
-                    dtype=float,
-                    default_value=default_value
-                )
-                replaced_df = df.replace(to_replace)
-                if default_value is not None:
-                    replaced_df.values[~np.isin(df.values, list(to_replace.keys()))] = default_value
+            new_data = Algorithms.replace(
+                new_data=arr,
+                # method=method,
+                to_replace=to_replace,
+                dtype=float,
+            )
+            replaced_df = df.replace(to_replace)
 
-                assert xr.DataArray(
-                    replaced_df.values,
-                    coords={'a': replaced_df.index, 'b': replaced_df.columns},
-                    dims=['a', 'b']
-                ).equals(
-                    new_data
-                )
+            assert xr.DataArray(
+                replaced_df.values,
+                coords={'a': replaced_df.index, 'b': replaced_df.columns},
+                dims=['a', 'b']
+            ).equals(
+                new_data
+            )
 
     def test_vindex(self):
         arr = xr.DataArray(
