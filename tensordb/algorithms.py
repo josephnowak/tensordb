@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import dask.array as da
+import dask
 import numpy_groupies as npg
 
 from typing import Union, List, Dict, Literal, Any, Tuple
@@ -207,6 +208,7 @@ class Algorithms:
 
         def _replace(x):
             valid_replace = np.isin(x, sorted_key_groups)
+            # put 0 to the positions that are not in the keys of the groups
             positions = np.searchsorted(sorted_key_groups, x) * valid_replace
             return np.where(valid_replace, group_values[positions], x)
 
@@ -360,3 +362,83 @@ class Algorithms:
             fill_value=fill_value,
             keep_shape=False
         )
+
+    @classmethod
+    def dropna(
+            cls,
+            new_data: Union[xr.DataArray, xr.Dataset],
+            dims: List[str],
+            how: Literal['all'] = 'all',
+            client: dask.distributed.Client = None
+    ):
+        """
+        Equivalent of xarray dropna but for multiple dimension and restricted to the all option
+        """
+        # TODO: Add unit testing
+        dropped_data = cls.drop_unmarked(
+            new_data.notnull(),
+            dims=dims,
+            client=client
+        )
+        return new_data.sel(dropped_data.coords)
+
+    @classmethod
+    def drop_unmarked(
+            cls,
+            new_data: Union[xr.DataArray, xr.Dataset],
+            dims: List[str],
+            how: Literal['all'] = 'all',
+            client: dask.distributed.Client = None
+    ):
+        """
+        Equivalent of xarray dropna but for boolean and for multiple dimension and restricted to the all option
+        """
+        # TODO: Add unit testing
+        client = dask if client is None else client
+        valid_coords = client.compute(*[
+            new_data.any([d for d in new_data.dims if d != dim])
+            for dim in dims
+        ])
+        return new_data.sel(dict(zip(dims, valid_coords)))
+
+    @classmethod
+    def insert_sorted(
+            cls,
+            new_data: Union[xr.DataArray, xr.Dataset],
+            other: Union[xr.DataArray, xr.DataArray],
+            dim: str,
+            fill_value: Any = np.nan
+    ):
+        """
+        Insert the data of one array into another. this is equivalent to the combine first method of xarray
+        but only applied on one dimension and on a sorted coord, this is to avoid performance
+        problem on the reindex
+
+        Parameters
+        ----------
+        new_data: Union[xr.DataArray, xr.Dataset]
+            This is the data at which the data is going to be inserted
+
+        other: Union[xr.DataArray, xr.Dataset]
+            Data that is going to be inserted on the new_data array
+
+        fill_value: Any, default np.nan
+            Useful to avoid the lost of the original dtype when the reindex is executed
+
+        dim: str
+            Dim for the insertion
+
+        """
+        # TODO: Add unit testing
+        act_coord = new_data.indexes[dim]
+        coord_insert = other.indexes[dim]
+        if not (act_coord.is_monotonic_increasing or act_coord.is_monotonic_decreasing):
+            raise ValueError(f'The new_data coord must be sorted')
+
+        reindex_coord = act_coord.union(coord_insert).sort_values(ascending=act_coord.is_monotonic_increasing)
+
+        new_data = new_data.reindex({dim: reindex_coord.values}, fill_value=fill_value)
+        indexing = tuple(coord_insert if d == dim else slice(None, None) for d in new_data.dims)
+        new_data.loc[indexing] = other
+        return new_data
+

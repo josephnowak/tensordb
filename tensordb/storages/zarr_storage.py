@@ -116,7 +116,7 @@ class ZarrStorage(BaseStorage):
             Same meaning that in xarray
 
         rewrite: bool, default False
-            If it is True, it allows to overwrite the tensor using it's own data, this can be inefficient due that
+            If it is True, it allows to overwrite the tensor using its own data, this can be inefficient due that
             first it has to store the tensor on a temporal location to then write it on the original and delete
             the temporal.
             The compute option is always set as True if the rewrite option is active
@@ -178,6 +178,7 @@ class ZarrStorage(BaseStorage):
             self,
             new_data: Union[xr.DataArray, xr.Dataset],
             compute: bool = True,
+            fill_value: Any = np.nan
     ) -> List[xr.backends.ZarrStore]:
 
         """
@@ -194,6 +195,10 @@ class ZarrStorage(BaseStorage):
 
         compute: bool, default True
             Same meaning that in xarray
+
+        fill_value: Any, default np.nan
+            The append method can create many empty cells (equivalent to a pandas/xarray concat) so this parameter
+            is used to fill determine the data to fill the empty cells created.
 
         Returns
         -------
@@ -227,7 +232,7 @@ class ZarrStorage(BaseStorage):
                 for k, act_coord in act_coords.items()
             }
             act_coords[dim] = np.concatenate([act_coords[dim], coord_to_append])
-            concat_data[dim] = new_data.reindex(reindex_coords)
+            concat_data[dim] = new_data.reindex(reindex_coords, fill_value=fill_value)
 
         delayed_appends = []
 
@@ -236,7 +241,7 @@ class ZarrStorage(BaseStorage):
                 continue
 
             if rewrite:
-                act_data = xr.concat([act_data, concat_data[dim]], dim=dim)
+                act_data = xr.concat([act_data, concat_data[dim]], dim=dim, fill_value=fill_value)
             else:
                 delayed_appends.append(
                     concat_data[dim].to_zarr(

@@ -12,6 +12,7 @@ from collections.abc import MutableMapping
 from loguru import logger
 from pydantic import validate_arguments
 from fsspec.implementations.cached import CachingFileSystem
+from xarray.backends.common import AbstractWritableDataStore
 
 from tensordb.storages import (
     BaseStorage,
@@ -26,7 +27,6 @@ from tensordb import dag
 
 
 class TensorClient(Algorithms):
-
     """
 
     The client was designed to handle multiple tensors data in a simpler way using Xarray in the background,
@@ -529,7 +529,11 @@ class TensorClient(Algorithms):
         func = getattr(storage, method_name)
         return func(**get_parameters(func, parameters))
 
-    def read(self, path: str, **kwargs) -> Union[xr.DataArray, xr.Dataset]:
+    def read(
+            self,
+            path: Union[str, TensorDefinition, xr.DataArray, xr.Dataset],
+            **kwargs
+    ) -> Union[xr.DataArray, xr.Dataset]:
         """
         Calls :meth:`TensorClient.storage_method_caller` with read as method_name (has the same parameters).
 
@@ -538,63 +542,65 @@ class TensorClient(Algorithms):
         An xr.DataArray that allow to read the data in the path.
 
         """
+        if isinstance(path, (xr.DataArray, xr.Dataset)):
+            return path
         return self.storage_method_caller(path=path, method_name='read', parameters=kwargs)
 
-    def append(self, path: str, **kwargs) -> List[xr.backends.common.AbstractWritableDataStore]:
+    def append(self, path: Union[str, TensorDefinition], **kwargs) -> List[AbstractWritableDataStore]:
         """
         Calls :meth:`TensorClient.storage_method_caller` with append as method_name (has the same parameters).
 
         Returns
         -------
-        Returns a List of xr.backends.common.AbstractWritableDataStore objects,
+        Returns a List of AbstractWritableDataStore objects,
         which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
         return self.storage_method_caller(path=path, method_name='append', parameters=kwargs)
 
-    def update(self, path: str, **kwargs) -> xr.backends.common.AbstractWritableDataStore:
+    def update(self, path: Union[str, TensorDefinition], **kwargs) -> AbstractWritableDataStore:
         """
         Calls :meth:`TensorClient.storage_method_caller` with update as method_name (has the same parameters).
 
         Returns
         -------
-        Returns a single the xr.backends.common.AbstractWritableDataStore object,
+        Returns a single the AbstractWritableDataStore object,
         which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
         return self.storage_method_caller(path=path, method_name='update', parameters=kwargs)
 
-    def store(self, path: str, **kwargs) -> xr.backends.common.AbstractWritableDataStore:
+    def store(self, path: Union[str, TensorDefinition], **kwargs) -> AbstractWritableDataStore:
         """
         Calls :meth:`TensorClient.storage_method_caller` with store as method_name (has the same parameters).
 
         Returns
         -------
-        Returns a single the xr.backends.common.AbstractWritableDataStore object,
+        Returns a single the AbstractWritableDataStore object,
         which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
         return self.storage_method_caller(path=path, method_name='store', parameters=kwargs)
 
-    def upsert(self, path: str, **kwargs) -> List[xr.backends.common.AbstractWritableDataStore]:
+    def upsert(self, path: Union[str, TensorDefinition], **kwargs) -> List[AbstractWritableDataStore]:
         """
         Calls :meth:`TensorClient.storage_method_caller` with upsert as method_name (has the same parameters).
 
         Returns
         -------
-        Returns a List of xr.backends.common.AbstractWritableDataStore objects,
+        Returns a List of AbstractWritableDataStore objects,
         which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
         return self.storage_method_caller(path=path, method_name='upsert', parameters=kwargs)
 
-    def drop(self, path: str, **kwargs) -> List[xr.backends.common.AbstractWritableDataStore]:
+    def drop(self, path: Union[str, TensorDefinition], **kwargs) -> List[AbstractWritableDataStore]:
         """
         Calls :meth:`TensorClient.storage_method_caller` with drop as method_name (has the same parameters).
 
         Returns
         -------
-        Returns a List of xr.backends.common.AbstractWritableDataStore objects,
+        Returns a List of AbstractWritableDataStore objects,
         which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
