@@ -270,7 +270,7 @@ class Algorithms:
     def apply_on_groups(
             cls,
             new_data: Union[xr.DataArray, xr.Dataset],
-            groups: Dict,
+            groups: Union[Dict, xr.DataArray],
             dim: str,
             func: str,
             fill_value: Any = np.nan,
@@ -285,9 +285,13 @@ class Algorithms:
         new_data: Union[xr.DataArray, xr.Dataset]
             Data on which apply the groupby
 
-        groups: Dict
+        groups: Dict, xr.DataArray
             The key represent the coords of the dimension and the value the group to which it belongs, this is use
-            for create the group_idx of numpy-groupies
+            for create the group_idx of numpy-groupies.
+
+            For the xr.DataArray it must have the same dimensions and coords, and every cell represent the
+            corresponding group for the new_data parameter, for this case the resulting array has the same
+            shape that new_data, so it always use the keep_shape as True
 
         dim: str
             Dimension on which apply the groupby
@@ -313,6 +317,29 @@ class Algorithms:
 
         axis = new_data.dims.index(dim)
 
+        if isinstance(groups, xr.DataArray):
+            def _reduce(arr, grouper):
+                return np.moveaxis(np.array([
+                    npg.aggregate(group_idx, x, func=func, fill_value=fill_value)[group_idx]
+                    for x, group_idx in zip(np.moveaxis(arr, axis, -1), np.moveaxis(grouper, axis, -1))
+                ]), -1, axis)
+
+            data = new_data.chunk({dim: None}).data
+            groups = groups.chunk(data.chunks).data
+
+            return xr.DataArray(
+                dask.array.map_blocks(
+                    _reduce,
+                    data,
+                    groups,
+                    chunks=data.chunks,
+                    dtype=float,
+                ),
+                coords=new_data.coords,
+                dims=new_data.dims,
+                attrs=new_data.attrs
+            )
+
         unique_groups = pd.Index(np.unique(list(groups.values())))
         group_idx = unique_groups.get_indexer_for([groups[v] for v in new_data.coords[dim].values])
         new_coord = unique_groups
@@ -321,8 +348,7 @@ class Algorithms:
 
         def _reduce(x):
             arr = npg.aggregate(group_idx, x, axis=axis, func=func, fill_value=fill_value)
-            if keep_shape:
-                arr = np.take(arr, group_idx, axis=axis)
+            arr = np.take(arr, group_idx, axis=axis) if keep_shape else arr
             return arr
 
         data = new_data.chunk({dim: None}).data
@@ -331,7 +357,7 @@ class Algorithms:
             data.map_blocks(
                 func=_reduce,
                 dtype=data.dtype,
-                chunks=new_data.chunks[:axis] + (len(new_coord),) + new_data.chunks[axis + 1:]
+                chunks=new_data.chunks[:axis] + (len(new_coord),) + new_data.chunks[axis + 1:],
             ),
             coords={d: new_coord if d == dim else v for d, v in new_data.coords.items()},
             dims=new_data.dims,
@@ -441,4 +467,3 @@ class Algorithms:
         indexing = tuple(coord_insert if d == dim else slice(None, None) for d in new_data.dims)
         new_data.loc[indexing] = other
         return new_data
-

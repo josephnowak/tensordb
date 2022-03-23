@@ -98,8 +98,8 @@ class Definition(BaseModel):
 
 class TensorDefinition(BaseModel):
     """
-    The tensor definition is the core of tensordb, it allows to add functionalities to every tensor that are
-    kept over the time, so you don't have to know before hand how to transform every tensor.
+    The tensor definition is the core of tensordb, it allows adding functionalities to every tensor that are
+    kept over the time, so you don't have to know beforehand how to transform every tensor.
 
     Parameters
     ----------
@@ -112,7 +112,7 @@ class TensorDefinition(BaseModel):
 
     dag: Optional[DAGOrder]
         Indicate the relations/dependencies that a tensor has with others, useful for executing an operation over
-        multiples tensor that has dependencies
+        multiple tensors that has dependencies
 
     storage: Optional[StorageDefinition]
         Useful to send parameters to the Storage constructor or to change the default data storage

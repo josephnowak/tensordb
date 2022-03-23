@@ -220,6 +220,62 @@ class TestAlgorithms:
         assert g.equals(arr)
 
     @pytest.mark.parametrize('dim', ['a', 'b'])
+    def test_apply_on_groups_array(self, dim):
+        arr = xr.DataArray(
+            [
+                [1, 2, 3, 4, 3],
+                [4, 4, 1, 3, 5],
+                [5, 2, 3, 2, 1],
+                [np.nan, 3, 7, 5, 4],
+                [8, 7, 9, 6, 7]
+            ],
+            dims=['a', 'b'],
+            coords={'a': [1, 2, 3, 4, 5], 'b': [0, 1, 2, 3, 4]}
+        ).chunk((3, 2))
+        groups = xr.DataArray(
+            [
+                [0, 0, 2, 1, 0],
+                [10, 5, 1, 9, 2],
+                [4, 4, 2, 100, 2],
+                [0, 3, 2, 2, 3],
+                [8, 7, 7, 7, 7]
+            ],
+            dims=['a', 'b'],
+            coords={'a': [1, 2, 3, 4, 5], 'b': [0, 1, 2, 3, 4]}
+        ).chunk((3, 2))
+
+        result = Algorithms.apply_on_groups(arr, groups=groups, dim=dim, func='nanmax')
+        logger.info(arr.compute())
+        if dim == 'a':
+            assert result.equals(
+                xr.DataArray(
+                    np.array(
+                        [[1., 2., 7., 4., 3.],
+                         [4., 4., 1., 3., 5.],
+                         [5., 2., 7., 2., 5.],
+                         [1., 3., 7., 5., 4.],
+                         [8., 7., 9., 6., 7.]]
+                    ),
+                    dims=arr.dims,
+                    coords=arr.coords
+                )
+            )
+        else:
+            assert result.equals(
+                xr.DataArray(
+                    np.array(
+                        [[3., 3., 3., 4., 3.],
+                         [4., 4., 1., 3., 5.],
+                         [5., 5., 3., 2., 3.],
+                         [np.nan, 4., 7., 7., 4.],
+                         [8., 9., 9., 9., 9.]]
+                    ),
+                    dims=arr.dims,
+                    coords=arr.coords
+                )
+            )
+
+    @pytest.mark.parametrize('dim', ['a', 'b'])
     def test_merge_duplicates_coord(self, dim):
         arr = xr.DataArray(
             [
