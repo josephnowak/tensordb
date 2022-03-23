@@ -274,7 +274,8 @@ class Algorithms:
             dim: str,
             func: str,
             fill_value: Any = np.nan,
-            keep_shape: bool = False
+            keep_shape: bool = False,
+            group_algorithm: Literal['aggregate', 'aggregate_nb', 'aggregate_weave'] = 'aggregate',
     ):
         """
         Method created as a replacement for the xarray groupby that right now has performance problems,
@@ -305,6 +306,9 @@ class Algorithms:
         keep_shape: bool, default False
             Indicate if the array want to be reduced or not base on the groups, to preserve the shape this algorithm
             is going to replace the original value by its corresponding result of the groupby algorithm
+
+        group_algorithm: str, default 'aggregate'
+            Algorithm use by numpy_groupies to apply the groupby, read numpy-groupies docs for more info
         """
         if isinstance(new_data, xr.Dataset):
             return xr.Dataset(
@@ -316,11 +320,12 @@ class Algorithms:
             )
 
         axis = new_data.dims.index(dim)
+        group_algorithm = getattr(npg, group_algorithm)
 
         if isinstance(groups, xr.DataArray):
             def _reduce(arr, grouper):
                 return np.moveaxis(np.array([
-                    npg.aggregate(group_idx, x, func=func, fill_value=fill_value)[group_idx]
+                    group_algorithm(group_idx, x, func=func, fill_value=fill_value)[group_idx]
                     for x, group_idx in zip(np.moveaxis(arr, axis, -1), np.moveaxis(grouper, axis, -1))
                 ]), -1, axis)
 
@@ -347,7 +352,7 @@ class Algorithms:
             new_coord = new_data.coords[dim].values
 
         def _reduce(x):
-            arr = npg.aggregate(group_idx, x, axis=axis, func=func, fill_value=fill_value)
+            arr = group_algorithm(group_idx, x, axis=axis, func=func, fill_value=fill_value)
             arr = np.take(arr, group_idx, axis=axis) if keep_shape else arr
             return arr
 
