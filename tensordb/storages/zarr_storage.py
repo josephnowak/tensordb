@@ -40,6 +40,7 @@ class ZarrStorage(BaseStorage):
                  synchronizer: Union[Literal['process', 'thread'], None] = 'thread',
                  unique_coords: bool = False,
                  sorted_coords: Dict[str, bool] = None,
+                 encoding: Dict[str, Any] = None,
                  **kwargs):
 
         synchronizer = synchronizer
@@ -56,6 +57,7 @@ class ZarrStorage(BaseStorage):
         self.synchronizer = synchronizer
         self.unique_coords = unique_coords
         self.sorted_coords = {} if sorted_coords is None else sorted_coords
+        self.encoding = encoding
 
     def _keep_unique_coords(self, new_data):
         if not self.unique_coords:
@@ -136,14 +138,15 @@ class ZarrStorage(BaseStorage):
 
             # TODO: Once https://github.com/pydata/xarray/issues/4380 is fixed delete the temporal solution of encoding
             for v in new_data:
-                new_data[v].encoding.pop('chunks', None)
+                new_data[v].encoding.clear()
 
-            new_data.compute().to_zarr(
+            new_data.to_zarr(
                 self.tmp_map,
                 mode='w',
                 compute=compute,
                 consolidated=True,
                 synchronizer=self.synchronizer,
+                encoding=self.encoding
             )
             new_data = xr.open_zarr(
                 self.tmp_map,
@@ -164,7 +167,8 @@ class ZarrStorage(BaseStorage):
             compute=compute,
             consolidated=True,
             synchronizer=self.synchronizer,
-            group=self.group
+            group=self.group,
+            encoding=self.encoding
         )
 
         if rewrite:

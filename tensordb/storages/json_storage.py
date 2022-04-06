@@ -17,28 +17,36 @@ class JsonStorage(BaseStorage):
 
     default_character = "."
 
-    def store(self, name: str, new_data: Dict):
-        new_name = name.replace('\\', '/').replace('/', self.default_character)
+    @classmethod
+    def to_json_file_name(cls, path):
+        return path.replace('\\', '/').replace('/', cls.default_character)
+
+    def store(self, new_data: Dict, path: str = None, **kwargs):
+        path = self.base_map.root if path is None else path
+        new_name = self.to_json_file_name(path)
         self.get_write_base_map()[new_name] = orjson.dumps(new_data)
 
-    def append(self, name: str, new_data: Dict):
+    def append(self, new_data: Dict, path: str = None, **kwargs):
         raise NotImplemented('Use upsert')
 
-    def update(self, name: str, new_data: Dict):
+    def update(self, new_data: Dict, path: str = None, **kwargs):
         raise NotImplemented('Use upsert')
 
-    def upsert(self, name: str, new_data: Dict):
-        new_name = name.replace('\\', '/').replace('/', self.default_character)
+    def upsert(self, new_data: Dict, path: str = None, **kwargs):
+        path = self.base_map.root if path is None else path
+        new_name = self.to_json_file_name(path)
         d = orjson.loads(self.base_map[new_name])
         d.update(new_data)
-        self.store(name=name, new_data=d)
+        self.store(path=path, new_data=d)
 
-    def read(self, name: str) -> Dict:
-        new_name = name.replace('\\', '/').replace('/', self.default_character)
+    def read(self, path: str = None) -> Dict:
+        path = self.base_map.root if path is None else path
+        new_name = self.to_json_file_name(path)
         return orjson.loads(self.base_map[new_name])
 
-    def exist(self, name: str, **kwargs):
-        new_name = name.replace('\\', '/').replace('/', self.default_character)
+    def exist(self, path: str = None, **kwargs):
+        path = self.base_map.root if path is None else path
+        new_name = self.to_json_file_name(path)
         return new_name in self.base_map
 
     def drop(
@@ -48,13 +56,14 @@ class JsonStorage(BaseStorage):
     ) -> xr.backends.common.AbstractWritableDataStore:
         raise NotImplementedError
 
-    def delete_file(self, name: str, **kwargs):
-        new_name = name.replace('\\', '/').replace('/', self.default_character)
+    def delete_file(self, path: str = None, **kwargs):
+        path = self.base_map.root if path is None else path
+        new_name = self.to_json_file_name(path)
         del self.base_map[new_name]
 
     @classmethod
-    def get_original_path(self, name):
-        return name.replace(self.default_character, '/')
+    def get_original_path(cls, path):
+        return path.replace(cls.default_character, '/')
 
 
 

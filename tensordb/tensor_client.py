@@ -29,8 +29,8 @@ from tensordb import dag
 class TensorClient(Algorithms):
     """
 
-    The client was designed to handle multiple tensors data in a simpler way using Xarray in the background,
-    it can support the same files than Xarray but those formats needs to be implemented
+    The client was designed to handle multiple tensors' data in a simpler way using Xarray in the background,
+    it can support the same files as Xarray but those formats needs to be implemented
     using the `BaseStorage` interface proposed in this package.
 
     As we can create Tensors with multiple Storage that needs differents settings or parameters we must create
@@ -120,7 +120,7 @@ class TensorClient(Algorithms):
 
 
     Storing a tensor from a string formula (if you want to create an 'on the fly' tensor using formula see
-    the docs :meth:`TensorClient.read_from_formula`:
+    the docs :meth:`TensorClient.read_from_formula`):
 
         >>> # create a new tensor using a formula that depend on the previous stored tensor
         >>> # Note: The tensor is not calculated or stored when you create the tensor
@@ -224,7 +224,7 @@ class TensorClient(Algorithms):
             Read the docs of the `TensorDefinition` class for more info of the definition.
 
         """
-        self._tensors_definition.store(new_data=definition.dict(exclude_unset=True), name=definition.path)
+        self._tensors_definition.store(path=definition.path, new_data=definition.dict(exclude_unset=True))
 
     @validate_arguments
     def get_tensor_definition(self, path: str) -> TensorDefinition:

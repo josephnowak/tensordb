@@ -238,7 +238,7 @@ class TestTensorClient:
             definition={}
         )
         self.tensor_client.create_tensor(definition=definition)
-        self.tensor_client.store(path='different_client', name='different_client', new_data={'a': 100})
+        self.tensor_client.store(path='different_client', new_data={'a': 100})
         assert {'a': 100} == self.tensor_client.read(path='different_client', name='different_client')
 
     @pytest.mark.parametrize(
