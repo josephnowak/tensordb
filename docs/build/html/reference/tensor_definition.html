@@ -4,30 +4,30 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tensor Definition &#8212; TensorDB 0.1 documentation</title>
     
-    <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-  
+  <link href="../_static/css/theme.css" rel="stylesheet">
+  <link href="../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
+
     
-    <link rel="stylesheet"
-      href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
-    <link rel="preload" as="font" type="font/woff2" crossorigin
-      href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-    <link rel="preload" as="font" type="font/woff2" crossorigin
-      href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
-  
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
     
       
-  
+
     
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/pydata-sphinx-theme.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blank.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
     
-    <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
-  
+  <link rel="preload" as="script" href="../_static/js/index.be7d3bbb2ef33a8344ce.js">
+
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
@@ -130,8 +130,7 @@
           
             
             <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar">
-              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
@@ -166,9 +165,6 @@
 
   </div>
 </nav>
-              </div>
-              <div class="sidebar-end-items">
-              </div>
             </div>
             
           
@@ -211,11 +207,11 @@
               
               <div>
                 
-  <section id="tensor-definition">
+  <div class="section" id="tensor-definition">
 <h1>Tensor Definition<a class="headerlink" href="#tensor-definition" title="Permalink to this headline">¶</a></h1>
 <p>The tensor definition is one of the most important part, due that it allows to modify the default behaviours of
 any tensor using the tensor_client class</p>
-<section id="definitions">
+<div class="section" id="definitions">
 <h2>Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
 <table class="longtable table autosummary">
 <colgroup>
@@ -223,32 +219,32 @@ any tensor using the tensor_client class</p>
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.StorageDefinition.html#tensordb.tensor_definition.StorageDefinition" title="tensordb.tensor_definition.StorageDefinition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StorageDefinition</span></code></a>(*[, storage_name, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.StorageDefinition.html#tensordb.tensor_definition.StorageDefinition" title="tensordb.tensor_definition.StorageDefinition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StorageDefinition</span></code></a></p></td>
 <td><p>Definition of the storage of the tensor</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.DAGOrder.html#tensordb.tensor_definition.DAGOrder" title="tensordb.tensor_definition.DAGOrder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DAGOrder</span></code></a>(*[, depends, group, omit_on])</p></td>
-<td><p>As the tensor has relations between them it is possible to create a DAG that facilities the process of updating everyone of them, so the idea is that this class keep the necessary information for sorting the tensor execution.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.DAGOrder.html#tensordb.tensor_definition.DAGOrder" title="tensordb.tensor_definition.DAGOrder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DAGOrder</span></code></a></p></td>
+<td><p>As the tensor has relations between them, it is possible to create a DAG that facilities the process of updating every one of them, so the idea is that this class keep the necessary information for sorting the tensor execution.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.MethodDescriptor.html#tensordb.tensor_definition.MethodDescriptor" title="tensordb.tensor_definition.MethodDescriptor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MethodDescriptor</span></code></a>(*, method_name[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.MethodDescriptor.html#tensordb.tensor_definition.MethodDescriptor" title="tensordb.tensor_definition.MethodDescriptor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MethodDescriptor</span></code></a></p></td>
 <td><p>This class is used to indicate the method that want to be transformed during the data_transformation process</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.Definition.html#tensordb.tensor_definition.Definition" title="tensordb.tensor_definition.Definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Definition</span></code></a>(*[, data_transformation, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.Definition.html#tensordb.tensor_definition.Definition" title="tensordb.tensor_definition.Definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Definition</span></code></a></p></td>
 <td><p>The definition allows to modify/extend the default behaviour of every method on the tensor_client, this is useful because you can create a pipeline that transform or read your data from other sources.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.TensorDefinition.html#tensordb.tensor_definition.TensorDefinition" title="tensordb.tensor_definition.TensorDefinition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorDefinition</span></code></a>(*, path[, definition, dag, ...])</p></td>
-<td><p>The tensor definition is the core of tensordb, it allows to add functionalities to every tensor that are kept over the time, so you don't have to know before hand how to transform every tensor.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.tensor_definition.TensorDefinition.html#tensordb.tensor_definition.TensorDefinition" title="tensordb.tensor_definition.TensorDefinition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorDefinition</span></code></a></p></td>
+<td><p>The tensor definition is the core of tensordb, it allows adding functionalities to every tensor that are kept over the time, so you don't have to know beforehand how to transform every tensor.</p></td>
 </tr>
 </tbody>
 </table>
-</section>
-</section>
+</div>
+</div>
 
 
               </div>
               
               
               <!-- Previous / next buttons -->
-<div class='prev-next-area'>
+<div class='prev-next-area'> 
     <a class='left-prev' id="prev-link" href="api/tensordb.tensor_translator.defined_translation.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
@@ -271,8 +267,8 @@ any tensor using the tensor_client class</p>
       </div>
     </div>
   
-    <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
-  <footer class="footer mt-5 mt-md-0">
+  <script src="../_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
+<footer class="footer mt-5 mt-md-0">
   <div class="container">
     
     <div class="footer-item">

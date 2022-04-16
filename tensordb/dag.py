@@ -10,9 +10,9 @@ from tensordb.tensor_definition import TensorDefinition
 
 
 def get_tensor_dag(
-        tensors: List[TensorDefinition]
+        tensors: List[TensorDefinition],
+        check_dependencies: bool
 ) -> List[List[TensorDefinition]]:
-
     tensor_search = {tensor.path: tensor for tensor in tensors}
     # Create the dag based on the dependencies, so the node used as Key depends on the Nodes in the values
     # It's like there is an array from every node in the values to the Key node
@@ -26,7 +26,13 @@ def get_tensor_dag(
         ordered = set(item for item, dependencies in dag.items() if not dependencies)
         if not ordered:
             break
-        ordered_tensors.append([tensor_search[path] for path in ordered])
+
+        ordered_tensors.append([
+            tensor_search[path]
+            for path in ordered
+            if check_dependencies or path in tensor_search
+        ])
+
         dag = {
             item: dependencies - ordered for item, dependencies in dag.items()
             if item not in ordered
@@ -40,9 +46,14 @@ def get_tensor_dag(
     return ordered_tensors
 
 
-def get_dependencies(
-    tensors: List[TensorDefinition]
+def add_dependencies(
+        tensors: List[TensorDefinition],
+        total_tensors: List[TensorDefinition]
 ) -> List[TensorDefinition]:
-    # TODO: Implement this
-    return tensors
-
+    total_tensors_search = {tensor.path: tensor for tensor in total_tensors}
+    total_paths = set(tensor.path for tensor in tensors)
+    for path, tensor in total_tensors_search.items():
+        if path not in total_paths:
+            continue
+        total_paths.update(tensor.dag.depends)
+    return [total_tensors_search[path] for path in total_paths]

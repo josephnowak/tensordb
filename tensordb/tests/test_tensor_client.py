@@ -312,8 +312,16 @@ class TestTensorClient:
         assert self.tensor_client.read('2').equals(self.arr + 1)
         assert self.tensor_client.read('3').equals(self.arr + 1 + self.arr * 2)
 
-        for path in ['0', '1', '2', '3']:
-            self.tensor_client.get_storage(path).clear_cache()
+        self.tensor_client.exec_on_dag_order(
+            method='store',
+            tensors_path=['1'],
+            autofill_dependencies=True,
+            parallelization_kwargs={
+                'compute': compute,
+                'max_parallelization': max_parallelization
+            }
+        )
+        assert self.tensor_client.read('1').equals(self.arr * 2)
 
 
 if __name__ == "__main__":

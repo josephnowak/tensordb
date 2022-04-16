@@ -4,30 +4,30 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>tensordb.storages.ZarrStorage &#8212; TensorDB 0.1 documentation</title>
     
-    <link href="../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-  
+  <link href="../../_static/css/theme.css" rel="stylesheet">
+  <link href="../../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
+
     
-    <link rel="stylesheet"
-      href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
-    <link rel="preload" as="font" type="font/woff2" crossorigin
-      href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-    <link rel="preload" as="font" type="font/woff2" crossorigin
-      href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
-  
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
     
       
-  
+
     
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/pydata-sphinx-theme.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/blank.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/autodoc_pydantic.css" />
     
-    <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
-  
+  <link rel="preload" as="script" href="../../_static/js/index.be7d3bbb2ef33a8344ce.js">
+
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
@@ -130,8 +130,7 @@
           
             
             <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar">
-              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
@@ -183,9 +182,6 @@
 
   </div>
 </nav>
-              </div>
-              <div class="sidebar-end-items">
-              </div>
             </div>
             
           
@@ -218,11 +214,11 @@
               
               <div>
                 
-  <section id="tensordb-storages-zarrstorage">
+  <div class="section" id="tensordb-storages-zarrstorage">
 <h1>tensordb.storages.ZarrStorage<a class="headerlink" href="#tensordb-storages-zarrstorage" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="tensordb.storages.ZarrStorage">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tensordb.storages.</span></span><span class="sig-name descname"><span class="pre">ZarrStorage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synchronizer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="pre">'process'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'thread'</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'thread'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique_coords</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sorted_coords</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.storages.ZarrStorage" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tensordb.storages.</span></span><span class="sig-name descname"><span class="pre">ZarrStorage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synchronizer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="pre">'process'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'thread'</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'thread'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique_coords</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sorted_coords</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.storages.ZarrStorage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Storage created for the Zarr files which implement the necessary methods to be used by the TensorClient.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -233,7 +229,7 @@ in the parameter ‘chunks’ for more details.</p>
 </dd>
 <dt><strong>synchronizer: {‘thread’, ‘process’}, default None</strong></dt><dd><p>Depending on the option send it will create a zarr.sync.ThreadSynchronizer or a zarr.sync.ProcessSynchronizer
 for more info read the doc of <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/sync.html">Zarr synchronizer</a>
-and the Xarray <a class="reference external" href="https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a>
+and the Xarray method <a class="reference external" href="https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr</a>
 in the parameter ‘synchronizer’.</p>
 </dd>
 <dt><strong>TODO:</strong></dt><dd><ol class="arabic simple">
@@ -245,7 +241,7 @@ in the parameter ‘synchronizer’.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="tensordb.storages.ZarrStorage.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synchronizer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="pre">'process'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'thread'</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'thread'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique_coords</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sorted_coords</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.storages.ZarrStorage.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synchronizer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="pre">'process'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'thread'</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'thread'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unique_coords</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sorted_coords</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.storages.ZarrStorage.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -258,8 +254,8 @@ in the parameter ‘synchronizer’.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#tensordb.storages.ZarrStorage.__init__" title="tensordb.storages.ZarrStorage.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(tmp_map, path[, chunks, ...])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.storages.ZarrStorage.append.html#tensordb.storages.ZarrStorage.append" title="tensordb.storages.ZarrStorage.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">append</span></code></a>(new_data[, compute])</p></td>
-<td><p><p>Append data at the end of a Zarr file (in case that the file does not exist it will call the store method), internally it calls the <a class="reference external" href="https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a> for every dimension of your data.</p>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.storages.ZarrStorage.append.html#tensordb.storages.ZarrStorage.append" title="tensordb.storages.ZarrStorage.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">append</span></code></a>(new_data[, compute, fill_value])</p></td>
+<td><p><p>Append data at the end of a Zarr file (in case that the file does not exist it will call the store method), internally it calls the method <a class="reference external" href="https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr</a> for every dimension of your data.</p>
 </p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear_cache</span></code>()</p></td>
@@ -284,11 +280,11 @@ in the parameter ‘synchronizer’.</p>
 <td><p>Read a tensor stored, internally it uses <a class="reference external" href="https://xr.pydata.org/en/stable/generated/xr.open_zarr.html">open_zarr method</a>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="tensordb.storages.ZarrStorage.store.html#tensordb.storages.ZarrStorage.store" title="tensordb.storages.ZarrStorage.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">store</span></code></a>(new_data[, compute, rewrite])</p></td>
-<td><p><p>Store the data, the dtype and all the details will depend of what you pass in the new_data parameter, internally this method calls the <a class="reference external" href="https://xarray.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a> with a 'w' mode using that data.</p>
+<td><p><p>Store the data, the dtype and all the details will depend of what you pass in the new_data parameter, internally this method calls the method <a class="reference external" href="https://xarray.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr</a> with a 'w' mode using that data.</p>
 </p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="tensordb.storages.ZarrStorage.update.html#tensordb.storages.ZarrStorage.update" title="tensordb.storages.ZarrStorage.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(new_data[, compute, complete_update_dims])</p></td>
-<td><p><p>Replace data on an existing Zarr files based on the new_data, internally calls the <a class="reference external" href="https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr method</a> using the region parameter, so it automatically creates this region based on your new_data, in some cases it could even replace all the data in the file even if you only has two coords in your new_data this happened due that Xarray only allows to write in contiguous blocks (region) (read carefully how the region parameter works in Xarray)</p>
+<td><p><p>Replace data on an existing Zarr files based on the new_data, internally calls the method <a class="reference external" href="https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html">to_zarr</a> using the region parameter, so it automatically creates this region based on your new_data, in some cases it could even replace all the data in the file even if you only has two coords in your new_data this happened due that Xarray only allows to write in contiguous blocks (region) (read carefully how the region parameter works in Xarray)</p>
 </p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="tensordb.storages.ZarrStorage.upsert.html#tensordb.storages.ZarrStorage.upsert" title="tensordb.storages.ZarrStorage.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">upsert</span></code></a>(new_data[, compute, complete_update_dims])</p></td>
@@ -298,14 +294,14 @@ in the parameter ‘synchronizer’.</p>
 </table>
 </dd></dl>
 
-</section>
+</div>
 
 
               </div>
               
               
               <!-- Previous / next buttons -->
-<div class='prev-next-area'>
+<div class='prev-next-area'> 
     <a class='left-prev' id="prev-link" href="../zarr_storage.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
@@ -328,8 +324,8 @@ in the parameter ‘synchronizer’.</p>
       </div>
     </div>
   
-    <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
-  <footer class="footer mt-5 mt-md-0">
+  <script src="../../_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
+<footer class="footer mt-5 mt-md-0">
   <div class="container">
     
     <div class="footer-item">

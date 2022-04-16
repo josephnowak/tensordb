@@ -4,30 +4,30 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>tensordb.tensor_definition.TensorDefinition &#8212; TensorDB 0.1 documentation</title>
     
-    <link href="../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-  
+  <link href="../../_static/css/theme.css" rel="stylesheet">
+  <link href="../../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
+
     
-    <link rel="stylesheet"
-      href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
-    <link rel="preload" as="font" type="font/woff2" crossorigin
-      href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-    <link rel="preload" as="font" type="font/woff2" crossorigin
-      href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
-  
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
     
       
-  
+
     
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/pydata-sphinx-theme.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/blank.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/autodoc_pydantic.css" />
     
-    <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
-  
+  <link rel="preload" as="script" href="../../_static/js/index.be7d3bbb2ef33a8344ce.js">
+
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
@@ -129,8 +129,7 @@
           
             
             <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar">
-              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
@@ -165,9 +164,6 @@
 
   </div>
 </nav>
-              </div>
-              <div class="sidebar-end-items">
-              </div>
             </div>
             
           
@@ -200,119 +196,230 @@
               
               <div>
                 
-  <section id="tensordb-tensor-definition-tensordefinition">
+  <div class="section" id="tensordb-tensor-definition-tensordefinition">
 <h1>tensordb.tensor_definition.TensorDefinition<a class="headerlink" href="#tensordb-tensor-definition-tensordefinition" title="Permalink to this headline">¶</a></h1>
-<dl class="py class">
+<dl class="py class pydantic_model">
 <dt class="sig sig-object py" id="tensordb.tensor_definition.TensorDefinition">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tensordb.tensor_definition.</span></span><span class="sig-name descname"><span class="pre">TensorDefinition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">definition</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="tensordb.tensor_definition.Definition.html#tensordb.tensor_definition.Definition" title="tensordb.tensor_definition.Definition"><span class="pre">tensordb.tensor_definition.Definition</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="tensordb.tensor_definition.DAGOrder.html#tensordb.tensor_definition.DAGOrder" title="tensordb.tensor_definition.DAGOrder"><span class="pre">tensordb.tensor_definition.DAGOrder</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">storage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="tensordb.tensor_definition.StorageDefinition.html#tensordb.tensor_definition.StorageDefinition" title="tensordb.tensor_definition.StorageDefinition"><span class="pre">tensordb.tensor_definition.StorageDefinition</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">StorageDefinition(storage_name='zarr_storage',</span> <span class="pre">synchronizer=None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.tensor_definition.TensorDefinition" title="Permalink to this definition">¶</a></dt>
-<dd><p>The tensor definition is the core of tensordb, it allows to add functionalities to every tensor that are
-kept over the time, so you don’t have to know before hand how to transform every tensor.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>path: str</strong></dt><dd><p>Path where the tensor is going to be stored (it’s concatenated to the base_map of tensor_client)</p>
-</dd>
-<dt><strong>definition: Dict[str, Definition]</strong></dt><dd><p>The key indicate to which method must be applied the definition (read the doc of Definition)</p>
-</dd>
-<dt><strong>dag: Optional[DAGOrder]</strong></dt><dd><p>Indicate the relations/dependencies that a tensor has with others, useful for executing an operation over
-multiples tensor that has dependencies</p>
-</dd>
-<dt><strong>storage: Optional[StorageDefinition]</strong></dt><dd><p>Useful to send parameters to the Storage constructor or to change the default data storage</p>
-</dd>
-<dt><strong>metadata: Optional[Dict]</strong></dt><dd><p>Metadata of the tensor</p>
+<em class="property"><span class="pre">pydantic</span> <span class="pre">model</span> </em><span class="sig-prename descclassname"><span class="pre">tensordb.tensor_definition.</span></span><span class="sig-name descname"><span class="pre">TensorDefinition</span></span><a class="headerlink" href="#tensordb.tensor_definition.TensorDefinition" title="Permalink to this definition">¶</a></dt>
+<dd><p>The tensor definition is the core of tensordb, it allows adding functionalities to every tensor that are
+kept over the time, so you don’t have to know beforehand how to transform every tensor.</p>
+<p><details  class="autodoc_pydantic_collapsable_json">
+<summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+   <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;TensorDefinition&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The tensor definition is the core of tensordb, it allows adding functionalities to every tensor that are\nkept over the time, so you don&#39;t have to know beforehand how to transform every tensor.&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="nt">&quot;path&quot;</span><span class="p">:</span> <span class="p">{</span>
+         <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Path&quot;</span><span class="p">,</span>
+         <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;\n        Path where the tensor is going to be stored (it&#39;s concatenated to the base_map of tensor_client)\n        &quot;</span><span class="p">,</span>
+         <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+      <span class="p">},</span>
+      <span class="nt">&quot;definition&quot;</span><span class="p">:</span> <span class="p">{</span>
+         <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Definition&quot;</span><span class="p">,</span>
+         <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;\n        The key indicate to which method must be applied the definition (read the doc of Definition)\n        &quot;</span><span class="p">,</span>
+         <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="p">{},</span>
+         <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+         <span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/definitions/Definition&quot;</span>
+         <span class="p">}</span>
+      <span class="p">},</span>
+      <span class="nt">&quot;dag&quot;</span><span class="p">:</span> <span class="p">{</span>
+         <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;DAG&quot;</span><span class="p">,</span>
+         <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;\n        Indicate the relations/dependencies that a tensor has with others, useful for executing an operation over\n        multiple tensors that has dependencies\n        &quot;</span><span class="p">,</span>
+         <span class="nt">&quot;allOf&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+               <span class="nt">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/definitions/DAGOrder&quot;</span>
+            <span class="p">}</span>
+         <span class="p">]</span>
+      <span class="p">},</span>
+      <span class="nt">&quot;storage&quot;</span><span class="p">:</span> <span class="p">{</span>
+         <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Storage&quot;</span><span class="p">,</span>
+         <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;\n        Useful to send parameters to the Storage constructor or to change the default data storage\n        &quot;</span><span class="p">,</span>
+         <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;storage_name&quot;</span><span class="p">:</span> <span class="s2">&quot;zarr_storage&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;synchronizer&quot;</span><span class="p">:</span> <span class="kc">null</span>
+         <span class="p">},</span>
+         <span class="nt">&quot;allOf&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+               <span class="nt">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/definitions/StorageDefinition&quot;</span>
+            <span class="p">}</span>
+         <span class="p">]</span>
+      <span class="p">},</span>
+      <span class="nt">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+         <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Metadata&quot;</span><span class="p">,</span>
+         <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;\n        Metadata of the tensor\n        &quot;</span><span class="p">,</span>
+         <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="p">{},</span>
+         <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span>
+      <span class="p">}</span>
+   <span class="p">},</span>
+   <span class="nt">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="s2">&quot;path&quot;</span>
+   <span class="p">],</span>
+   <span class="nt">&quot;definitions&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="nt">&quot;MethodDescriptor&quot;</span><span class="p">:</span> <span class="p">{</span>
+         <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;MethodDescriptor&quot;</span><span class="p">,</span>
+         <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;This class is used to indicate the method that want to be transformed during the data_transformation process&quot;</span><span class="p">,</span>
+         <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+         <span class="nt">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;method_name&quot;</span><span class="p">:</span> <span class="p">{</span>
+               <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Method Name&quot;</span><span class="p">,</span>
+               <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;\n        Name of the method that want to be used, it must match with the methods of storage or the tensor_client\n        &quot;</span><span class="p">,</span>
+               <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+            <span class="p">},</span>
+            <span class="nt">&quot;parameters&quot;</span><span class="p">:</span> <span class="p">{</span>
+               <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Parameters&quot;</span><span class="p">,</span>
+               <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;\n        Default parameters for the execution of the method, they will be overwritten if you sent other parameters\n        during the call of the method\n        &quot;</span><span class="p">,</span>
+               <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="p">{},</span>
+               <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span>
+            <span class="p">},</span>
+            <span class="nt">&quot;result_name&quot;</span><span class="p">:</span> <span class="p">{</span>
+               <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Result Name&quot;</span><span class="p">,</span>
+               <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;\n        Indicate the name of the output that the method produce.\n        &quot;</span><span class="p">,</span>
+               <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+            <span class="p">}</span>
+         <span class="p">},</span>
+         <span class="nt">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;method_name&quot;</span>
+         <span class="p">]</span>
+      <span class="p">},</span>
+      <span class="nt">&quot;Definition&quot;</span><span class="p">:</span> <span class="p">{</span>
+         <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Definition&quot;</span><span class="p">,</span>
+         <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The definition allows to modify/extend the default behaviour of every method on the tensor_client, this is useful\nbecause you can create a pipeline that transform or read your data from other sources.&quot;</span><span class="p">,</span>
+         <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+         <span class="nt">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;data_transformation&quot;</span><span class="p">:</span> <span class="p">{</span>
+               <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Data Transformation&quot;</span><span class="p">,</span>
+               <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;\n        Every element of the list must contain a MethodDescriptor object which specify the method that must be executed.\n        &quot;</span><span class="p">,</span>
+               <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
+               <span class="nt">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span>
+                  <span class="nt">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/definitions/MethodDescriptor&quot;</span>
+               <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="nt">&quot;substitute_method&quot;</span><span class="p">:</span> <span class="p">{</span>
+               <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Substitute Method&quot;</span><span class="p">,</span>
+               <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;\n        Replace the original method by this one, for example you can modify that every time you call append,\n        it will call the append method.\n        &quot;</span><span class="p">,</span>
+               <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+            <span class="p">}</span>
+         <span class="p">}</span>
+      <span class="p">},</span>
+      <span class="nt">&quot;DAGOrder&quot;</span><span class="p">:</span> <span class="p">{</span>
+         <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;DAGOrder&quot;</span><span class="p">,</span>
+         <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;As the tensor has relations between them, it is possible to create a DAG that facilities the process\nof updating every one of them, so the idea is that this class keep the necessary information for sorting the\ntensor execution.&quot;</span><span class="p">,</span>
+         <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+         <span class="nt">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;depends&quot;</span><span class="p">:</span> <span class="p">{</span>
+               <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Depends&quot;</span><span class="p">,</span>
+               <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;\n        Every element of the list is a tensor on which this tensor depends, so this can be seen like every tensor Ai\n        of the list has an edge to this tensor B, so Ai-&gt;B for every i.\n        &quot;</span><span class="p">,</span>
+               <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
+               <span class="nt">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span>
+                  <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+               <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="nt">&quot;group&quot;</span><span class="p">:</span> <span class="p">{</span>
+               <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Group&quot;</span><span class="p">,</span>
+               <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;\n        Useful to send parameters by groups on the exec_on_dag_order method of the tensor client\n        &quot;</span><span class="p">,</span>
+               <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;regular&quot;</span><span class="p">,</span>
+               <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+            <span class="p">},</span>
+            <span class="nt">&quot;omit_on&quot;</span><span class="p">:</span> <span class="p">{</span>
+               <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Omit on&quot;</span><span class="p">,</span>
+               <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;\n        Indicate if the tensor must be omitted on the methods inside the list,\n        useful for generating reference nodes or avoid calling methods on tensors that are simply formulas\n        but other tensors use them.\n        &quot;</span><span class="p">,</span>
+               <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="p">[],</span>
+               <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
+               <span class="nt">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span>
+                  <span class="nt">&quot;enum&quot;</span><span class="p">:</span> <span class="p">[</span>
+                     <span class="s2">&quot;append&quot;</span><span class="p">,</span>
+                     <span class="s2">&quot;update&quot;</span><span class="p">,</span>
+                     <span class="s2">&quot;store&quot;</span><span class="p">,</span>
+                     <span class="s2">&quot;upsert&quot;</span>
+                  <span class="p">],</span>
+                  <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+               <span class="p">}</span>
+            <span class="p">}</span>
+         <span class="p">}</span>
+      <span class="p">},</span>
+      <span class="nt">&quot;StorageDefinition&quot;</span><span class="p">:</span> <span class="p">{</span>
+         <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;StorageDefinition&quot;</span><span class="p">,</span>
+         <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Definition of the storage of the tensor&quot;</span><span class="p">,</span>
+         <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+         <span class="nt">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="nt">&quot;storage_name&quot;</span><span class="p">:</span> <span class="p">{</span>
+               <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Storage Name&quot;</span><span class="p">,</span>
+               <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;\n        Indicate which data storage want to be used.\n        &quot;</span><span class="p">,</span>
+               <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;zarr_storage&quot;</span><span class="p">,</span>
+               <span class="nt">&quot;enum&quot;</span><span class="p">:</span> <span class="p">[</span>
+                  <span class="s2">&quot;json_storage&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;zarr_storage&quot;</span>
+               <span class="p">],</span>
+               <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+            <span class="p">},</span>
+            <span class="nt">&quot;synchronizer&quot;</span><span class="p">:</span> <span class="p">{</span>
+               <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Synchronizer&quot;</span><span class="p">,</span>
+               <span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;\n        Type of synchronizer used in the storage (read the docs of the storages).\n        &quot;</span><span class="p">,</span>
+               <span class="nt">&quot;enum&quot;</span><span class="p">:</span> <span class="p">[</span>
+                  <span class="s2">&quot;process&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;thread&quot;</span>
+               <span class="p">],</span>
+               <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+            <span class="p">}</span>
+         <span class="p">}</span>
+      <span class="p">}</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</details></p><dl class="field-list simple">
+<dt class="field-odd">Fields</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#tensordb.tensor_definition.TensorDefinition.dag" title="tensordb.tensor_definition.TensorDefinition.dag"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dag</span> <span class="pre">(Optional[tensordb.tensor_definition.DAGOrder])</span></code></a></p></li>
+<li><p><a class="reference internal" href="#tensordb.tensor_definition.TensorDefinition.definition" title="tensordb.tensor_definition.TensorDefinition.definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">definition</span> <span class="pre">(Optional[Dict[str,</span> <span class="pre">tensordb.tensor_definition.Definition]])</span></code></a></p></li>
+<li><p><a class="reference internal" href="#tensordb.tensor_definition.TensorDefinition.metadata" title="tensordb.tensor_definition.TensorDefinition.metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metadata</span> <span class="pre">(Optional[Dict])</span></code></a></p></li>
+<li><p><a class="reference internal" href="#tensordb.tensor_definition.TensorDefinition.path" title="tensordb.tensor_definition.TensorDefinition.path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">path</span> <span class="pre">(str)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#tensordb.tensor_definition.TensorDefinition.storage" title="tensordb.tensor_definition.TensorDefinition.storage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">storage</span> <span class="pre">(Optional[tensordb.tensor_definition.StorageDefinition])</span></code></a></p></li>
+</ul>
 </dd>
 </dl>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="tensordb.tensor_definition.TensorDefinition.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#tensordb.tensor_definition.TensorDefinition.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a new model by parsing and validating input data from keyword arguments.</p>
-<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p>
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="tensordb.tensor_definition.TensorDefinition.dag">
+<em class="property"><span class="pre">field</span> </em><span class="sig-name descname"><span class="pre">dag</span></span><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="tensordb.tensor_definition.DAGOrder.html#tensordb.tensor_definition.DAGOrder" title="tensordb.tensor_definition.DAGOrder"><span class="pre">tensordb.tensor_definition.DAGOrder</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#tensordb.tensor_definition.TensorDefinition.dag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicate the relations/dependencies that a tensor has with others, useful for executing an operation over
+multiple tensors that has dependencies</p>
 </dd></dl>
 
-<p class="rubric">Methods</p>
-<table class="longtable table autosummary">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#tensordb.tensor_definition.TensorDefinition.__init__" title="tensordb.tensor_definition.TensorDefinition.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(**data)</p></td>
-<td><p>Create a new model by parsing and validating input data from keyword arguments.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">construct</span></code>([_fields_set])</p></td>
-<td><p>Creates a new model setting __dict__ and __fields_set__ from trusted or pre-validated data.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code>(*[, include, exclude, update, deep])</p></td>
-<td><p>Duplicate a model, optionally choose which fields to include, exclude and change.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>(*[, include, exclude, by_alias, ...])</p></td>
-<td><p>Generate a dictionary representation of the model, optionally specifying which fields to include or exclude.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_orm</span></code>(obj)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">json</span></code>(*[, include, exclude, by_alias, ...])</p></td>
-<td><p>Generate a JSON representation of the model, <cite>include</cite> and <cite>exclude</cite> arguments as per <cite>dict()</cite>.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_file</span></code>(path, *[, content_type, ...])</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_obj</span></code>(obj)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_raw</span></code>(b, *[, content_type, encoding, ...])</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">schema</span></code>([by_alias, ref_template])</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">schema_json</span></code>(*[, by_alias, ref_template])</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_forward_refs</span></code>(**localns)</p></td>
-<td><p>Try to update ForwardRefs on fields based on this Model, globalns and localns.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code>(value)</p></td>
-<td><p></p></td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Attributes</p>
-<table class="longtable table autosummary">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">path</span></code></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">definition</span></code></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dag</span></code></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">storage</span></code></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">metadata</span></code></p></td>
-<td><p></p></td>
-</tr>
-</tbody>
-</table>
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="tensordb.tensor_definition.TensorDefinition.definition">
+<em class="property"><span class="pre">field</span> </em><span class="sig-name descname"><span class="pre">definition</span></span><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="tensordb.tensor_definition.Definition.html#tensordb.tensor_definition.Definition" title="tensordb.tensor_definition.Definition"><span class="pre">tensordb.tensor_definition.Definition</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">{}</span></em><a class="headerlink" href="#tensordb.tensor_definition.TensorDefinition.definition" title="Permalink to this definition">¶</a></dt>
+<dd><p>The key indicate to which method must be applied the definition (read the doc of Definition)</p>
 </dd></dl>
 
-</section>
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="tensordb.tensor_definition.TensorDefinition.metadata">
+<em class="property"><span class="pre">field</span> </em><span class="sig-name descname"><span class="pre">metadata</span></span><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">{}</span></em><a class="headerlink" href="#tensordb.tensor_definition.TensorDefinition.metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Metadata of the tensor</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="tensordb.tensor_definition.TensorDefinition.path">
+<em class="property"><span class="pre">field</span> </em><span class="sig-name descname"><span class="pre">path</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#tensordb.tensor_definition.TensorDefinition.path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path where the tensor is going to be stored (it’s concatenated to the base_map of tensor_client)</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="tensordb.tensor_definition.TensorDefinition.storage">
+<em class="property"><span class="pre">field</span> </em><span class="sig-name descname"><span class="pre">storage</span></span><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="tensordb.tensor_definition.StorageDefinition.html#tensordb.tensor_definition.StorageDefinition" title="tensordb.tensor_definition.StorageDefinition"><span class="pre">tensordb.tensor_definition.StorageDefinition</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">StorageDefinition(storage_name='zarr_storage',</span> <span class="pre">synchronizer=None)</span></em><a class="headerlink" href="#tensordb.tensor_definition.TensorDefinition.storage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Useful to send parameters to the Storage constructor or to change the default data storage</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 
 
               </div>
               
               
               <!-- Previous / next buttons -->
-<div class='prev-next-area'>
+<div class='prev-next-area'> 
     <a class='left-prev' id="prev-link" href="tensordb.tensor_definition.Definition.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
@@ -328,8 +435,8 @@ multiples tensor that has dependencies</p>
       </div>
     </div>
   
-    <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
-  <footer class="footer mt-5 mt-md-0">
+  <script src="../../_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
+<footer class="footer mt-5 mt-md-0">
   <div class="container">
     
     <div class="footer-item">

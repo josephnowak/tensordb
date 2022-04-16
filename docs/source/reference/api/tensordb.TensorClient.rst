@@ -20,6 +20,8 @@
       ~TensorClient.create_tensor
       ~TensorClient.delete_tensor
       ~TensorClient.drop
+      ~TensorClient.drop_unmarked
+      ~TensorClient.dropna
       ~TensorClient.exec_on_dag_order
       ~TensorClient.exec_on_parallel
       ~TensorClient.exist
@@ -28,6 +30,7 @@
       ~TensorClient.get_cached_storage
       ~TensorClient.get_storage
       ~TensorClient.get_tensor_definition
+      ~TensorClient.insert_sorted
       ~TensorClient.merge_duplicates_coord
       ~TensorClient.rank
       ~TensorClient.read

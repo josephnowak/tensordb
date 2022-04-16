@@ -4,30 +4,30 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BaseStorage &#8212; TensorDB 0.1 documentation</title>
     
-    <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-  
+  <link href="../_static/css/theme.css" rel="stylesheet">
+  <link href="../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
+
     
-    <link rel="stylesheet"
-      href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
-    <link rel="preload" as="font" type="font/woff2" crossorigin
-      href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-    <link rel="preload" as="font" type="font/woff2" crossorigin
-      href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
-  
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
     
       
-  
+
     
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/pydata-sphinx-theme.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/blank.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
     
-    <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
-  
+  <link rel="preload" as="script" href="../_static/js/index.be7d3bbb2ef33a8344ce.js">
+
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
@@ -35,7 +35,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="tensordb.storages.BaseStorage" href="api/tensordb.storages.BaseStorage.html" />
-    <link rel="prev" title="tensordb.TensorClient.rank" href="api/tensordb.TensorClient.rank.html" />
+    <link rel="prev" title="tensordb.TensorClient.merge_duplicates_coord" href="api/tensordb.TensorClient.merge_duplicates_coord.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en">
     
@@ -130,8 +130,7 @@
           
             
             <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar">
-              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
@@ -183,9 +182,6 @@
 
   </div>
 </nav>
-              </div>
-              <div class="sidebar-end-items">
-              </div>
             </div>
             
           
@@ -233,9 +229,9 @@
               
               <div>
                 
-  <section id="basestorage">
+  <div class="section" id="basestorage">
 <h1>BaseStorage<a class="headerlink" href="#basestorage" title="Permalink to this headline">¶</a></h1>
-<section id="constructor">
+<div class="section" id="constructor">
 <h2>Constructor<a class="headerlink" href="#constructor" title="Permalink to this headline">¶</a></h2>
 <table class="longtable table autosummary">
 <colgroup>
@@ -243,13 +239,13 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.html#tensordb.storages.BaseStorage" title="tensordb.storages.BaseStorage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage</span></code></a>(base_map, tmp_map[, data_names, ...])</p></td>
-<td><p>Obligatory interface used for the Storage classes created, this define the abstract methods for every Storage and allow their use with TensorClient.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.html#tensordb.storages.BaseStorage" title="tensordb.storages.BaseStorage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage</span></code></a>(base_map, tmp_map, path[, ...])</p></td>
+<td><p>Obligatory interface used for the Storage classes created, this defines the abstract methods for every Storage and allow their use with TensorClient.</p></td>
 </tr>
 </tbody>
 </table>
-</section>
-<section id="storage-methods">
+</div>
+<div class="section" id="storage-methods">
 <h2>Storage Methods<a class="headerlink" href="#storage-methods" title="Permalink to this headline">¶</a></h2>
 <table class="longtable table autosummary">
 <colgroup>
@@ -258,42 +254,42 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.read.html#tensordb.storages.BaseStorage.read" title="tensordb.storages.BaseStorage.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.read</span></code></a>(**kwargs)</p></td>
-<td><p>This abstracmethod must be overwrited to read an existing file.</p></td>
+<td><p>This abstractmethod must be overwritten to read an existing file.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.store.html#tensordb.storages.BaseStorage.store" title="tensordb.storages.BaseStorage.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.store</span></code></a>(new_data, **kwargs)</p></td>
-<td><p>This abstracmethod must be overwrited to store new_data to an existing file, so it must create the necessaries files, folders and metadata for the corresponding tensor.</p></td>
+<td><p>This abstractmethod must be overwritten to store new_data to an existing file, so it must create the necessaries files, folders and metadata for the corresponding tensor.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.drop.html#tensordb.storages.BaseStorage.drop" title="tensordb.storages.BaseStorage.drop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.drop</span></code></a>(coords, **kwargs)</p></td>
 <td><p>Drop coords of the tensor, this can rewrite the hole file depending on the storage</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.append.html#tensordb.storages.BaseStorage.append" title="tensordb.storages.BaseStorage.append"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.append</span></code></a>(new_data, **kwargs)</p></td>
-<td><p>This abstracmethod must be overwrited to append new_data to an existing file, the way that it append the data will depend of the implementation of the Storage.</p></td>
+<td><p>This abstractmethod must be overwritten to append new_data to an existing file, the way that it append the data will depend on the implementation of the Storage.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.update.html#tensordb.storages.BaseStorage.update" title="tensordb.storages.BaseStorage.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.update</span></code></a>(new_data, **kwargs)</p></td>
-<td><p>This abstracmethod must be overwrited to update new_data to an existing file, so it must not insert any new coords, it must only replace elements inside the stored tensor.</p></td>
+<td><p>This abstractmethod must be overwritten to update new_data to an existing file, so it must not insert any new coords, it must only replace elements inside the stored tensor.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.upsert.html#tensordb.storages.BaseStorage.upsert" title="tensordb.storages.BaseStorage.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.upsert</span></code></a>(new_data, **kwargs)</p></td>
-<td><p>This abstracmethod must be overwrited to update and append new_data to an existing file, so basically it must be a combination between update and append.</p></td>
+<td><p>This abstractmethod must be overwritten to update and append new_data to an existing file, so basically it must be a combination between update and append.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="api/tensordb.storages.BaseStorage.exist.html#tensordb.storages.BaseStorage.exist" title="tensordb.storages.BaseStorage.exist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseStorage.exist</span></code></a>(**kwargs)</p></td>
-<td><p>This abstracmethod must be overwrited to check if the tensor exist or not.</p></td>
+<td><p>This abstractmethod must be overwritten to check if the tensor exist or not.</p></td>
 </tr>
 </tbody>
 </table>
-</section>
-</section>
+</div>
+</div>
 
 
               </div>
               
               
               <!-- Previous / next buttons -->
-<div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="api/tensordb.TensorClient.rank.html" title="previous page">
+<div class='prev-next-area'> 
+    <a class='left-prev' id="prev-link" href="api/tensordb.TensorClient.merge_duplicates_coord.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">tensordb.TensorClient.rank</p>
+            <p class="prev-next-title">tensordb.TensorClient.merge_duplicates_coord</p>
         </div>
     </a>
     <a class='right-next' id="next-link" href="api/tensordb.storages.BaseStorage.html" title="next page">
@@ -311,8 +307,8 @@
       </div>
     </div>
   
-    <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
-  <footer class="footer mt-5 mt-md-0">
+  <script src="../_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
+<footer class="footer mt-5 mt-md-0">
   <div class="container">
     
     <div class="footer-item">

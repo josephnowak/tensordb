@@ -39,6 +39,7 @@ extensions = [
     "sphinx.ext.extlinks",
     "sphinx.ext.todo",
     'sphinx.ext.intersphinx',
+    'sphinxcontrib.autodoc_pydantic',
     "numpydoc",
 ]
 

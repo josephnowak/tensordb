@@ -8,3 +8,4 @@ fsspec>=2022.01.0
 orjson>=3.6.6
 pydantic>=1.9.0
 numpy-groupies>=0.9.14
+more-itertools>=8.12.0

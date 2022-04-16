@@ -21,6 +21,7 @@ from tensordb.storages import (
     MAPPING_STORAGES
 )
 from tensordb.utils.method_inspector import get_parameters
+from tensordb.utils.tools import groupby_chunks
 from tensordb.algorithms import Algorithms
 from tensordb.tensor_definition import TensorDefinition, MethodDescriptor, Definition, DAGOrder
 from tensordb import dag
@@ -351,7 +352,8 @@ class TensorClient(Algorithms):
         client = dask if client is None else client
 
         with call_pool(max_parallelization) as pool:
-            for i in range(0, len(paths), max_parallelization):
+            for sub_paths in np.array_split(paths,  max(len(paths) // max_parallelization, 1)):
+                logger.info(f"Processing the following tensors: {sub_paths}")
                 futures = [
                     pool.submit(
                         method,
@@ -359,16 +361,11 @@ class TensorClient(Algorithms):
                         compute=compute,
                         **paths_kwargs[path]
                     )
-                    for path in paths[i: i + max_parallelization]
+                    for path in sub_paths
                 ]
-                logger.info(
-                    f'Waiting for the {"computed" if compute else "delayed"} '
-                    f'execution of the method on all the tensor'
-                )
                 futures = [future.result() for future in futures]
 
                 if not compute:
-                    logger.info('Calling compute over all the delayed tensors')
                     client.compute(futures, **compute_kwargs)
 
     def exec_on_dag_order(
@@ -377,8 +374,11 @@ class TensorClient(Algorithms):
             kwargs_groups: Dict[str, Dict[str, Any]] = None,
             tensors_path: List[str] = None,
             parallelization_kwargs: Dict[str, Any] = None,
-            apply_on_dependencies: bool = False,
+            max_parallelization_per_group: Dict[str, int] = None,
+            autofill_dependencies: bool = False,
             only_on_groups: set = None,
+            check_dependencies: bool = True,
+            omit_first_n_levels: int = 0,
     ):
         """
         This method was designed to execute multiple methods of the client on parallel and following the dag
@@ -400,25 +400,43 @@ class TensorClient(Algorithms):
         parallelization_kwargs: Dict[str, Any]
             Kwargs sent to :meth:`TensorClient.exec_on_parallel`
 
-        apply_on_dependencies: bool, default False
-            Not implemented, but is going to automatically fill the tensors_path
+        autofill_dependencies: bool, default False
+            Automatically fill the dependencies of every tensor, useful to update some specific tensors and all their
+            dependencies
+
+        check_dependencies: bool, default True
+            If True, will check if the dependencies are present in the DAG and raise a KeyError if not
 
         only_on_groups: set, default None
             Useful for filters the tensors base on the DAG groups (read the DAG models of tensordb)
 
+        omit_first_n_levels: int, default 0
+            Omit the first N levels of the DAG, useful in cases that all the previous steps were executed
+            successfully, and the next one failed.
+
+        max_parallelization_per_group: Dict[str, int] = None
+            Sometimes there are groups that download all the data from remote sources with limited resources,
+            so only one tensor or a limited number of them can be executed at the same time to avoid overloading
+            the resources.
+
         """
         kwargs_groups = kwargs_groups or {}
         parallelization_kwargs = parallelization_kwargs or {}
+        max_parallelization_per_group = max_parallelization_per_group or {}
         method = getattr(self, method)
 
         if tensors_path is None:
             tensors = [tensor for tensor in self.get_all_tensors_definition() if tensor.dag is not None]
         else:
             tensors = [self.get_tensor_definition(path) for path in tensors_path]
-            if apply_on_dependencies:
-                tensors = dag.get_dependencies(tensors)
+            if autofill_dependencies:
+                tensors = dag.add_dependencies(tensors, self.get_all_tensors_definition())
 
-        for level in dag.get_tensor_dag(tensors):
+        for i, level in enumerate(dag.get_tensor_dag(tensors, check_dependencies)):
+            if i < omit_first_n_levels:
+                continue
+
+            logger.info(f'Executing the {i} level of the DAG')
             # Filter the tensors base on the omit parameter
             level = [tensor for tensor in level if method.__name__ not in tensor.dag.omit_on]
             if only_on_groups:
@@ -426,15 +444,13 @@ class TensorClient(Algorithms):
                 level = [tensor for tensor in level if tensor.dag.group in only_on_groups]
             if not level:
                 continue
-            paths_kwargs = {
-                tensor.path: kwargs_groups.get(tensor.dag.group, {})
-                for tensor in level
-            }
-            self.exec_on_parallel(
-                method=method,
-                paths_kwargs=paths_kwargs,
-                **parallelization_kwargs
-            )
+
+            for tensors in groupby_chunks(level, max_parallelization_per_group, lambda tensor: tensor.dag.group):
+                self.exec_on_parallel(
+                    method=method,
+                    paths_kwargs={tensor.path: kwargs_groups.get(tensor.dag.group, {}) for tensor in tensors},
+                    **parallelization_kwargs
+                )
 
     def apply_data_transformation(
             self,

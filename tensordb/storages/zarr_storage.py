@@ -24,7 +24,7 @@ class ZarrStorage(BaseStorage):
     synchronizer: {'thread', 'process'}, default None
         Depending on the option send it will create a zarr.sync.ThreadSynchronizer or a zarr.sync.ProcessSynchronizer
         for more info read the doc of `Zarr synchronizer <https://zarr.readthedocs.io/en/stable/api/sync.html>`_
-        and the Xarray `to_zarr method <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
+        and the Xarray method `to_zarr <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         in the parameter 'synchronizer'.
 
 
@@ -104,8 +104,8 @@ class ZarrStorage(BaseStorage):
 
         """
         Store the data, the dtype and all the details will depend of what you pass in the new_data
-        parameter, internally this method calls the
-        `to_zarr method <https://xarray.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
+        parameter, internally this method calls the method
+        `to_zarr <https://xarray.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         with a 'w' mode using that data.
 
         Parameters
@@ -125,8 +125,8 @@ class ZarrStorage(BaseStorage):
 
         Returns
         -------
-        An xr.backends.ZarrStore produced by the
-        `to_zarr method`_
+        An xr.backends.ZarrStore produced by the method
+        `to_zarr <https://xarray.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
 
         """
         new_data = self._keep_unique_coords(new_data)
@@ -187,8 +187,8 @@ class ZarrStorage(BaseStorage):
 
         """
         Append data at the end of a Zarr file (in case that the file does not exist it will call the store method),
-        internally it calls the
-        `to_zarr method <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
+        internally it calls the method
+        `to_zarr <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         for every dimension of your data.
 
         Parameters
@@ -272,8 +272,8 @@ class ZarrStorage(BaseStorage):
             complete_update_dims: Union[List[str], str] = None,
     ) -> xr.backends.ZarrStore:
         """
-        Replace data on an existing Zarr files based on the new_data, internally calls the
-        `to_zarr method <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_ using the
+        Replace data on an existing Zarr files based on the new_data, internally calls the method
+        `to_zarr <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_ using the
         region parameter, so it automatically creates this region based on your new_data, in some
         cases it could even replace all the data in the file even if you only has two coords in your new_data
         this happened due that Xarray only allows to write in contiguous blocks (region)
@@ -296,8 +296,8 @@ class ZarrStorage(BaseStorage):
         Returns
         -------
 
-        A xr.backends.ZarrStore produced by the
-        `to_zarr method <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
+        A xr.backends.ZarrStore produced by the method
+        `to_zarr <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         """
 
         act_data = self._transform_to_dataset(self.read(), chunk_data=False)
@@ -415,8 +415,6 @@ class ZarrStorage(BaseStorage):
         True if the tensor exist, False if it not exist
 
         """
-
-        # return '.zmetadata' in self.base_map, I don't know why that code can return False even if the file exist
         try:
             self.read()
             return True

@@ -4,30 +4,30 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>tensordb.TensorClient &#8212; TensorDB 0.1 documentation</title>
     
-    <link href="../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-  
+  <link href="../../_static/css/theme.css" rel="stylesheet">
+  <link href="../../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
+
     
-    <link rel="stylesheet"
-      href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
-    <link rel="preload" as="font" type="font/woff2" crossorigin
-      href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-    <link rel="preload" as="font" type="font/woff2" crossorigin
-      href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
-  
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
     
       
-  
+
     
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/pydata-sphinx-theme.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/blank.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/autodoc_pydantic.css" />
     
-    <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
-  
+  <link rel="preload" as="script" href="../../_static/js/index.be7d3bbb2ef33a8344ce.js">
+
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
@@ -130,8 +130,7 @@
           
             
             <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar">
-              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
@@ -277,9 +276,6 @@
 
   </div>
 </nav>
-              </div>
-              <div class="sidebar-end-items">
-              </div>
             </div>
             
           
@@ -312,13 +308,13 @@
               
               <div>
                 
-  <section id="tensordb-tensorclient">
+  <div class="section" id="tensordb-tensorclient">
 <h1>tensordb.TensorClient<a class="headerlink" href="#tensordb-tensorclient" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="tensordb.TensorClient">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tensordb.</span></span><span class="sig-name descname"><span class="pre">TensorClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_map</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">fsspec.mapping.FSMap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_map</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">fsspec.mapping.FSMap</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_cache_protocol</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="pre">'simplecache'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'filecache'</span><span class="p"><span class="pre">,</span> </span><span class="pre">'cached'</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_cache_options</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synchronizer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tensordb.TensorClient" title="Permalink to this definition">¶</a></dt>
-<dd><p>The client was designed to handle multiple tensors data in a simpler way using Xarray in the background,
-it can support the same files than Xarray but those formats needs to be implemented
+<dd><p>The client was designed to handle multiple tensors’ data in a simpler way using Xarray in the background,
+it can support the same files as Xarray but those formats needs to be implemented
 using the <cite>BaseStorage</cite> interface proposed in this package.</p>
 <p>As we can create Tensors with multiple Storage that needs differents settings or parameters we must create
 a “Tensor Definition” which is basically a json that specify the behaviour of the tensor
@@ -403,7 +399,7 @@ synchronizer option for every one of them (you can pass different synchronizer t
 </pre></div>
 </div>
 <p>Storing a tensor from a string formula (if you want to create an ‘on the fly’ tensor using formula see
-the docs <a class="reference internal" href="tensordb.TensorClient.read_from_formula.html#tensordb.TensorClient.read_from_formula" title="tensordb.TensorClient.read_from_formula"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.read_from_formula()</span></code></a>:</p>
+the docs <a class="reference internal" href="tensordb.TensorClient.read_from_formula.html#tensordb.TensorClient.read_from_formula" title="tensordb.TensorClient.read_from_formula"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.read_from_formula()</span></code></a>):</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># create a new tensor using a formula that depend on the previous stored tensor</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Note: The tensor is not calculated or stored when you create the tensor</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tensor_client</span><span class="o">.</span><span class="n">create_tensor</span><span class="p">(</span>
@@ -498,6 +494,12 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
 <tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.drop.html#tensordb.TensorClient.drop" title="tensordb.TensorClient.drop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drop</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with drop as method_name (has the same parameters).</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">drop_unmarked</span></code>(new_data, dims[, how, client])</p></td>
+<td><p>Equivalent of xarray dropna but for boolean and for multiple dimension and restricted to the all option</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dropna</span></code>(new_data, dims[, how, client])</p></td>
+<td><p>Equivalent of xarray dropna but for multiple dimension and restricted to the all option</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.exec_on_dag_order.html#tensordb.TensorClient.exec_on_dag_order" title="tensordb.TensorClient.exec_on_dag_order"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exec_on_dag_order</span></code></a>(method[, kwargs_groups, ...])</p></td>
 <td><p>This method was designed to execute multiple methods of the client on parallel and following the dag order, this is useful for update/store multiple tensors that have dependencies between them in a fast way.</p></td>
 </tr>
@@ -522,40 +524,43 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
 <tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.get_tensor_definition.html#tensordb.TensorClient.get_tensor_definition" title="tensordb.TensorClient.get_tensor_definition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_tensor_definition</span></code></a>(path)</p></td>
 <td><p>Retrieve the tensor definition of an specific tensor.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.merge_duplicates_coord.html#tensordb.TensorClient.merge_duplicates_coord" title="tensordb.TensorClient.merge_duplicates_coord"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge_duplicates_coord</span></code></a>(new_data, dim, func)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">insert_sorted</span></code>(new_data, other, dim[, fill_value])</p></td>
+<td><p>Insert the data of one array into another.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.merge_duplicates_coord.html#tensordb.TensorClient.merge_duplicates_coord" title="tensordb.TensorClient.merge_duplicates_coord"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge_duplicates_coord</span></code></a>(new_data, dim, func)</p></td>
 <td><p>Group and merge duplicates coord base on a function, this can be a sum or a max.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.rank.html#tensordb.TensorClient.rank" title="tensordb.TensorClient.rank"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rank</span></code></a>(new_data, dim[, method, rank_nan])</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.rank.html#tensordb.TensorClient.rank" title="tensordb.TensorClient.rank"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rank</span></code></a>(new_data, dim[, method, rank_nan, ...])</p></td>
+<td><p>This is an implementation of scipy rankdata on xarray, with the possibility to avoid the rank of the nans.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.read.html#tensordb.TensorClient.read" title="tensordb.TensorClient.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(path, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.read.html#tensordb.TensorClient.read" title="tensordb.TensorClient.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with read as method_name (has the same parameters).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.read_from_formula.html#tensordb.TensorClient.read_from_formula" title="tensordb.TensorClient.read_from_formula"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_from_formula</span></code></a>(formula[, use_exec, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.read_from_formula.html#tensordb.TensorClient.read_from_formula" title="tensordb.TensorClient.read_from_formula"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_from_formula</span></code></a>(formula[, use_exec, ...])</p></td>
 <td><p>This is one of the most important methods of the <cite>TensorClient</cite> class, basically it allows defining formulas that use the tensors stored with a simple strings, so you can create new tensors from these formulas (make use of python eval and the same syntax that you use with Xarray).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.replace.html#tensordb.TensorClient.replace" title="tensordb.TensorClient.replace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">replace</span></code></a>(new_data, to_replace[, dtype, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.replace.html#tensordb.TensorClient.replace" title="tensordb.TensorClient.replace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">replace</span></code></a>(new_data, to_replace[, dtype])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.rolling_along_axis.html#tensordb.TensorClient.rolling_along_axis" title="tensordb.TensorClient.rolling_along_axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rolling_along_axis</span></code></a>(new_data, dim, window, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.rolling_along_axis.html#tensordb.TensorClient.rolling_along_axis" title="tensordb.TensorClient.rolling_along_axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rolling_along_axis</span></code></a>(new_data, dim, window, ...)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.shift_on_valid.html#tensordb.TensorClient.shift_on_valid" title="tensordb.TensorClient.shift_on_valid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shift_on_valid</span></code></a>(new_data, dim, shift)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.shift_on_valid.html#tensordb.TensorClient.shift_on_valid" title="tensordb.TensorClient.shift_on_valid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shift_on_valid</span></code></a>(new_data, dim, shift)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-obj docutils literal notranslate"><span class="pre">storage_method_caller</span></code></a>(path, method_name, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-obj docutils literal notranslate"><span class="pre">storage_method_caller</span></code></a>(path, method_name, ...)</p></td>
 <td><p>Calls a specific method of a Storage, this includes send the parameters specified in the tensor_definition or modifying the behaviour of the method based in your tensor_definition (read <code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorDefinition()</span></code> for more info of how to personalize your method).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.store.html#tensordb.TensorClient.store" title="tensordb.TensorClient.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">store</span></code></a>(path, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.store.html#tensordb.TensorClient.store" title="tensordb.TensorClient.store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">store</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with store as method_name (has the same parameters).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.update.html#tensordb.TensorClient.update" title="tensordb.TensorClient.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(path, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.update.html#tensordb.TensorClient.update" title="tensordb.TensorClient.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with update as method_name (has the same parameters).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.upsert.html#tensordb.TensorClient.upsert" title="tensordb.TensorClient.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">upsert</span></code></a>(path, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.upsert.html#tensordb.TensorClient.upsert" title="tensordb.TensorClient.upsert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">upsert</span></code></a>(path, **kwargs)</p></td>
 <td><p>Calls <a class="reference internal" href="tensordb.TensorClient.storage_method_caller.html#tensordb.TensorClient.storage_method_caller" title="tensordb.TensorClient.storage_method_caller"><code class="xref py py-meth docutils literal notranslate"><span class="pre">TensorClient.storage_method_caller()</span></code></a> with upsert as method_name (has the same parameters).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tensordb.TensorClient.vindex.html#tensordb.TensorClient.vindex" title="tensordb.TensorClient.vindex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vindex</span></code></a>(new_data, coords)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tensordb.TensorClient.vindex.html#tensordb.TensorClient.vindex" title="tensordb.TensorClient.vindex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vindex</span></code></a>(new_data, coords)</p></td>
 <td><p>Implementation of dask vindex using xarray</p></td>
 </tr>
 </tbody>
@@ -574,14 +579,14 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
 </table>
 </dd></dl>
 
-</section>
+</div>
 
 
               </div>
               
               
               <!-- Previous / next buttons -->
-<div class='prev-next-area'>
+<div class='prev-next-area'> 
     <a class='left-prev' id="prev-link" href="../tensor_client.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
@@ -604,8 +609,8 @@ the docs <a class="reference internal" href="tensordb.TensorClient.read_from_for
       </div>
     </div>
   
-    <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
-  <footer class="footer mt-5 mt-md-0">
+  <script src="../../_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
+<footer class="footer mt-5 mt-md-0">
   <div class="container">
     
     <div class="footer-item">
