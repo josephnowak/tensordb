@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import dask
 import dask.array as da
+import more_itertools as mit
 
 from typing import Dict, List, Any, Union, Tuple, Literal, Optional, Callable
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
@@ -352,7 +353,7 @@ class TensorClient(Algorithms):
         client = dask if client is None else client
 
         with call_pool(max_parallelization) as pool:
-            for sub_paths in np.array_split(paths,  max(len(paths) // max_parallelization, 1)):
+            for sub_paths in mit.chunked(paths, max_parallelization):
                 logger.info(f"Processing the following tensors: {sub_paths}")
                 futures = [
                     pool.submit(
