@@ -1,10 +1,15 @@
 import itertools as it
 import more_itertools as mit
 
-from typing import Dict, Callable, Generator
+from typing import Dict, Callable, Generator, Iterable
 
 
-def groupby_chunks(iterable, group_chunk_size: Dict, group_func: Callable, sort_func: Callable = None) -> Generator:
+def groupby_chunks(
+        iterable: Iterable,
+        group_chunk_size: Dict,
+        group_func: Callable,
+        sort_func: Callable = None
+) -> Generator:
     """
     This function apply a groupby over the iterable, and then it chunks the groups to iterate over them in order
     creating new iterables that looks as follows:
@@ -37,7 +42,7 @@ def groupby_chunks(iterable, group_chunk_size: Dict, group_func: Callable, sort_
         # [chunk0_group0, chunk0_group1, chunk0_group2] and [chunk1_group0, chunk1_group1, chunk1_group2].
         for tensors in it.zip_longest(*(
             # chunk the group based on the group_chunk_size size
-            list(mit.chunked(group, group_chunk_size.get(name, 1)))
+            list(mit.chunked(group, group_chunk_size.get(name, None)))
             # group the data
             for name, group in it.groupby(
                 sorted(iterable, key=sort_func),
