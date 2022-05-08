@@ -35,7 +35,7 @@ class JsonStorage(BaseStorage):
     def upsert(self, new_data: Dict, path: str = None, **kwargs):
         path = self.base_map.root if path is None else path
         new_name = self.to_json_file_name(path)
-        d = orjson.loads(self.base_map[new_name])
+        d = orjson.loads(self.base_map[new_name]) if self.exist(path) else {}
         d.update(new_data)
         self.store(path=path, new_data=d)
 

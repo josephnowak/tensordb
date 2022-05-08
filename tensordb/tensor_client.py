@@ -229,6 +229,20 @@ class TensorClient(Algorithms):
         self._tensors_definition.store(path=definition.path, new_data=definition.dict(exclude_unset=True))
 
     @validate_arguments
+    def upsert_tensor(self, definition: TensorDefinition):
+        """
+        Upsert the definition of tensor, which is equivalent to the creation of the tensor but without data,
+        in case that the tensor already exists it will be updated.
+
+        Parameters
+        ----------
+        definition: TensorDefinition
+            Read the docs of the `TensorDefinition` class for more info of the definition.
+
+        """
+        self._tensors_definition.upsert(path=definition.path, new_data=definition.dict(exclude_unset=True))
+
+    @validate_arguments
     def get_tensor_definition(self, path: str) -> TensorDefinition:
         """
         Retrieve the tensor definition of an specific tensor.
