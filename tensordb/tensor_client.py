@@ -260,7 +260,7 @@ class TensorClient(Algorithms):
         try:
             return TensorDefinition(**self._tensors_definition.read(path))
         except KeyError:
-            raise KeyError('You can not use a tensor without first call the create_tensor method')
+            raise KeyError(f'The tensor {path} has not been created using the create_tensor method')
 
     def get_all_tensors_definition(self) -> List[TensorDefinition]:
         return [self.get_tensor_definition(path) for path in self._tensors_definition.base_map.keys()]
