@@ -70,7 +70,7 @@ class Algorithms:
                     return np.where(np.isnan(a), np.nan, rankdata(a, method=method, axis=axis))
 
                 func = rankdata if rank_nan else _nanrankdata
-                data = new_data.chunk({dim: None}).data
+                data = new_data.chunk({dim: -1}).data
                 ranked = data.map_blocks(
                     func=func,
                     dtype=np.float64,
@@ -325,11 +325,11 @@ class Algorithms:
         if isinstance(groups, xr.DataArray):
             def _reduce(arr, grouper):
                 return np.moveaxis(np.array([
-                    group_algorithm(group_idx, x, func=func, fill_value=fill_value)[group_idx]
-                    for x, group_idx in zip(np.moveaxis(arr, axis, -1), np.moveaxis(grouper, axis, -1))
+                    group_algorithm(_group_idx, x, func=func, fill_value=fill_value)[_group_idx]
+                    for x, _group_idx in zip(np.moveaxis(arr, axis, -1), np.moveaxis(grouper, axis, -1))
                 ]), -1, axis)
 
-            data = new_data.chunk({dim: None}).data
+            data = new_data.chunk({dim: -1}).data
             groups = groups.chunk(data.chunks).data
 
             return xr.DataArray(
@@ -356,13 +356,18 @@ class Algorithms:
             arr = np.take(arr, group_idx, axis=axis) if keep_shape else arr
             return arr
 
-        data = new_data.chunk({dim: None}).data
+        data = new_data.chunk({dim: -1}).data
+        chunks = None
+        if not keep_shape:
+            chunks = new_data.chunks[:axis] + (len(new_coord),) + new_data.chunks[axis + 1:]
 
         return xr.DataArray(
             data.map_blocks(
                 func=_reduce,
                 dtype=data.dtype,
-                chunks=new_data.chunks[:axis] + (len(new_coord),) + new_data.chunks[axis + 1:],
+                chunks=chunks,
+                drop_axis=[] if keep_shape else axis,
+                new_axis=None if keep_shape else axis,
             ),
             coords={d: new_coord if d == dim else v for d, v in new_data.coords.items()},
             dims=new_data.dims,

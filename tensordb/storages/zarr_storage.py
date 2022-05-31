@@ -311,17 +311,13 @@ class ZarrStorage(BaseStorage):
                 **{dim: coord for dim, coord in act_coords.items() if dim in complete_update_dims}
             )
 
-        bitmask = True
         regions = {}
         for coord_name in act_data.dims:
             act_bitmask = act_coords[coord_name].isin(new_data.coords[coord_name].values)
             valid_positions = np.nonzero(act_bitmask.values)[0]
             regions[coord_name] = slice(np.min(valid_positions), np.max(valid_positions) + 1)
-            bitmask = bitmask & act_bitmask.isel(**{coord_name: regions[coord_name]})
 
-        act_data = act_data.isel(**regions)
-        new_data = new_data.reindex(act_data.coords)
-        act_data = act_data.where(~bitmask, new_data)
+        act_data = act_data.isel(**regions).update(new_data)
 
         delayed_write = act_data.to_zarr(
             self.get_write_base_map(),

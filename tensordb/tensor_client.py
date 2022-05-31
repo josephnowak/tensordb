@@ -22,7 +22,10 @@ from tensordb.storages import (
     MAPPING_STORAGES
 )
 from tensordb.utils.method_inspector import get_parameters
-from tensordb.utils.tools import groupby_chunks
+from tensordb.utils.tools import (
+    groupby_chunks,
+    extract_paths_from_formula,
+)
 from tensordb.algorithms import Algorithms
 from tensordb.tensor_definition import TensorDefinition, MethodDescriptor, Definition, DAGOrder
 from tensordb import dag
@@ -284,6 +287,27 @@ class TensorClient(Algorithms):
         storage.delete_tensor()
         if not only_data:
             self._tensors_definition.delete_file(path)
+
+    @validate_arguments
+    def delete_tensors(self, paths: List[str], only_data: bool = False):
+        """
+        Delete multiple tensors, in case that some of them does not exist it is not going to raise an error.
+
+        Parameters
+        ----------
+        paths: List[str]
+            paths of the tensors
+
+        only_data: bool, default False
+            If this option is marked as True only the data will be erased and not the definition
+
+        """
+
+        for path in paths:
+            try:
+                self.delete_tensor(path, only_data=only_data)
+            except KeyError:
+                pass
 
     @validate_arguments
     def get_storage(self, path: Union[str, TensorDefinition]) -> BaseStorage:
@@ -695,7 +719,7 @@ class TensorClient(Algorithms):
         you need to know is that you have to wrap the path of your tensor with "`" to be parsed and
         read automatically.
 
-        Another important chracteristic is that you can even pass entiere python codes to create this new tensors
+        Another significant chracteristic is that you can even pass entiere python codes to create this new tensors
         (it makes use of python exec so use use_exec parameter as True).
 
         Note: The globals dictionary use in eval is the following:
@@ -774,18 +798,16 @@ class TensorClient(Algorithms):
         """
 
         data_fields = {}
-        data_fields_intervals = np.array([i for i, c in enumerate(formula) if c == '`'])
-        for i in range(0, len(data_fields_intervals), 2):
-            name_data_field = formula[data_fields_intervals[i] + 1: data_fields_intervals[i + 1]]
-            if original_path is not None and original_path == name_data_field:
+        for path in extract_paths_from_formula(formula):
+            if original_path is not None and original_path == path:
                 if storage is None:
                     raise ValueError(f'You can not make a self read without sending the storage parameter')
-                data_fields[name_data_field] = storage.read()
+                data_fields[path] = storage.read()
             else:
-                data_fields[name_data_field] = self.read(name_data_field)
+                data_fields[path] = self.read(path)
 
-        for name, dataset in data_fields.items():
-            formula = formula.replace(f"`{name}`", f"data_fields['{name}']")
+        for path, dataset in data_fields.items():
+            formula = formula.replace(f"`{path}`", f"data_fields['{path}']")
 
         formula_globals = {
             'xr': xr, 'np': np, 'pd': pd, 'da': da, 'dask': dask, 'self': self

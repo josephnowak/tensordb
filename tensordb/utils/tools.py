@@ -1,6 +1,8 @@
 import itertools as it
 import more_itertools as mit
 
+import numpy as np
+
 from typing import Dict, Callable, Generator, Iterable
 
 
@@ -50,3 +52,13 @@ def groupby_chunks(
             )
         ))
     )
+
+
+def extract_paths_from_formula(formula) -> set:
+    paths_intervals = np.array([i for i, c in enumerate(formula) if c == '`'])
+    paths = {
+        formula[paths_intervals[i] + 1: paths_intervals[i + 1]]
+        for i in range(0, len(paths_intervals), 2)
+    }
+    return paths
+
