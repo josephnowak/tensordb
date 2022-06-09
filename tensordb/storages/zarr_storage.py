@@ -317,7 +317,7 @@ class ZarrStorage(BaseStorage):
             valid_positions = np.nonzero(act_bitmask.values)[0]
             regions[coord_name] = slice(np.min(valid_positions), np.max(valid_positions) + 1)
 
-        act_data = act_data.isel(**regions).update(new_data)
+        act_data = new_data.combine_first(act_data.isel(**regions))
 
         delayed_write = act_data.to_zarr(
             self.get_write_base_map(),

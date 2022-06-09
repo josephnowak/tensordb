@@ -437,43 +437,43 @@ class Algorithms:
         ])
         return new_data.sel(dict(zip(dims, valid_coords)))
 
-    @classmethod
-    def insert_sorted(
-            cls,
-            new_data: Union[xr.DataArray, xr.Dataset],
-            other: Union[xr.DataArray, xr.DataArray],
-            dim: str,
-            fill_value: Any = np.nan
-    ):
-        """
-        Insert the data of one array into another. this is equivalent to the combine first method of xarray
-        but only applied on one dimension and on a sorted coord, this is to avoid performance
-        problem on the reindex
-
-        Parameters
-        ----------
-        new_data: Union[xr.DataArray, xr.Dataset]
-            This is the data at which the data is going to be inserted
-
-        other: Union[xr.DataArray, xr.Dataset]
-            Data that is going to be inserted on the new_data array
-
-        fill_value: Any, default np.nan
-            Useful to avoid the lost of the original dtype when the reindex is executed
-
-        dim: str
-            Dim for the insertion
-
-        """
-        # TODO: Add unit testing
-        act_coord = new_data.indexes[dim]
-        coord_insert = other.indexes[dim]
-        if not (act_coord.is_monotonic_increasing or act_coord.is_monotonic_decreasing):
-            raise ValueError(f'The new_data coord must be sorted')
-
-        reindex_coord = act_coord.union(coord_insert).sort_values(ascending=act_coord.is_monotonic_increasing)
-
-        new_data = new_data.reindex({dim: reindex_coord.values}, fill_value=fill_value)
-        indexing = tuple(coord_insert if d == dim else slice(None, None) for d in new_data.dims)
-        new_data.loc[indexing] = other
-        return new_data
+    # @classmethod
+    # def insert_sorted(
+    #         cls,
+    #         new_data: Union[xr.DataArray, xr.Dataset],
+    #         other: Union[xr.DataArray, xr.DataArray],
+    #         dim: str,
+    #         fill_value: Any = np.nan
+    # ):
+    #     """
+    #     Insert the data of one array into another. this is equivalent to the combine first method of xarray
+    #     but only applied on one dimension and on a sorted coord, this is to avoid performance
+    #     problem on the reindex
+    #
+    #     Parameters
+    #     ----------
+    #     new_data: Union[xr.DataArray, xr.Dataset]
+    #         This is the data at which the data is going to be inserted
+    #
+    #     other: Union[xr.DataArray, xr.Dataset]
+    #         Data that is going to be inserted on the new_data array
+    #
+    #     fill_value: Any, default np.nan
+    #         Useful to avoid the lost of the original dtype when the reindex is executed
+    #
+    #     dim: str
+    #         Dim for the insertion
+    #
+    #     """
+    #     # TODO: Add unit testing
+    #     act_coord = new_data.indexes[dim]
+    #     coord_insert = other.indexes[dim]
+    #     if not (act_coord.is_monotonic_increasing or act_coord.is_monotonic_decreasing):
+    #         raise ValueError(f'The new_data coord must be sorted')
+    #
+    #     reindex_coord = act_coord.union(coord_insert).sort_values(ascending=act_coord.is_monotonic_increasing)
+    #
+    #     new_data = new_data.reindex({dim: reindex_coord.values}, fill_value=fill_value)
+    #     indexing = tuple(coord_insert if d == dim else slice(None, None) for d in new_data.dims)
+    #     new_data.loc[indexing] = other
+    #     return new_data
