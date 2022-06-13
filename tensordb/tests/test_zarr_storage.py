@@ -1,12 +1,7 @@
-import xarray as xr
-import os
+import fsspec
 import numpy as np
 import pytest
-import zarr
-import fsspec
-import shutil
-
-from loguru import logger
+import xarray as xr
 
 from tensordb.storages import ZarrStorage
 

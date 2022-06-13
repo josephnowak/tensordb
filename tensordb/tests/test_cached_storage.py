@@ -1,10 +1,10 @@
 import fsspec
-import xarray as xr
 import numpy as np
 import pytest
+import xarray as xr
 
-from tensordb.storages.cached_storage import CachedStorage
 from tensordb.storages import ZarrStorage
+from tensordb.storages.cached_storage import CachedStorage
 
 
 class TestCachedTensor:
@@ -76,6 +76,3 @@ if __name__ == "__main__":
     test = TestCachedTensor()
     # test.test_append()
     test.test_store()
-
-
-

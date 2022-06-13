@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Extra, Field
-
 from typing import Dict, List, Any, Optional, Literal
+
+from pydantic import BaseModel, Extra, Field
 
 
 class DAGOrder(BaseModel):
@@ -153,5 +153,3 @@ class TensorDefinition(BaseModel):
 
     def __hash__(self):
         return hash(self.path)
-
-

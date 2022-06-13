@@ -1,13 +1,9 @@
 import os
+from abc import abstractmethod
+from typing import Dict, List, Union, Literal, Any
 
 import fsspec
 import xarray as xr
-
-from abc import abstractmethod
-from collections.abc import MutableMapping
-from typing import Dict, List, Union, Tuple, Iterable, Literal, Any
-
-from loguru import logger
 from fsspec.implementations.cached import CachingFileSystem
 
 
@@ -249,4 +245,3 @@ class BaseStorage:
 
         """
         pass
-

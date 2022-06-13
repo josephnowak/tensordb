@@ -1,12 +1,11 @@
 import fsspec
-import xarray as xr
 import numpy as np
 import pytest
-
-from loguru import logger
+import xarray as xr
 
 from tensordb import TensorClient
 from tensordb.tensor_definition import TensorDefinition
+
 
 # TODO: Add more tests that validate the internal behaviour of the storage settings
 # TODO: Fix the use of fsspec cached protocol when there are multiple threads or process reading the same file

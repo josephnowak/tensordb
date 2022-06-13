@@ -1,7 +1,5 @@
-import pytest
 import fsspec
-
-from loguru import logger
+import pytest
 
 from tensordb.storages import JsonStorage
 

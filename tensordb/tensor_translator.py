@@ -1,13 +1,11 @@
-import xarray as xr
+import itertools
+from math import ceil
+from typing import Iterable, Callable, Union, Dict, Any, List, Hashable
+
 import dask
 import numpy as np
-import itertools
-
-from typing import Iterable, Callable, Union, Dict, Any, List, Tuple, Optional, Literal, Hashable, Generator
-from math import ceil
-
+import xarray as xr
 from pydantic import validate_arguments
-from loguru import logger
 
 
 @validate_arguments(config=dict(arbitrary_types_allowed=True))
@@ -177,7 +175,7 @@ def _generate_lazy_dataset(
         shape = list(len(chunk_coords[dim]) for dim in dims)
         for delayed, data_name, dtype in zip(multi_delayed, data_names, dtypes):
             array = dask.array.from_delayed(delayed, shape=shape, dtype=dtype)
-            dataset_graph[(f'{base_name}-{data_name}', *chunk_pos)] = (array.name,) + (0, ) * len(dims)
+            dataset_graph[(f'{base_name}-{data_name}', *chunk_pos)] = (array.name,) + (0,) * len(dims)
             dependencies.append(array)
 
     shape = list(len(coords[dim]) for dim in dims)
@@ -199,4 +197,3 @@ def _generate_lazy_dataset(
         )
         for data_name, dtype in zip(data_names, dtypes)
     })
-

@@ -1,10 +1,8 @@
-import xarray as xr
-import os
+from typing import List
+
 import numpy as np
 import pytest
-
-from typing import List, Dict
-from loguru import logger
+import xarray as xr
 
 from tensordb.tensor_translator import defined_translation
 

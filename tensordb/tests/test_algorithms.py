@@ -1,6 +1,3 @@
-import os
-from typing import List, Dict
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -187,15 +184,16 @@ def test_vindex():
 
 
 @pytest.mark.parametrize(
-    'dim, keep_shape',
+    'dim, keep_shape, output_dim',
     [
-        ('a', False),
-        ('b', False),
-        ('a', True),
-        ('b', True),
+        ('a', False, None),
+        ('b', False, None),
+        ('a', True, None),
+        ('b', True, None),
+        ('b', True, 'h')
     ]
 )
-def test_apply_on_groups(dim, keep_shape):
+def test_apply_on_groups(dim, keep_shape, output_dim):
     arr = xr.DataArray(
         [
             [1, 2, 3, 4, 3],
@@ -214,7 +212,13 @@ def test_apply_on_groups(dim, keep_shape):
     groups = {k: v for k, v in zip(arr.coords[dim].values, grouper[dim])}
 
     g = arr.groupby(xr.IndexVariable(dim, grouper[dim])).max(dim)
-    arr = Algorithms.apply_on_groups(arr, groups=groups, dim=dim, func='nanmax', keep_shape=keep_shape)
+    arr = Algorithms.apply_on_groups(
+        arr, groups=groups, dim=dim, func='nanmax', keep_shape=keep_shape, output_dim=output_dim
+    )
+    if output_dim:
+        g = g.rename({dim: output_dim})
+        grouper[output_dim] = grouper[dim]
+        dim = output_dim
 
     if keep_shape:
         g = g.reindex({dim: grouper[dim]})

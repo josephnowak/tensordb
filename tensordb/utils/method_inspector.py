@@ -1,7 +1,6 @@
 import inspect
 
-from typing import List, Callable, Dict, Any
-from loguru import logger
+from typing import Callable, Dict, Any
 
 
 def get_parameters(func: Callable, *args: Dict[str, Any]):

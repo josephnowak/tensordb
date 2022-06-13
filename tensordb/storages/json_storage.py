@@ -1,14 +1,12 @@
-import xarray as xr
-import orjson
-
 from typing import Dict
-from loguru import logger
+
+import orjson
+import xarray as xr
 
 from tensordb.storages.base_storage import BaseStorage
 
 
 class JsonStorage(BaseStorage):
-
     """
     This class was created with the idea of simplify how the tensor client store the definitions.
     Every path is converted into a name replacing the "/" by "_" with the idea of create unique names and allow
@@ -67,7 +65,3 @@ class JsonStorage(BaseStorage):
     @classmethod
     def get_original_path(cls, path):
         return path.replace(cls.default_character, '/')
-
-
-
-

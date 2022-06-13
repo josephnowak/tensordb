@@ -1,12 +1,11 @@
+from typing import Union, List, Dict, Literal, Any
+
+import dask
+import dask.array as da
 import numpy as np
+import numpy_groupies as npg
 import pandas as pd
 import xarray as xr
-import dask.array as da
-import dask
-import numpy_groupies as npg
-
-from typing import Union, List, Dict, Literal, Any, Tuple
-from loguru import logger
 
 
 class Algorithms:
@@ -275,6 +274,7 @@ class Algorithms:
             func: str,
             fill_value: Any = np.nan,
             keep_shape: bool = False,
+            output_dim: str = None,
             group_algorithm: Literal['aggregate', 'aggregate_nb', 'aggregate_weave'] = 'aggregate',
     ):
         """
@@ -307,6 +307,9 @@ class Algorithms:
             Indicate if the array want to be reduced or not base on the groups, to preserve the shape this algorithm
             is going to replace the original value by its corresponding result of the groupby algorithm
 
+        output_dim: str, default None
+            Name of the dimension of the output array, if None the dimension name is the same as the input dim
+
         group_algorithm: str, default 'aggregate'
             Algorithm use by numpy_groupies to apply the groupby, read numpy-groupies docs for more info
         """
@@ -332,7 +335,7 @@ class Algorithms:
             data = new_data.chunk({dim: -1}).data
             groups = groups.chunk(data.chunks).data
 
-            return xr.DataArray(
+            arr = xr.DataArray(
                 dask.array.map_blocks(
                     _reduce,
                     data,
@@ -344,6 +347,7 @@ class Algorithms:
                 dims=new_data.dims,
                 attrs=new_data.attrs
             )
+            return arr if output_dim is None else arr.rename({dim: output_dim})
 
         unique_groups = pd.Index(np.unique(list(groups.values())))
         group_idx = unique_groups.get_indexer_for([groups[v] for v in new_data.coords[dim].values])
@@ -361,7 +365,7 @@ class Algorithms:
         if not keep_shape:
             chunks = new_data.chunks[:axis] + (len(new_coord),) + new_data.chunks[axis + 1:]
 
-        return xr.DataArray(
+        arr = xr.DataArray(
             data.map_blocks(
                 func=_reduce,
                 dtype=data.dtype,
@@ -373,6 +377,7 @@ class Algorithms:
             dims=new_data.dims,
             attrs=new_data.attrs
         )
+        return arr if output_dim is None else arr.rename({dim: output_dim})
 
     @classmethod
     def merge_duplicates_coord(

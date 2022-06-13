@@ -1,7 +1,6 @@
-import xarray as xr
+from typing import Dict, Any
 
-from typing import Dict, List, Any, Union, Tuple
-from loguru import logger
+import xarray as xr
 
 from tensordb.storages import BaseStorage
 
@@ -93,4 +92,3 @@ class CachedStorage:
 
     def close(self):
         self.execute_operations()
-
