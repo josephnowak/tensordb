@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-from loguru import logger
 
 from tensordb.algorithms import Algorithms
 
@@ -227,8 +226,17 @@ def test_apply_on_groups(dim, keep_shape, output_dim):
     assert g.equals(arr)
 
 
-@pytest.mark.parametrize('dim', ['a', 'b'])
-def test_apply_on_groups_array(dim):
+@pytest.mark.parametrize(
+    'dim, keep_shape, output_dim',
+    [
+        ('a', False, None),
+        ('b', False, None),
+        ('a', True, None),
+        ('b', True, None),
+        ('b', True, 'h')
+    ]
+)
+def test_apply_on_groups_array(dim, keep_shape, output_dim):
     arr = xr.DataArray(
         [
             [1, 2, 3, 4, 3],
@@ -251,37 +259,32 @@ def test_apply_on_groups_array(dim):
         dims=['a', 'b'],
         coords={'a': [1, 2, 3, 4, 5], 'b': [0, 1, 2, 3, 4]}
     ).chunk((3, 2))
+    unique_groups = np.unique(groups.values)
 
-    result = Algorithms.apply_on_groups(arr, groups=groups, dim=dim, func='nanmax')
-    logger.info(arr.compute())
-    if dim == 'a':
-        assert result.equals(
-            xr.DataArray(
-                np.array(
-                    [[1., 2., 7., 4., 3.],
-                     [4., 4., 1., 3., 5.],
-                     [5., 2., 7., 2., 5.],
-                     [1., 3., 7., 5., 4.],
-                     [8., 7., 9., 6., 7.]]
-                ),
-                dims=arr.dims,
-                coords=arr.coords
-            )
-        )
-    else:
-        assert result.equals(
-            xr.DataArray(
-                np.array(
-                    [[3., 3., 3., 4., 3.],
-                     [4., 4., 1., 3., 5.],
-                     [5., 5., 3., 2., 3.],
-                     [np.nan, 4., 7., 7., 4.],
-                     [8., 9., 9., 9., 9.]]
-                ),
-                dims=arr.dims,
-                coords=arr.coords
-            )
-        )
+    result = Algorithms.apply_on_groups(
+        arr, groups=groups, dim=dim, func='nanmax', keep_shape=keep_shape, output_dim=output_dim
+    )
+
+    iterate_dim = 'b' if dim == 'a' else 'a'
+    for i in range(arr.sizes[iterate_dim]):
+        x = arr.isel({iterate_dim: i})
+        grouper = groups.isel({iterate_dim: i})
+        r = result.isel({iterate_dim: i})
+        g = x.groupby(xr.IndexVariable(dim, grouper)).max(dim)
+        if output_dim:
+            g = g.rename({dim: output_dim})
+        else:
+            output_dim = dim
+
+        if keep_shape:
+            g = g.reindex({output_dim: grouper.values})
+            g.coords[output_dim] = arr.coords[dim].values
+
+        if not keep_shape:
+            assert np.all(r.coords[dim].values == unique_groups)
+            assert r.sum() == g.sum()
+            r = r.sel({dim: g.coords[dim]})
+        assert g.equals(r)
 
 
 @pytest.mark.parametrize('dim', ['a', 'b'])
