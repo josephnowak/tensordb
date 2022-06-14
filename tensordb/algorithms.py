@@ -275,6 +275,7 @@ class Algorithms:
             fill_value: Any = np.nan,
             keep_shape: bool = False,
             output_dim: str = None,
+            unique_groups: np.ndarray = None,
             group_algorithm: Literal['aggregate', 'aggregate_nb', 'aggregate_weave'] = 'aggregate',
     ):
         """
@@ -310,8 +311,13 @@ class Algorithms:
         output_dim: str, default None
             Name of the dimension of the output array, if None the dimension name is the same as the input dim
 
+        unique_groups: np.ndarray, default None
+            Useful when the group array has the same shape as the data and more than one dim, for this case
+            is necessary extract the unique elements, so you can provide them here (optional).
+
         group_algorithm: str, default 'aggregate'
             Algorithm use by numpy_groupies to apply the groupby, read numpy-groupies docs for more info
+
         """
         if isinstance(new_data, xr.Dataset):
             return xr.Dataset(
@@ -322,62 +328,83 @@ class Algorithms:
                 attrs=new_data.attrs
             )
 
+        if isinstance(groups, dict):
+            groups = xr.DataArray(list(groups.values()), dims=[dim], coords={dim: list(groups.keys())})
+
+        if len(groups.dims) != 1 and groups.dims != new_data.dims:
+            raise ValueError(
+                f'The dimension of the groups must be the same as the dimension of the new_data'
+                f' or one of its dimensions, but got {groups.dims} and {new_data.dims}'
+            )
+
         axis = new_data.dims.index(dim)
         group_algorithm = getattr(npg, group_algorithm)
+        data = new_data.chunk({dim: -1}).data
+        output_dim = dim if output_dim is None else output_dim
 
-        if isinstance(groups, xr.DataArray):
-            def _reduce(arr, grouper):
-                return np.moveaxis(np.array([
-                    group_algorithm(_group_idx, x, func=func, fill_value=fill_value)[_group_idx]
-                    for x, _group_idx in zip(np.moveaxis(arr, axis, -1), np.moveaxis(grouper, axis, -1))
-                ]), -1, axis)
+        group_idx, unique_groups, max_element = None, None, None
+        if len(groups.dims) == 1:
+            unique_groups = pd.Index(np.unique(groups.values))
+            group_idx = unique_groups.get_indexer_for(groups.loc[new_data.coords[dim].values].values)
+            groups = None
+        else:
+            if not keep_shape:
+                # In case of grouping by an array of more than 1 dimension and the keep_shape is False.
+                unique_groups = da.unique(groups.data).compute() if unique_groups is None else unique_groups
+                # max_element ins only useful for grouping by an array of more than one dim and keep_shape False.
+                max_element = np.max(unique_groups)
 
-            data = new_data.chunk({dim: -1}).data
             groups = groups.chunk(data.chunks).data
 
-            arr = xr.DataArray(
-                dask.array.map_blocks(
-                    _reduce,
-                    data,
-                    groups,
-                    chunks=data.chunks,
-                    dtype=float,
-                ),
-                coords=new_data.coords,
-                dims=new_data.dims,
-                attrs=new_data.attrs
-            )
-            return arr if output_dim is None else arr.rename({dim: output_dim})
-
-        unique_groups = pd.Index(np.unique(list(groups.values())))
-        group_idx = unique_groups.get_indexer_for([groups[v] for v in new_data.coords[dim].values])
-        new_coord = unique_groups
-        if keep_shape:
-            new_coord = new_data.coords[dim].values
-
-        def _reduce(x):
-            arr = group_algorithm(group_idx, x, axis=axis, func=func, fill_value=fill_value)
-            arr = np.take(arr, group_idx, axis=axis) if keep_shape else arr
-            return arr
-
-        data = new_data.chunk({dim: -1}).data
-        chunks = None
+        chunks, output_coord = None, new_data.coords[dim].values
         if not keep_shape:
-            chunks = new_data.chunks[:axis] + (len(new_coord),) + new_data.chunks[axis + 1:]
+            output_coord = unique_groups
+            chunks = new_data.chunks[:axis] + (len(output_coord),) + new_data.chunks[axis + 1:]
 
-        arr = xr.DataArray(
-            data.map_blocks(
-                func=_reduce,
-                dtype=data.dtype,
+        def _reduce(x, grouper):
+            if group_idx is not None:
+                arr = group_algorithm(group_idx, x, axis=axis, func=func, fill_value=fill_value)
+                arr = np.take(arr, group_idx, axis=axis) if keep_shape else arr
+                return arr
+
+            # create a list of 1D slices of the arrays and the groups
+            x = np.array_split(
+                np.ravel(np.moveaxis(x, axis, -1)),
+                x.size / x.shape[axis]
+            )
+            grouper = np.array_split(
+                np.ravel(np.moveaxis(grouper, axis, -1)),
+                grouper.size / grouper.shape[axis]
+            )
+            if keep_shape:
+                return np.moveaxis(np.array([
+                    group_algorithm(_group_idx, _x, func=func, fill_value=fill_value)[_group_idx]
+                    for _x, _group_idx in zip(x, grouper)
+                ]), -1, axis)
+
+            return np.moveaxis(np.array([
+                np.pad(
+                    group_algorithm(_group_idx, _x, func=func, fill_value=fill_value),
+                    (0, max_element - np.max(_group_idx)),
+                    constant_values=(np.nan,)
+                )[unique_groups]
+                for _x, _group_idx in zip(x, grouper)
+            ]), -1, axis)
+
+        return xr.DataArray(
+            dask.array.map_blocks(
+                _reduce,
+                data,
+                groups,
                 chunks=chunks,
+                dtype=float,
                 drop_axis=[] if keep_shape else axis,
                 new_axis=None if keep_shape else axis,
             ),
-            coords={d: new_coord if d == dim else v for d, v in new_data.coords.items()},
+            coords={d: output_coord if d == dim else v for d, v in new_data.coords.items()},
             dims=new_data.dims,
             attrs=new_data.attrs
-        )
-        return arr if output_dim is None else arr.rename({dim: output_dim})
+        ).rename({dim: output_dim})
 
     @classmethod
     def merge_duplicates_coord(
