@@ -1,10 +1,10 @@
-import os
 from abc import abstractmethod
+from collections.abc import MutableMapping
 from typing import Dict, List, Union, Literal, Any
 
-import fsspec
+import loguru
 import xarray as xr
-from fsspec.implementations.cached import CachingFileSystem
+from tensordb.storages.mapping import Mapping
 
 
 class BaseStorage:
@@ -16,19 +16,13 @@ class BaseStorage:
     ----------
 
     path: str
-        Relative path of your tensor, the TensorClient provide this parameter when it create the Storage
+        Relative path of your tensor, the TensorClient provide this parameter when it creates the Storage
 
-    base_map: fsspec.FSMap
+    base_map: Mapping
         It's the same parameter that you send to the :meth:`TensorClient.__init__` (TensorClient send it automatically)
 
-    tmp_map: fsspec.FSMap
+    tmp_map: Mapping
         Temporal location for rewriting the tensor.
-
-    local_cache_protocol: Literal['simplecache', 'filecache', 'cached']
-        Fsspec protocol for local file caching, useful for speed up the reads when using a cloud fs
-
-    local_cache_options: Dict[str, Any]
-        Options of the Fsspec local file cache
 
     data_names: Union[str, List[str]], default "data"
         Names of the data vars inside your dataset, if the data_names is a str then the system must return an
@@ -37,61 +31,32 @@ class BaseStorage:
     """
 
     def __init__(self,
-                 base_map: fsspec.FSMap,
-                 tmp_map: fsspec.FSMap,
-                 path: str,
-                 local_cache_protocol: Literal['simplecache', 'filecache', 'cached'] = None,
-                 local_cache_options: Dict[str, Any] = None,
+                 base_map: Union[Mapping, MutableMapping],
+                 tmp_map: Union[Mapping, MutableMapping],
                  data_names: Union[str, List[str]] = "data",
                  **kwargs):
-
-        if isinstance(base_map.fs, CachingFileSystem):
-            raise ValueError(
-                f'BaseStorage do not support directly a cache file system, use the local_cache_protocol parameter'
-            )
-        self.tmp_map = tmp_map.fs.get_mapper(tmp_map.root + f'/{path}')
-        self.base_map = base_map.fs.get_mapper(base_map.root + f'/{path}')
+        if not isinstance(base_map, Mapping):
+            base_map = Mapping(base_map)
+        if not isinstance(tmp_map, Mapping):
+            tmp_map = Mapping(tmp_map)
+        self.base_map = base_map
+        self.tmp_map = tmp_map
         self.data_names = data_names
         self.group = None
-
-        if local_cache_protocol:
-            local_cache_options = local_cache_options or {}
-            self.base_map = fsspec.filesystem(
-                local_cache_protocol,
-                fs=self.base_map.fs,
-                cache_storage=os.path.join(tmp_map.root, '_local_cache_file', path),
-                **local_cache_options
-            ).get_mapper(
-                self.base_map.root
-            )
 
     def get_data_names_list(self) -> List[str]:
         return self.data_names if isinstance(self.data_names, list) else [self.data_names]
 
-    def get_write_base_map(self):
-        if isinstance(self.base_map.fs, CachingFileSystem):
-            return self.base_map.fs.fs.get_mapper(self.base_map.root)
-        return self.base_map
-
-    def clear_cache(self):
-        if isinstance(self.base_map.fs, CachingFileSystem):
-            try:
-                self.base_map.fs.clear_cache()
-            except FileNotFoundError:
-                pass
-
     def delete_tensor(self):
         """
-        Delete the tensor
+        Delete the tensor data from the storage
 
         Parameters
         ----------
 
         """
-        # self.base_map.clear()
         try:
-            self.clear_cache()
-            self.base_map.fs.delete(self.base_map.root, recursive=True)
+            self.base_map.rmdir()
         except FileNotFoundError:
             pass
 

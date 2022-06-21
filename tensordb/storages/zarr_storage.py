@@ -6,6 +6,7 @@ import zarr
 
 from tensordb.algorithms import Algorithms
 from tensordb.storages.base_storage import BaseStorage
+from tensordb.storages.mapping import Mapping
 
 
 class ZarrStorage(BaseStorage):
@@ -33,8 +34,7 @@ class ZarrStorage(BaseStorage):
     """
 
     def __init__(self,
-                 tmp_map,
-                 path: str,
+                 tmp_map: Mapping,
                  chunks: Dict[str, int] = None,
                  synchronizer: Union[Literal['process', 'thread'], None] = 'thread',
                  unique_coords: bool = False,
@@ -50,7 +50,7 @@ class ZarrStorage(BaseStorage):
         elif synchronizer is not None:
             raise NotImplemented(f"{synchronizer} is not a valid option for the synchronizer")
 
-        super().__init__(tmp_map=tmp_map, path=path, **kwargs)
+        super().__init__(tmp_map=tmp_map, **kwargs)
 
         self.chunks = chunks
         self.synchronizer = synchronizer
@@ -153,15 +153,13 @@ class ZarrStorage(BaseStorage):
                 synchronizer=self.synchronizer,
             )
 
-        base_map = self.get_write_base_map()
-
         try:
-            base_map.fs.delete(base_map.root, recursive=True)
+            self.base_map.rmdir()
         except FileNotFoundError:
             pass
 
         delayed_write = new_data.to_zarr(
-            base_map,
+            self.base_map,
             mode='w',
             compute=compute,
             consolidated=True,
@@ -171,9 +169,7 @@ class ZarrStorage(BaseStorage):
         )
 
         if rewrite:
-            self.tmp_map.fs.delete(self.tmp_map.root, recursive=True)
-
-        self.clear_cache()
+            self.tmp_map.rmdir()
 
         return delayed_write
 
@@ -220,7 +216,6 @@ class ZarrStorage(BaseStorage):
         rewrite = False
         act_coords = {k: coord for k, coord in act_data.indexes.items()}
         concat_data = {}
-        base_map = self.get_write_base_map()
 
         for dim, new_coord in new_data.indexes.items():
             coord_to_append = new_coord[~new_coord.isin(act_coords[dim])]
@@ -248,7 +243,7 @@ class ZarrStorage(BaseStorage):
             else:
                 delayed_appends.append(
                     concat_data[dim].to_zarr(
-                        base_map,
+                        self.base_map,
                         append_dim=dim,
                         compute=compute,
                         synchronizer=self.synchronizer,
@@ -259,8 +254,6 @@ class ZarrStorage(BaseStorage):
 
         if rewrite:
             return [self.store(new_data=act_data, compute=compute, rewrite=True)]
-
-        self.clear_cache()
 
         return delayed_appends
 
@@ -319,13 +312,12 @@ class ZarrStorage(BaseStorage):
         act_data = new_data.combine_first(act_data.isel(**regions))
 
         delayed_write = act_data.to_zarr(
-            self.get_write_base_map(),
+            self.base_map,
             group=self.group,
             compute=compute,
             synchronizer=self.synchronizer,
             region=regions
         )
-        self.clear_cache()
         return delayed_write
 
     def upsert(

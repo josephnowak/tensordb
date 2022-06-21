@@ -14,46 +14,37 @@ class TestZarrStorage:
     @pytest.fixture(autouse=True)
     def setup_tests(self, tmpdir):
         sub_path = tmpdir.strpath
-        local_cache_protocol = None
         self.storage = ZarrStorage(
-            base_map=fsspec.get_mapper(sub_path),
-            tmp_map=fsspec.get_mapper(sub_path + '/tmp'),
-            path='zarr',
+            base_map=fsspec.get_mapper(sub_path + '/zarr'),
+            tmp_map=fsspec.get_mapper(sub_path + '/tmp/zarr'),
             data_names='data_test',
             chunks={'index': 3, 'columns': 2},
             synchronizer='thread',
-            local_cache_protocol=local_cache_protocol
         )
         self.storage_dataset = ZarrStorage(
-            base_map=fsspec.get_mapper(sub_path),
-            tmp_map=fsspec.get_mapper(sub_path + '/tmp'),
-            path='zarr_dataset',
+            base_map=fsspec.get_mapper(sub_path + '/zarr_dataset'),
+            tmp_map=fsspec.get_mapper(sub_path + '/tmp/zarr_dataset'),
             data_names=['a', 'b', 'c'],
             chunks={'index': 3, 'columns': 2},
             synchronizer='thread',
-            local_cache_protocol=local_cache_protocol
         )
         self.storage_sorted_unique = ZarrStorage(
-            base_map=fsspec.get_mapper(sub_path),
-            tmp_map=fsspec.get_mapper(sub_path + '/tmp'),
-            path='zarr',
+            base_map=fsspec.get_mapper(sub_path + '/zarr'),
+            tmp_map=fsspec.get_mapper(sub_path + '/tmp/zarr'),
             data_names='data_test',
             chunks={'index': 3, 'columns': 2},
             unique_coords=True,
             sorted_coords={'index': False, 'columns': False},
             synchronizer='thread',
-            local_cache_protocol=local_cache_protocol
         )
         self.storage_dataset_sorted_unique = ZarrStorage(
-            base_map=fsspec.get_mapper(sub_path),
-            tmp_map=fsspec.get_mapper(sub_path + '/tmp'),
-            path='zarr_dataset',
+            base_map=fsspec.get_mapper(sub_path + '/zarr_dataset'),
+            tmp_map=fsspec.get_mapper(sub_path + '/tmp/zarr_dataset'),
             data_names=['a', 'b', 'c'],
             chunks={'index': 3, 'columns': 2},
             unique_coords=True,
             sorted_coords={'index': False, 'columns': False},
             synchronizer='thread',
-            local_cache_protocol=local_cache_protocol
         )
         self.arr = xr.DataArray(
             data=np.array([

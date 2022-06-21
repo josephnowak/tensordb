@@ -3,15 +3,15 @@ from typing import Dict, List, Any, Union, Literal, Callable
 
 import dask
 import dask.array as da
-import fsspec
 import more_itertools as mit
 import numpy as np
 import pandas as pd
 import xarray as xr
-from fsspec.implementations.cached import CachingFileSystem
+
 from loguru import logger
 from pydantic import validate_arguments
 from xarray.backends.common import AbstractWritableDataStore
+from collections.abc import MutableMapping
 
 from tensordb import dag
 from tensordb.algorithms import Algorithms
@@ -27,6 +27,7 @@ from tensordb.utils.tools import (
     groupby_chunks,
     extract_paths_from_formula,
 )
+from tensordb.storages.mapping import Mapping
 
 
 class TensorClient(Algorithms):
@@ -54,23 +55,17 @@ class TensorClient(Algorithms):
 
     Parameters
     ----------
-    base_map: fsspec.FSMap (or any File System that implement the MutabbleMapping Interface)
-       File system to store all tensors.
+    base_map: MutableMapping
+       Mapping storage interface where all the tensors are stored.
 
-    tmp_map: fsspec.FSMap (or any File System that implement the MutabbleMapping Interface)
-        File system for storing the temporal cache local file and also the rewrites of the tensors,
-        the cache local file are stored on the path {tmp_map.root}/_local_cache_file/tensor_path
-
-    local_cache_protocol: Literal['simplecache', 'filecache', 'cached']
-        Indicate the kind of local cache filesystem that want to be use for all the tensors,
-        Read fsspec fileprotocol for more info about the local cache protocols.
-
-    local_cache_options: Dict[str, Any]
-        Parameters of the local cache filesystem
+    tmp_map: MutableMapping
+        Equivalent to the base_map but for the temporary storage, this is only used when there is the necessity of
+        restore a tensor (insert new data in the middle of a tensor).
 
     synchronizer: str
         Some Storages used to handle the files support a synchronizer, this parameter is used as a default
         synchronizer option for every one of them (you can pass different synchronizer to every tensor).
+        The Mapping class provided by this library offers a lock solution for this purpose.
 
     **kwargs: Dict
         Useful when you want to inherent from this class.
@@ -192,28 +187,24 @@ class TensorClient(Algorithms):
 
     def __init__(
             self,
-            base_map: fsspec.FSMap,
-            tmp_map: fsspec.FSMap = None,
-            local_cache_protocol: Literal['simplecache', 'filecache', 'cached'] = None,
-            local_cache_options: Dict[str, Any] = None,
+            base_map: MutableMapping,
+            tmp_map: MutableMapping = None,
             synchronizer: str = None,
             **kwargs
     ):
-        if isinstance(base_map.fs, CachingFileSystem):
-            raise ValueError(
-                f'TensorDB do not support directly a cache file system, use the local_cache_protocol parameter'
-            )
+        if isinstance(base_map, Mapping):
+            self.base_map = base_map
+        else:
+            self.base_map: Mapping = Mapping(base_map)
 
-        self.base_map = base_map
-        self.tmp_map = fsspec.get_mapper('tmp') if tmp_map is None else tmp_map
-        self.local_cache_protocol = local_cache_protocol
-        self.local_cache_options = local_cache_options
+        self.tmp_map = self.base_map.sub_map('tmp') if tmp_map is None else tmp_map
+        if not isinstance(self.tmp_map, Mapping):
+            self.tmp_map: Mapping = Mapping(tmp_map)
+
         self.synchronizer = synchronizer
         self._tensors_definition = JsonStorage(
-            path='_tensors_definition',
-            base_map=self.base_map,
-            tmp_map=self.tmp_map,
-            # local_cache_protocol=self.local_cache_protocol
+            base_map=self.base_map.sub_map('_tensors_definition'),
+            tmp_map=self.tmp_map.sub_map('_tensors_definition'),
         )
 
     @validate_arguments
@@ -330,11 +321,8 @@ class TensorClient(Algorithms):
 
         storage = MAPPING_STORAGES[definition.storage.storage_name]
         storage = storage(
-            base_map=self.base_map,
-            tmp_map=self.tmp_map,
-            path=definition.path,
-            local_cache_protocol=self.local_cache_protocol,
-            local_cache_options=self.local_cache_options,
+            base_map=self.base_map.sub_map(definition.path),
+            tmp_map=self.tmp_map.sub_map(definition.path),
             **definition.storage.dict(exclude_unset=True)
         )
         return storage

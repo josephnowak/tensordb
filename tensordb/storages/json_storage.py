@@ -22,7 +22,7 @@ class JsonStorage(BaseStorage):
     def store(self, new_data: Dict, path: str = None, **kwargs):
         path = self.base_map.root if path is None else path
         new_name = self.to_json_file_name(path)
-        self.get_write_base_map()[new_name] = orjson.dumps(new_data)
+        self.base_map[new_name] = orjson.dumps(new_data)
 
     def append(self, new_data: Dict, path: str = None, **kwargs):
         raise NotImplemented('Use upsert')
