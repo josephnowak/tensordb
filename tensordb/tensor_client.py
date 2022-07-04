@@ -27,7 +27,7 @@ from tensordb.utils.tools import (
     groupby_chunks,
     extract_paths_from_formula,
 )
-from tensordb.storages.mapping import Mapping
+from tensordb.storages.mapping import Mapping, NoLock
 
 
 class TensorClient(Algorithms):
@@ -476,6 +476,77 @@ class TensorClient(Algorithms):
                     paths_kwargs={tensor.path: kwargs_groups.get(tensor.dag.group, {}) for tensor in tensors},
                     **parallelization_kwargs
                 )
+
+    def get_dag_for_dask(
+            self,
+            method: Literal['append', 'update', 'store', 'upsert'],
+            kwargs_groups: Dict[str, Dict[str, Any]] = None,
+            tensors_path: List[str] = None,
+            max_parallelization_per_group: Dict[str, int] = None,
+            autofill_dependencies: bool = False,
+            semaphore_type: Literal['thread', 'dask'] = 'dask',
+            map_paths: Dict[str, str] = None,
+            task_prefix: str = 'Task-',
+            final_task_name: str = 'WAIT',
+    ):
+        """
+        This method was designed to create a Dask DAG for the given method, this is useful for parallelization
+        of the execution of the tensors. The exec on dag order will be deprecated in the future.
+        """
+        kwargs_groups = kwargs_groups or {}
+        map_paths = map_paths or {}
+        max_parallelization_per_group = max_parallelization_per_group or {}
+        method = getattr(self, method)
+
+        if tensors_path is None:
+            tensors = [tensor for tensor in self.get_all_tensors_definition() if tensor.dag is not None]
+        else:
+            tensors = [self.get_tensor_definition(path) for path in tensors_path]
+            if autofill_dependencies:
+                tensors = dag.add_dependencies(tensors, self.get_all_tensors_definition())
+
+        graph = {}
+        set_paths = set(tensor.path for tensor in tensors if tensor)
+        groups = {tensor.path: tensor.dag.group for tensor in tensors}
+
+        semaphores = dict()
+        for group in set(groups.values()):
+            if group not in max_parallelization_per_group:
+                semaphores[group] = NoLock()
+            elif semaphore_type == 'thread':
+                import threading
+                semaphores[group] = threading.Semaphore(max_parallelization_per_group[group])
+            elif semaphore_type == 'dask':
+                semaphores[group] = dask.distributed.Semaphore(
+                    max_parallelization_per_group[group],
+                    name=f'max_parallelization_{group}'
+                )
+
+        def _exec_on_dask(
+                func: Callable,
+                params,
+                group: str,
+                *prev_tasks,
+        ):
+            with semaphores[group]:
+                return func(**params)
+
+        for tensor in tensors:
+            path = tensor.path
+            depends = set(tensor.dag.depends) & set_paths
+            group = groups[path]
+            parameters = kwargs_groups.get(group, {}).copy()
+            parameters['path'] = path
+            graph[map_paths.get(path, task_prefix + path)] = (
+                _exec_on_dask,
+                method,
+                parameters,
+                group,
+                *tuple(map_paths.get(p, task_prefix + p) for p in depends)
+            )
+
+        graph[final_task_name] = (lambda *prev_tasks: None, *tuple(graph.keys()))
+        return graph
 
     def apply_data_transformation(
             self,

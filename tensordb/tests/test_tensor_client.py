@@ -1,3 +1,4 @@
+import dask.threaded
 import fsspec
 import numpy as np
 import pytest
@@ -320,6 +321,97 @@ class TestTensorClient:
                 'max_parallelization': max_parallelization
             }
         )
+        assert self.tensor_client.read('1').equals(self.arr * 2)
+
+    @pytest.mark.parametrize(
+        'max_per_group, semaphore_type',
+        [
+            ({"first": 2, "second": 2}, 'thread'),
+            ({"first": 2, "second": 1}, 'dask'),
+        ]
+    )
+    def test_get_dag_for_dask(self, max_per_group, semaphore_type):
+        definitions = [
+            TensorDefinition(
+                path='0',
+                definition={
+                    'store': {
+                        'data_transformation': [
+                            {'method_name': 'read_from_formula', 'parameters': {'formula': "`data_one`"}}
+                        ]
+                    }
+                },
+                dag={'depends': [], 'group': 'first'}
+            ),
+            TensorDefinition(
+                path='1',
+                definition={
+                    'store': {
+                        'data_transformation': [
+                            {'method_name': 'read_from_formula', 'parameters': {'formula': "`0` * 2"}}
+                        ]
+                    }
+                },
+                dag={'depends': ['0'], 'group': 'first'}
+            ),
+            TensorDefinition(
+                path='2',
+                definition={
+                    'store': {
+                        'data_transformation': [
+                            {'method_name': 'read_from_formula', 'parameters': {'formula': "`0` + 1"}}
+                        ]
+                    }
+                },
+                dag={'depends': ['0'], 'group': 'second'}
+            ),
+            TensorDefinition(
+                path='3',
+                definition={
+                    'store': {
+                        'data_transformation': [
+                            {'method_name': 'read_from_formula', 'parameters': {'formula': "`1` + `2`"}}
+                        ]
+                    }
+                },
+                dag={'depends': ['2', '1'], 'group': 'second'}
+            ),
+        ]
+        for definition in definitions:
+            self.tensor_client.create_tensor(definition)
+
+        get = None
+        if semaphore_type == 'dask':
+            from dask.distributed import Client
+            client = Client()
+            get = client.get
+        elif semaphore_type == 'thread':
+            get = dask.threaded.get
+        else:
+            get = dask.multiprocessing.get
+
+        dask_graph = self.tensor_client.get_dag_for_dask(
+            method='store',
+            max_parallelization_per_group=max_per_group,
+            semaphore_type=semaphore_type,
+            final_task_name='FinalTask',
+        )
+        from loguru import logger
+        logger.info(dask_graph)
+        get(dask_graph, "FinalTask")
+        assert self.tensor_client.read('0').equals(self.arr)
+        assert self.tensor_client.read('1').equals(self.arr * 2)
+        assert self.tensor_client.read('2').equals(self.arr + 1)
+        assert self.tensor_client.read('3').equals(self.arr + 1 + self.arr * 2)
+        #
+        dask_graph = self.tensor_client.get_dag_for_dask(
+            method='store',
+            tensors_path=['1'],
+            max_parallelization_per_group=max_per_group,
+            semaphore_type=semaphore_type,
+            final_task_name='FinalTask',
+        )
+        get(dask_graph, "FinalTask")
         assert self.tensor_client.read('1').equals(self.arr * 2)
 
 
