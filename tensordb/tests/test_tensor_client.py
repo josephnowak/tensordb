@@ -396,8 +396,6 @@ class TestTensorClient:
             semaphore_type=semaphore_type,
             final_task_name='FinalTask',
         )
-        from loguru import logger
-        logger.info(dask_graph)
         get(dask_graph, "FinalTask")
         assert self.tensor_client.read('0').equals(self.arr)
         assert self.tensor_client.read('1').equals(self.arr * 2)
