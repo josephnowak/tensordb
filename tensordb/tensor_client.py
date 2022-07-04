@@ -1,3 +1,4 @@
+from collections.abc import MutableMapping
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from typing import Dict, List, Any, Union, Literal, Callable
 
@@ -7,11 +8,9 @@ import more_itertools as mit
 import numpy as np
 import pandas as pd
 import xarray as xr
-
 from loguru import logger
 from pydantic import validate_arguments
 from xarray.backends.common import AbstractWritableDataStore
-from collections.abc import MutableMapping
 
 from tensordb import dag
 from tensordb.algorithms import Algorithms
@@ -21,13 +20,13 @@ from tensordb.storages import (
     CachedStorage,
     MAPPING_STORAGES
 )
+from tensordb.storages.mapping import Mapping, NoLock
 from tensordb.tensor_definition import TensorDefinition, MethodDescriptor, Definition
 from tensordb.utils.method_inspector import get_parameters
 from tensordb.utils.tools import (
     groupby_chunks,
     extract_paths_from_formula,
 )
-from tensordb.storages.mapping import Mapping, NoLock
 
 
 class TensorClient(Algorithms):
@@ -255,7 +254,13 @@ class TensorClient(Algorithms):
             raise KeyError(f'The tensor {path} has not been created using the create_tensor method')
 
     def get_all_tensors_definition(self) -> List[TensorDefinition]:
-        return [self.get_tensor_definition(path) for path in self._tensors_definition.base_map.keys()]
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor() as executor:
+            results = list(executor.map(
+                self.get_tensor_definition,
+                list(self._tensors_definition.base_map.keys())
+            ))
+        return results
 
     @validate_arguments
     def delete_tensor(self, path: str, only_data: bool = False) -> Any:
