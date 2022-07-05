@@ -331,6 +331,8 @@ class TestTensorClient:
         ]
     )
     def test_get_dag_for_dask(self, max_per_group, semaphore_type):
+        # TODO: Improve this tests, it only generates a DAG, so it does not need to check if the results
+        #   of the computations are correct.
         definitions = [
             TensorDefinition(
                 path='0',
@@ -381,6 +383,7 @@ class TestTensorClient:
             self.tensor_client.create_tensor(definition)
 
         get = None
+        client = None
         if semaphore_type == 'dask':
             from dask.distributed import Client
             client = Client()
@@ -395,6 +398,7 @@ class TestTensorClient:
             max_parallelization_per_group=max_per_group,
             semaphore_type=semaphore_type,
             final_task_name='FinalTask',
+            add_distributed_logs=semaphore_type == 'dask'
         )
         get(dask_graph, "FinalTask")
         assert self.tensor_client.read('0').equals(self.arr)
@@ -404,13 +408,17 @@ class TestTensorClient:
         #
         dask_graph = self.tensor_client.get_dag_for_dask(
             method='store',
-            tensors_path=['1'],
+            tensors=[self.tensor_client.get_tensor_definition('1')],
             max_parallelization_per_group=max_per_group,
             semaphore_type=semaphore_type,
             final_task_name='FinalTask',
+            add_distributed_logs=semaphore_type == 'dask'
         )
         get(dask_graph, "FinalTask")
         assert self.tensor_client.read('1').equals(self.arr * 2)
+
+        if client is not None:
+            client.close()
 
 
 if __name__ == "__main__":

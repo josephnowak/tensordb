@@ -486,12 +486,12 @@ class TensorClient(Algorithms):
             self,
             method: Literal['append', 'update', 'store', 'upsert'],
             kwargs_groups: Dict[str, Dict[str, Any]] = None,
-            tensors_path: List[str] = None,
+            tensors: List[TensorDefinition] = None,
             max_parallelization_per_group: Dict[str, int] = None,
-            autofill_dependencies: bool = False,
             semaphore_type: Literal['thread', 'dask'] = 'dask',
             map_paths: Dict[str, str] = None,
             task_prefix: str = 'Task-',
+            add_distributed_logs: bool = True,
             final_task_name: str = 'WAIT',
     ):
         """
@@ -503,15 +503,13 @@ class TensorClient(Algorithms):
         max_parallelization_per_group = max_parallelization_per_group or {}
         method = getattr(self, method)
 
-        if tensors_path is None:
-            tensors = [tensor for tensor in self.get_all_tensors_definition() if tensor.dag is not None]
-        else:
-            tensors = [self.get_tensor_definition(path) for path in tensors_path]
-            if autofill_dependencies:
-                tensors = dag.add_dependencies(tensors, self.get_all_tensors_definition())
+        if tensors is None:
+            tensors = self.get_all_tensors_definition()
 
-        graph = {}
-        set_paths = set(tensor.path for tensor in tensors if tensor)
+        tensors = [
+            tensor for tensor in tensors
+            if tensor.dag is not None and method.__name__ not in tensor.dag.omit_on
+        ]
         groups = {tensor.path: tensor.dag.group for tensor in tensors}
 
         semaphores = dict()
@@ -521,7 +519,7 @@ class TensorClient(Algorithms):
             elif semaphore_type == 'thread':
                 import threading
                 semaphores[group] = threading.Semaphore(max_parallelization_per_group[group])
-            elif semaphore_type == 'dask':
+            else:
                 semaphores[group] = dask.distributed.Semaphore(
                     max_parallelization_per_group[group],
                     name=f'max_parallelization_{group}'
@@ -530,15 +528,23 @@ class TensorClient(Algorithms):
         def _exec_on_dask(
                 func: Callable,
                 params,
-                group: str,
+                sem,
+                use_logs: bool,
                 *prev_tasks,
         ):
-            with semaphores[group]:
-                return func(**params)
+            with sem:
+                if use_logs:
+                    dask.distributed.get_worker().log_event("START", {"path": params["path"]})
+                result = func(**params)
+                if use_logs:
+                    dask.distributed.get_worker().log_event("END", {"path": params["path"]})
 
+            return result
+
+        graph = {}
         for tensor in tensors:
             path = tensor.path
-            depends = set(tensor.dag.depends) & set_paths
+            depends = set(tensor.dag.depends)
             group = groups[path]
             parameters = kwargs_groups.get(group, {}).copy()
             parameters['path'] = path
@@ -546,7 +552,8 @@ class TensorClient(Algorithms):
                 _exec_on_dask,
                 method,
                 parameters,
-                group,
+                semaphores[group],
+                add_distributed_logs,
                 *tuple(map_paths.get(p, task_prefix + p) for p in depends)
             )
 
