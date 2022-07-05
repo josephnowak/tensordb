@@ -504,11 +504,10 @@ class TensorClient(Algorithms):
         method = getattr(self, method)
 
         if tensors is None:
-            tensors = [tensor for tensor in self.get_all_tensors_definition()]
+            tensors = self.get_all_tensors_definition()
 
         tensors = [
-            tensor
-            for tensor in tensors
+            tensor for tensor in tensors
             if tensor.dag is not None and method.__name__ not in tensor.dag.omit_on
         ]
         groups = {tensor.path: tensor.dag.group for tensor in tensors}
