@@ -505,10 +505,7 @@ class TensorClient(Algorithms):
         if tensors is None:
             tensors = self.get_all_tensors_definition()
 
-        tensors = [
-            tensor for tensor in tensors
-            if tensor.dag is not None and method.__name__ not in tensor.dag.omit_on
-        ]
+        tensors = [tensor for tensor in tensors if tensor.dag is not None]
         groups = {tensor.path: tensor.dag.group for tensor in tensors}
 
         semaphores = dict()
@@ -528,8 +525,12 @@ class TensorClient(Algorithms):
                 func: Callable,
                 params,
                 sem,
+                process: bool,
                 *prev_tasks,
         ):
+            if not process:
+                return None
+
             with sem:
                 try:
                     result = func(**params)
@@ -550,6 +551,7 @@ class TensorClient(Algorithms):
                 method,
                 parameters,
                 semaphores[group],
+                method.__name__ not in tensor.dag.omit_on,
                 *tuple(map_paths.get(p, task_prefix + p) for p in depends)
             )
 
