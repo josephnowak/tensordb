@@ -398,7 +398,6 @@ class TestTensorClient:
             max_parallelization_per_group=max_per_group,
             semaphore_type=semaphore_type,
             final_task_name='FinalTask',
-            add_distributed_logs=semaphore_type == 'dask'
         )
         get(dask_graph, "FinalTask")
         assert self.tensor_client.read('0').equals(self.arr)
@@ -412,7 +411,6 @@ class TestTensorClient:
             max_parallelization_per_group=max_per_group,
             semaphore_type=semaphore_type,
             final_task_name='FinalTask',
-            add_distributed_logs=semaphore_type == 'dask'
         )
         get(dask_graph, "FinalTask")
         assert self.tensor_client.read('1').equals(self.arr * 2)

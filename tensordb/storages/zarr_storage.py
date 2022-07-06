@@ -390,11 +390,11 @@ class ZarrStorage(BaseStorage):
                 group=self.group
             )
             return arr[self.data_names]
-        except KeyError:
+        except KeyError as e:
             raise KeyError(
                 f"The data_names {self.data_names} does not exist on the tensor "
                 f"located at: {self.base_map.full_path} or the tensor has not been stored yet"
-            )
+            ) from e
 
     def exist(self) -> bool:
         """

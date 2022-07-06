@@ -490,8 +490,7 @@ class TensorClient(Algorithms):
             max_parallelization_per_group: Dict[str, int] = None,
             semaphore_type: Literal['thread', 'dask'] = 'dask',
             map_paths: Dict[str, str] = None,
-            task_prefix: str = 'Task-',
-            add_distributed_logs: bool = True,
+            task_prefix: str = 'task-',
             final_task_name: str = 'WAIT',
     ):
         """
@@ -529,15 +528,13 @@ class TensorClient(Algorithms):
                 func: Callable,
                 params,
                 sem,
-                use_logs: bool,
                 *prev_tasks,
         ):
             with sem:
-                if use_logs:
-                    dask.distributed.get_worker().log_event("START", {"path": params["path"]})
-                result = func(**params)
-                if use_logs:
-                    dask.distributed.get_worker().log_event("END", {"path": params["path"]})
+                try:
+                    result = func(**params)
+                except Exception as e:
+                    raise e.__class__(f"The tensor with path: {params['path']} had an error") from e
 
             return result
 
@@ -553,7 +550,6 @@ class TensorClient(Algorithms):
                 method,
                 parameters,
                 semaphores[group],
-                add_distributed_logs,
                 *tuple(map_paths.get(p, task_prefix + p) for p in depends)
             )
 
