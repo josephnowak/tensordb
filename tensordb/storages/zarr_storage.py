@@ -382,13 +382,19 @@ class ZarrStorage(BaseStorage):
         `open_zarr <https://xr.pydata.org/en/stable/generated/xr.open_zarr.html>`_ and then using the '[]'
         with some names or a name
         """
-        arr = xr.open_zarr(
-            self.base_map,
-            consolidated=True,
-            synchronizer=self.synchronizer,
-            group=self.group
-        )
-        return arr[self.data_names]
+        try:
+            arr = xr.open_zarr(
+                self.base_map,
+                consolidated=True,
+                synchronizer=self.synchronizer,
+                group=self.group
+            )
+            return arr[self.data_names]
+        except KeyError:
+            raise KeyError(
+                f"The data_names {self.data_names} does not exist on the tensor "
+                f"located at: {self.base_map.full_path} or the tensor has not been stored yet"
+            )
 
     def exist(self) -> bool:
         """
@@ -405,5 +411,5 @@ class ZarrStorage(BaseStorage):
         try:
             self.read()
             return True
-        except:
+        except KeyError:
             return False
