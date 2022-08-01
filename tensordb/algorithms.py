@@ -462,11 +462,14 @@ class Algorithms:
         Equivalent of xarray dropna but for boolean and for multiple dimension and restricted to the all option
         """
         # TODO: Add unit testing
-        client = dask if client is None else client
-        valid_coords = client.compute(*[
+        valid_coords = [
             new_data.any([d for d in new_data.dims if d != dim])
             for dim in dims
-        ])
+        ]
+        if client is None:
+            valid_coords = dask.compute(*valid_coords)
+        else:
+            valid_coords = [c.result() for c in client.compute(valid_coords)]
         return new_data.sel(dict(zip(dims, valid_coords)))
 
     # @classmethod

@@ -98,11 +98,11 @@ class ZarrStorage(BaseStorage):
             self,
             new_data: Union[xr.DataArray, xr.Dataset],
             compute: bool = True,
-            rewrite: bool = False
+            rewrite: bool = False,
     ) -> xr.backends.ZarrStore:
 
         """
-        Store the data, the dtype and all the details will depend of what you pass in the new_data
+        Store the data, the dtype and all the details will depend on what you pass in the new_data
         parameter, internally this method calls the method
         `to_zarr <https://xarray.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         with a 'w' mode using that data.
