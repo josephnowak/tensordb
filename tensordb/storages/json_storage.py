@@ -20,7 +20,7 @@ class JsonStorage(BaseStorage):
         return path.replace('\\', '/').replace('/', cls.default_character)
 
     def store(self, new_data: Dict, path: str = None, **kwargs):
-        path = self.base_map.root if path is None else path
+        path = self.data_names if path is None else path
         new_name = self.to_json_file_name(path)
         self.base_map[new_name] = orjson.dumps(new_data)
 
@@ -31,7 +31,7 @@ class JsonStorage(BaseStorage):
         raise NotImplemented('Use upsert')
 
     def upsert(self, new_data: Dict, path: str = None, **kwargs):
-        path = self.base_map.root if path is None else path
+        path = self.data_names if path is None else path
         new_name = self.to_json_file_name(path)
         try:
             d = orjson.loads(self.base_map[new_name])
@@ -41,12 +41,12 @@ class JsonStorage(BaseStorage):
         self.store(path=path, new_data=d)
 
     def read(self, path: str = None) -> Dict:
-        path = self.base_map.root if path is None else path
+        path = self.data_names if path is None else path
         new_name = self.to_json_file_name(path)
         return orjson.loads(self.base_map[new_name])
 
     def exist(self, path: str = None, **kwargs):
-        path = self.base_map.root if path is None else path
+        path = self.data_names if path is None else path
         new_name = self.to_json_file_name(path)
         return new_name in self.base_map
 
@@ -58,7 +58,7 @@ class JsonStorage(BaseStorage):
         raise NotImplementedError
 
     def delete_file(self, path: str = None, **kwargs):
-        path = self.base_map.root if path is None else path
+        path = self.data_names if path is None else path
         new_name = self.to_json_file_name(path)
         del self.base_map[new_name]
 
