@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 import xarray as xr
 
@@ -36,10 +36,17 @@ class CachedStorage:
 
     """
 
-    def __init__(self, storage: BaseStorage, max_cached_in_dim: int, dim: str):
+    def __init__(
+            self,
+            storage: BaseStorage,
+            max_cached_in_dim: int,
+            dim: str,
+            sort_dims: List[str] = None
+    ):
         self.storage = storage
         self.max_cached_in_dim = max_cached_in_dim
         self.dim = dim
+        self.sort_dims = sort_dims
         self._cached_operations = {}
         self._cached_count = 0
         self._clean_cached_operations()
@@ -72,6 +79,8 @@ class CachedStorage:
                 operation['new_data'],
                 dim=self.dim
             )
+            if self.sort_dims:
+                operation['new_data'] = operation['new_data'].sortby(self.sort_dims)
             getattr(self.storage, type_operation)(**operation)
 
         self._clean_cached_operations()

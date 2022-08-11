@@ -44,7 +44,7 @@ class ZarrStorage(BaseStorage):
 
         synchronizer = synchronizer
         if synchronizer == 'process':
-            synchronizer = zarr.ProcessSynchronizer(f'{tmp_map.root}/_zarr_process_lock/{path}')
+            synchronizer = zarr.ProcessSynchronizer(f'{tmp_map.root}/_zarr_process_lock/')
         elif synchronizer == 'thread':
             synchronizer = zarr.ThreadSynchronizer()
         elif synchronizer is not None:
