@@ -741,7 +741,14 @@ class TensorClient(Algorithms):
         except KeyError:
             return False
 
-    def get_cached_storage(self, path, max_cached_in_dim: int, dim: str, **kwargs):
+    def get_cached_storage(
+            self,
+            path,
+            max_cached_in_dim: int,
+            dim: str,
+            sort_dims: List[str],
+            **kwargs
+    ):
         """
         Create a `CachedStorage` object which is used for multiples writes of the same file.
 
@@ -756,6 +763,8 @@ class TensorClient(Algorithms):
         dim: str
             `CachedStorage.dim`
 
+        sort_dims: List[str]
+
         **kwargs
             Parameters used for the internal Storage that you choosed.
 
@@ -767,7 +776,8 @@ class TensorClient(Algorithms):
         return CachedStorage(
             storage=self.get_storage(path, **kwargs),
             max_cached_in_dim=max_cached_in_dim,
-            dim=dim
+            dim=dim,
+            sort_dims=sort_dims
         )
 
     def read_from_formula(

@@ -44,7 +44,7 @@ class ZarrStorage(BaseStorage):
 
         synchronizer = synchronizer
         if synchronizer == 'process':
-            synchronizer = zarr.ProcessSynchronizer(f'{tmp_map.root}/_zarr_process_lock/{path}')
+            synchronizer = zarr.ProcessSynchronizer(f'{tmp_map.root}/_zarr_process_lock/')
         elif synchronizer == 'thread':
             synchronizer = zarr.ThreadSynchronizer()
         elif synchronizer is not None:
@@ -393,7 +393,7 @@ class ZarrStorage(BaseStorage):
         except KeyError as e:
             raise KeyError(
                 f"The data_names {self.data_names} does not exist on the tensor "
-                f"located at: {self.base_map.full_path} or the tensor has not been stored yet"
+                f"located at: {self.base_map.full_path(None)} or the tensor has not been stored yet"
             ) from e
 
     def exist(self) -> bool:
