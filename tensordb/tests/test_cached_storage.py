@@ -42,16 +42,16 @@ class TestCachedTensor:
         self.cached_storage.append(self.arr.isel(index=[2]))
 
         assert self.cached_storage._cached_count == 3
-        assert len(self.cached_storage._cached_operations['append']['new_data']) == 3
+        assert len(self.cached_storage._cache['append']['new_data']) == 3
 
         self.cached_storage.append(self.arr.isel(index=[3]))
         assert self.cached_storage._cached_count == 0
-        assert len(self.cached_storage._cached_operations['append']['new_data']) == 0
+        assert len(self.cached_storage._cache['append']['new_data']) == 0
 
         self.cached_storage.append(self.arr.isel(index=[4]))
         self.cached_storage.close()
         assert self.cached_storage._cached_count == 0
-        assert len(self.cached_storage._cached_operations['append']['new_data']) == 0
+        assert len(self.cached_storage._cache['append']['new_data']) == 0
 
         assert self.cached_storage.read().equals(self.arr)
 
@@ -60,14 +60,14 @@ class TestCachedTensor:
         self.cached_storage.append(self.arr.isel(index=[1]))
         self.cached_storage.append(self.arr.isel(index=[2]))
         assert self.cached_storage._cached_count == 3
-        assert len(self.cached_storage._cached_operations['store']['new_data']) == 3
+        assert len(self.cached_storage._cache['store']['new_data']) == 3
 
         self.cached_storage.store(self.arr.isel(index=[3, 4]))
         assert self.cached_storage._cached_count == 2
-        assert len(self.cached_storage._cached_operations['store']['new_data']) == 1
+        assert len(self.cached_storage._cache['store']['new_data']) == 1
         self.cached_storage.close()
         assert self.cached_storage._cached_count == 0
-        assert len(self.cached_storage._cached_operations['store']['new_data']) == 0
+        assert len(self.cached_storage._cache['store']['new_data']) == 0
 
         assert self.cached_storage.read().equals(self.arr.isel(index=[3, 4]))
 

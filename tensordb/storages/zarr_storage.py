@@ -299,9 +299,9 @@ class ZarrStorage(BaseStorage):
         if complete_update_dims is not None:
             if isinstance(complete_update_dims, str):
                 complete_update_dims = [complete_update_dims]
-            new_data = new_data.reindex(
-                **{dim: coord for dim, coord in act_coords.items() if dim in complete_update_dims}
-            )
+            new_data = new_data.reindex(**{
+                dim: coord for dim, coord in act_coords.items() if dim in complete_update_dims
+            })
 
         regions = {}
         for coord_name in act_data.dims:
@@ -309,9 +309,10 @@ class ZarrStorage(BaseStorage):
             valid_positions = np.nonzero(act_bitmask.values)[0]
             regions[coord_name] = slice(np.min(valid_positions), np.max(valid_positions) + 1)
 
-        act_data = new_data.combine_first(act_data.isel(**regions))
+        if complete_update_dims is None:
+            new_data = new_data.combine_first(act_data.isel(**regions))
 
-        delayed_write = act_data.to_zarr(
+        delayed_write = new_data.to_zarr(
             self.base_map,
             group=self.group,
             compute=compute,
