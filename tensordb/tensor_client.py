@@ -747,6 +747,8 @@ class TensorClient(Algorithms):
             max_cached_in_dim: int,
             dim: str,
             sort_dims: List[str],
+            merge_cache: bool = False,
+            update_logic: Literal["keep_last", "combine_first"] = "combine_first",
             **kwargs
     ):
         """
@@ -765,8 +767,12 @@ class TensorClient(Algorithms):
 
         sort_dims: List[str]
 
+        merge_cache: bool = False
+
+        update_logic: Literal["keep_last", "combine_first"] = "combine_first"
+
         **kwargs
-            Parameters used for the internal Storage that you choosed.
+            Parameters used for the internal Storage that you chose.
 
         Returns
         -------
@@ -777,7 +783,9 @@ class TensorClient(Algorithms):
             storage=self.get_storage(path, **kwargs),
             max_cached_in_dim=max_cached_in_dim,
             dim=dim,
-            sort_dims=sort_dims
+            sort_dims=sort_dims,
+            merge_cache=merge_cache,
+            update_logic=update_logic
         )
 
     def read_from_formula(

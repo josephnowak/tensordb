@@ -134,6 +134,16 @@ class TestZarrStorage:
 
         assert self.storage.read().equals(expected)
 
+    def test_update_complete_data(self):
+        self.storage.store(self.arr)
+
+        arr_sliced = self.arr.sel(index=slice(2, None), columns=[0, 1, 3]) + 5
+        self.storage.update(arr_sliced, complete_update_dims=["columns"])
+
+        self.arr.loc[2:] = arr_sliced.reindex(columns=self.arr.columns)
+
+        assert self.storage.read().equals(self.arr)
+
     @pytest.mark.parametrize('keep_order', [True, False])
     def test_store_dataset(self, keep_order: bool):
         storage_dataset = self.storage_dataset_sorted_unique if keep_order else self.storage_dataset
