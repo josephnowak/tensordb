@@ -7,6 +7,8 @@ from tensordb.storages import ZarrStorage
 from tensordb.storages.cached_storage import CachedStorage
 
 
+# TODO: Add more tests for the update cases
+
 class TestCachedTensor:
     @pytest.fixture(autouse=True)
     def setup_tests(self, tmpdir):
