@@ -69,7 +69,7 @@ class CachedStorage:
             type_operation = 'store'
 
         self._cache[type_operation].update(parameters)
-        if type_operation == "update" and len(self._cache[type_operation]['new_data']):
+        if type_operation == "update" and len(self._cache["update"]['new_data']):
             self.merge_updates(new_data)
         else:
             self._cache[type_operation]['new_data'].append(new_data)
@@ -78,11 +78,11 @@ class CachedStorage:
             self.execute_operations()
 
     def merge_updates(self, new_data):
-        data = self._cache[type_operation]['new_data'][-1]
+        data = self._cache["update"]['new_data'][-1]
         if self.update_logic == "keep_last":
             data = data.sel({self.dim: ~data.coords[self.dim].isin(new_data.coords[self.dim])})
         data = new_data.combine_first(data)
-        self._cache[type_operation]['new_data'][-1] = data
+        self._cache["update"]['new_data'][-1] = data
     def merge_update_on_append(self):
         append_data = self._cache["append"]["new_data"]
         update_data = self._cache["update"]["new_data"]
@@ -120,7 +120,12 @@ class CachedStorage:
             operation = self._cache[type_operation]
             if isinstance(operation['new_data'], list):
                 continue
-            getattr(self.storage, type_operation)(**operation)
+            try:
+                getattr(self.storage, type_operation)(**operation)
+            except Exception as e:
+                raise Exception(
+                    f"Actual index of the data is {operation['new_data'].indexes[self.dim].values} "
+                ) from e
 
         self._clean_cache()
 
