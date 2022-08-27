@@ -1,9 +1,10 @@
 import numpy as np
 import pandas as pd
 import pytest
+import xarray
 import xarray as xr
 
-from tensordb.algorithms import Algorithms
+from tensordb.algorithms import Algorithms, NumpyAlgorithms
 
 
 # TODO: Add more tests for the dataset cases
@@ -183,16 +184,16 @@ def test_vindex():
 
 
 @pytest.mark.parametrize(
-    'dim, keep_shape, output_dim',
+    'dim, keep_shape, output_dim, func',
     [
-        ('a', False, None),
-        ('b', False, None),
-        ('a', True, None),
-        ('b', True, None),
-        ('b', True, 'h')
+        ('a', False, None, "max"),
+        ('b', False, None, "max"),
+        ('a', True, None, "max"),
+        ('b', True, None, "max"),
+        ('b', True, 'h', "max"),
     ]
 )
-def test_apply_on_groups(dim, keep_shape, output_dim):
+def test_apply_on_groups(dim, keep_shape, output_dim, func):
     arr = xr.DataArray(
         [
             [1, 2, 3, 4, 3],
@@ -210,9 +211,12 @@ def test_apply_on_groups(dim, keep_shape, output_dim):
     }
     groups = {k: v for k, v in zip(arr.coords[dim].values, grouper[dim])}
 
-    g = arr.groupby(xr.IndexVariable(dim, grouper[dim])).max(dim)
+    g = getattr(arr.groupby(xr.IndexVariable(dim, grouper[dim])), func)(dim)
+    if func == "max":
+        func = "nanmax"
+
     arr = Algorithms.apply_on_groups(
-        arr, groups=groups, dim=dim, func='nanmax', keep_shape=keep_shape, output_dim=output_dim
+        arr, groups=groups, dim=dim, func=func, keep_shape=keep_shape, output_dim=output_dim
     )
     if output_dim:
         g = g.rename({dim: output_dim})

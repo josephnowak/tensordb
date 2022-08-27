@@ -1,4 +1,4 @@
-from typing import Union, List, Dict, Literal, Any
+from typing import Union, List, Dict, Literal, Any, Callable
 
 import dask
 import dask.array as da
@@ -6,6 +6,46 @@ import numpy as np
 import numpy_groupies as npg
 import pandas as pd
 import xarray as xr
+
+
+class NumpyAlgorithms:
+    @staticmethod
+    def nanrankdata(a, method, axis):
+        from scipy.stats import rankdata
+        return np.where(np.isnan(a), np.nan, rankdata(a, method=method, axis=axis))
+    @staticmethod
+    def nanrankdata_1d(a, method):
+        from scipy.stats import rankdata
+        idx = ~np.isnan(a)
+        a[idx] = rankdata(a[idx], method=method)
+        return a
+
+    @staticmethod
+    def shift_on_valid(a, shift):
+        pos = np.arange(len(a))[~np.isnan(a)]
+        v = a[np.roll(pos, shift)]
+        if shift < 0:
+            v[shift:] = np.nan
+        else:
+            v[:shift] = np.nan
+        a[pos] = v
+        return a
+    @staticmethod
+    def apply_rolling_operator(a, drop_nan, window, min_periods, operator, fill_method):
+        s = pd.Series(a)
+        index = s.index
+        if drop_nan:
+            s.dropna(inplace=True)
+        s = getattr(s.rolling(window, min_periods=min_periods), operator)()
+        if drop_nan:
+            s = s.reindex(index, method=fill_method)
+        return s.values
+    @staticmethod
+    def replace(x, sorted_key_groups, group_values):
+        valid_replace = np.isin(x, sorted_key_groups)
+        # put 0 to the positions that are not in the keys of the groups
+        positions = np.searchsorted(sorted_key_groups, x) * valid_replace
+        return np.where(valid_replace, group_values[positions], x)
 
 
 class Algorithms:
@@ -65,10 +105,7 @@ class Algorithms:
             from scipy.stats import rankdata
 
             if use_map_block:
-                def _nanrankdata(a, method, axis):
-                    return np.where(np.isnan(a), np.nan, rankdata(a, method=method, axis=axis))
-
-                func = rankdata if rank_nan else _nanrankdata
+                func = rankdata if rank_nan else NumpyAlgorithms.nanrankdata
                 data = new_data.chunk({dim: -1}).data
                 ranked = data.map_blocks(
                     func=func,
@@ -78,12 +115,7 @@ class Algorithms:
                     method=method
                 )
             else:
-                def _nanrankdata_1d(a, method):
-                    idx = ~np.isnan(a)
-                    a[idx] = rankdata(a[idx], method=method)
-                    return a
-
-                func = rankdata if rank_nan else _nanrankdata_1d
+                func = rankdata if rank_nan else NumpyAlgorithms.nanrankdata_1d
                 ranked = da.apply_along_axis(
                     func1d=func,
                     axis=new_data.dims.index(dim),
@@ -117,21 +149,12 @@ class Algorithms:
                 attrs=new_data.attrs
             )
 
-        def _shift(a):
-            pos = np.arange(len(a))[~np.isnan(a)]
-            v = a[np.roll(pos, shift)]
-            if shift < 0:
-                v[shift:] = np.nan
-            else:
-                v[:shift] = np.nan
-            a[pos] = v
-            return a
-
         return xr.DataArray(
             da.apply_along_axis(
-                func1d=_shift,
+                func1d=NumpyAlgorithms.shift_on_valid,
                 axis=new_data.dims.index(dim),
                 arr=new_data.data,
+                shift=shift,
                 dtype=float,
                 shape=(new_data.sizes[dim],),
             ),
@@ -161,21 +184,16 @@ class Algorithms:
                 attrs=new_data.attrs
             )
 
-        def _apply_rolling_operator(a):
-            s = pd.Series(a)
-            index = s.index
-            if drop_nan:
-                s.dropna(inplace=True)
-            s = getattr(s.rolling(window, min_periods=min_periods), operator)()
-            if drop_nan:
-                s = s.reindex(index, method=fill_method)
-            return s.values
-
         return xr.DataArray(
             da.apply_along_axis(
-                func1d=_apply_rolling_operator,
+                func1d=NumpyAlgorithms.apply_rolling_operator,
                 axis=new_data.dims.index(dim),
                 arr=new_data.data,
+                window=window,
+                drop_nan=drop_nan,
+                min_periods=min_periods,
+                operator=operator,
+                fill_method=fill_method,
                 dtype=new_data.dtype,
                 shape=(new_data.sizes[dim],),
             ),
@@ -205,17 +223,13 @@ class Algorithms:
         sorted_key_groups = np.array(sorted(list(to_replace.keys())))
         group_values = np.array([to_replace[v] for v in sorted_key_groups])
 
-        def _replace(x):
-            valid_replace = np.isin(x, sorted_key_groups)
-            # put 0 to the positions that are not in the keys of the groups
-            positions = np.searchsorted(sorted_key_groups, x) * valid_replace
-            return np.where(valid_replace, group_values[positions], x)
-
         return xr.DataArray(
             da.map_blocks(
-                _replace,
+                NumpyAlgorithms.replace,
                 new_data.data,
+                sorted_key_groups=sorted_key_groups,
                 dtype=dtype,
+                group_values=group_values,
                 chunks=new_data.chunks
             ),
             coords=new_data.coords,
@@ -271,12 +285,17 @@ class Algorithms:
             new_data: Union[xr.DataArray, xr.Dataset],
             groups: Union[Dict, xr.DataArray],
             dim: str,
-            func: str,
+            func: Union[str, Callable],
             fill_value: Any = np.nan,
             keep_shape: bool = False,
             output_dim: str = None,
             unique_groups: np.ndarray = None,
-            group_algorithm: Literal['aggregate', 'aggregate_nb', 'aggregate_weave'] = 'aggregate',
+            group_algorithm: Literal[
+                'aggregate',
+                'aggregate_nb',
+                'aggregate_np',
+                'custom'
+            ] = 'aggregate',
     ):
         """
         Method created as a replacement for the xarray groupby that right now has performance problems,
@@ -299,7 +318,8 @@ class Algorithms:
             Dimension on which apply the groupby
 
         func: str
-            Function to be applied on the groupby, read numpy-groupies docs
+            Function to be applied on the groupby, this can be any of the function name in numpy-groupies docs
+            or also a custom function, recomendation use partial for sending parameters
 
         fill_value: Any
             Read numpy-groupies docs for more info
@@ -338,7 +358,10 @@ class Algorithms:
             )
 
         axis = new_data.dims.index(dim)
-        group_algorithm = getattr(npg, group_algorithm)
+        if group_algorithm == "custom":
+            group_algorithm = func
+        else:
+            group_algorithm = getattr(npg, group_algorithm)
         data = new_data.chunk({dim: -1}).data
         output_dim = dim if output_dim is None else output_dim
 
@@ -471,44 +494,3 @@ class Algorithms:
         else:
             valid_coords = [c.result() for c in client.compute(valid_coords)]
         return new_data.sel(dict(zip(dims, valid_coords)))
-
-    # @classmethod
-    # def insert_sorted(
-    #         cls,
-    #         new_data: Union[xr.DataArray, xr.Dataset],
-    #         other: Union[xr.DataArray, xr.DataArray],
-    #         dim: str,
-    #         fill_value: Any = np.nan
-    # ):
-    #     """
-    #     Insert the data of one array into another. this is equivalent to the combine first method of xarray
-    #     but only applied on one dimension and on a sorted coord, this is to avoid performance
-    #     problem on the reindex
-    #
-    #     Parameters
-    #     ----------
-    #     new_data: Union[xr.DataArray, xr.Dataset]
-    #         This is the data at which the data is going to be inserted
-    #
-    #     other: Union[xr.DataArray, xr.Dataset]
-    #         Data that is going to be inserted on the new_data array
-    #
-    #     fill_value: Any, default np.nan
-    #         Useful to avoid the lost of the original dtype when the reindex is executed
-    #
-    #     dim: str
-    #         Dim for the insertion
-    #
-    #     """
-    #     # TODO: Add unit testing
-    #     act_coord = new_data.indexes[dim]
-    #     coord_insert = other.indexes[dim]
-    #     if not (act_coord.is_monotonic_increasing or act_coord.is_monotonic_decreasing):
-    #         raise ValueError(f'The new_data coord must be sorted')
-    #
-    #     reindex_coord = act_coord.union(coord_insert).sort_values(ascending=act_coord.is_monotonic_increasing)
-    #
-    #     new_data = new_data.reindex({dim: reindex_coord.values}, fill_value=fill_value)
-    #     indexing = tuple(coord_insert if d == dim else slice(None, None) for d in new_data.dims)
-    #     new_data.loc[indexing] = other
-    #     return new_data

@@ -1,5 +1,6 @@
 from collections.abc import MutableMapping
 from typing import ContextManager
+from zarr.storage import FSStore
 
 
 class NoLock:
@@ -48,9 +49,13 @@ class Mapping(MutableMapping):
     def sub_map(self, sub_path):
         mapper = self.mapper
         root = self.root
-        if self.enable_sub_map and hasattr(mapper, 'fs') and hasattr(mapper.fs, 'get_mapper'):
+        if self.enable_sub_map and hasattr(mapper, 'fs'):
             if root is not None:
                 root = f'{root}/{sub_path}'
+
+            if isinstance(mapper, FSStore):
+                mapper = FSStore(root, fs=mapper.fs)
+            elif hasattr(mapper.fs, 'get_mapper'):
                 mapper = mapper.fs.get_mapper(root)
             sub_path = None
         return Mapping(mapper, sub_path, self.read_lock, self.write_lock, root)
