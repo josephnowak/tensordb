@@ -328,6 +328,7 @@ class TestTensorClient:
         [
             ({"first": 2, "second": 2}, 'thread'),
             ({"first": 2, "second": 1}, 'dask'),
+            ({"first": 2, "second": 1}, 'process'),
         ]
     )
     def test_get_dag_for_dask(self, max_per_group, semaphore_type):
@@ -384,7 +385,7 @@ class TestTensorClient:
 
         get = None
         client = None
-        if semaphore_type == 'dask':
+        if semaphore_type == 'dask' or semaphore_type == "process":
             from dask.distributed import Client
             client = Client()
             get = client.get
