@@ -66,19 +66,6 @@ class TensorClient(Algorithms):
         synchronizer option for every one of them (you can pass different synchronizer to every tensor).
         The Mapping class provided by this library offers a lock solution for this purpose.
 
-    remote_map: MutableMapping
-        If the remote_map is set then the file cache mode is activated it, what this mean is that the
-        client is going to synchronize the tensors between the remote_map and the base_map (local_map), this
-        is useful to speed up the reads of the same file because avoid downloading multiple time the same file
-
-    synchronizer_mode: Literal["manual", "automatic"] = "automatic"
-        If this option is enable then all the writes on the base_map are also executed on the remote_map
-
-    tensor_lock: ContextManager = None
-        If there are multiple instances using the tensor_client to write
-        it is necessary to use a lock to avoid any issue or if the remote_map is enabled then it is
-        good idea to use the tensor_lock to avoid duplicate downloads or synchronization issues
-
     **kwargs: Dict
         Useful when you want to inherent from this class.
 
@@ -200,33 +187,19 @@ class TensorClient(Algorithms):
     def __init__(
             self,
             base_map: MutableMapping,
-            remote_map: MutableMapping = None,
             tmp_map: MutableMapping = None,
             synchronizer: str = None,
-            write_synchronized: bool = False,
-            tensor_lock: ContextManager = None,
             **kwargs
     ):
         self.base_map = base_map
         if not isinstance(base_map, Mapping):
             self.base_map: Mapping = Mapping(base_map)
 
-        self.remote_map = remote_map
-        self._remote_tensors_definition = None
-        if remote_map is not None:
-            if not isinstance(remote_map, Mapping):
-                self.remote_map: Mapping = Mapping(remote_map)
-            self._remote_tensors_definition = JsonStorage(
-                base_map=self.remote_map.sub_map('_tensors_definition'),
-            )
-
         self.tmp_map = self.base_map.sub_map('tmp') if tmp_map is None else tmp_map
         if not isinstance(self.tmp_map, Mapping):
             self.tmp_map: Mapping = Mapping(tmp_map)
 
         self.synchronizer = synchronizer
-        self.write_synchronized = write_synchronized
-        self.tensor_lock = NoLock if tensor_lock is None else tensor_lock
         self._tensors_definition = JsonStorage(
             base_map=self.base_map.sub_map('_tensors_definition'),
             tmp_map=self.tmp_map.sub_map('_tensors_definition'),
@@ -260,7 +233,7 @@ class TensorClient(Algorithms):
         self._tensors_definition.upsert(path=definition.path, new_data=definition.dict(exclude_unset=True))
 
     @validate_arguments
-    def get_tensor_definition(self, path: str, remote: bool = False) -> TensorDefinition:
+    def get_tensor_definition(self, path: str) -> TensorDefinition:
         """
         Retrieve a tensor definition.
 
@@ -268,21 +241,14 @@ class TensorClient(Algorithms):
         ----------
         path: str
             Location of your stored tensor.
-        remote: bool = False
-            If True reads the definition directly from the remote_map instead of the base_map
 
         Returns
         -------
         A `TensorDefinition`
 
         """
-        tensor_definition = self._tensors_definition
-        if remote:
-            tensor_definition = self._remote_tensors_definition
-            if tensor_definition is None:
-                raise ValueError(f"If the remote option is enabled then there must exist a remote_map")
         try:
-            return TensorDefinition(**tensor_definition.read(path))
+            return TensorDefinition(**self._tensors_definition.read(path))
         except KeyError:
             raise KeyError(f'The tensor {path} has not been created using the create_tensor method')
 
@@ -291,27 +257,6 @@ class TensorClient(Algorithms):
         tensor_definition = self.get_tensor_definition(path)
         tensor_definition.metadata.update(new_metadata)
         self.upsert_tensor(tensor_definition)
-
-    @validate_arguments
-    def add_write_metadata(self, path: str):
-        modification_date = str(pd.Timestamp.now())
-        self.update_tensor_metadata(path, {"modification_date": modification_date})
-
-    @validate_arguments
-    def synchronize_tensor(
-            self,
-            path: str,
-            mode: Literal[
-                "same_as_remote",
-                ""
-            ]
-    ):
-        td = self.get_tensor_definition(path)
-        rtd = self.get_tensor_definition(path, True)
-        local_modification_date = pd.Timestamp(td.metadata["modification_date"])
-        remote_modification_date = pd.Timestamp(rtd.metadata["modification_date"])
-        if local_modification_date >= remote_modification_date:
-            return
 
     def get_all_tensors_definition(self) -> List[TensorDefinition]:
         from concurrent.futures import ThreadPoolExecutor
@@ -727,8 +672,7 @@ class TensorClient(Algorithms):
         if isinstance(path, (xr.DataArray, xr.Dataset)):
             return path
 
-        with self.tensor_lock(path):
-            return self.storage_method_caller(path=path, method_name='read', parameters=kwargs)
+        return self.storage_method_caller(path=path, method_name='read', parameters=kwargs)
 
     def append(self, path: Union[str, TensorDefinition], **kwargs) -> List[AbstractWritableDataStore]:
         """
@@ -740,9 +684,7 @@ class TensorClient(Algorithms):
         which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
-        with self.tensor_lock(path):
-            self.add_write_metadata(path)
-            return self.storage_method_caller(path=path, method_name='append', parameters=kwargs)
+        return self.storage_method_caller(path=path, method_name='append', parameters=kwargs)
 
     def update(self, path: Union[str, TensorDefinition], **kwargs) -> AbstractWritableDataStore:
         """
@@ -754,9 +696,7 @@ class TensorClient(Algorithms):
         which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
-        with self.tensor_lock(path):
-            self.add_write_metadata(path)
-            return self.storage_method_caller(path=path, method_name='update', parameters=kwargs)
+        return self.storage_method_caller(path=path, method_name='update', parameters=kwargs)
 
     def store(self, path: Union[str, TensorDefinition], **kwargs) -> AbstractWritableDataStore:
         """
@@ -768,9 +708,7 @@ class TensorClient(Algorithms):
         which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
-        with self.tensor_lock(path):
-            self.add_write_metadata(path)
-            return self.storage_method_caller(path=path, method_name='store', parameters=kwargs)
+        return self.storage_method_caller(path=path, method_name='store', parameters=kwargs)
 
     def upsert(self, path: Union[str, TensorDefinition], **kwargs) -> List[AbstractWritableDataStore]:
         """
@@ -782,9 +720,7 @@ class TensorClient(Algorithms):
         which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
-        with self.tensor_lock(path):
-            self.add_write_metadata(path)
-            return self.storage_method_caller(path=path, method_name='upsert', parameters=kwargs)
+        return self.storage_method_caller(path=path, method_name='upsert', parameters=kwargs)
 
     def drop(self, path: Union[str, TensorDefinition], **kwargs) -> List[AbstractWritableDataStore]:
         """
@@ -796,8 +732,7 @@ class TensorClient(Algorithms):
         which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
-        with self.tensor_lock(path):
-            return self.storage_method_caller(path=path, method_name='drop', parameters=kwargs)
+        return self.storage_method_caller(path=path, method_name='drop', parameters=kwargs)
 
     def exist(self, path: str, **kwargs) -> bool:
         """
@@ -974,8 +909,4 @@ class TensorClient(Algorithms):
             exec(formula, formula_globals, kwargs)
             return kwargs['new_data']
         return eval(formula, formula_globals, kwargs)
-
-
-class FileCacheTensorClient(TensorClient):
-    pass
 

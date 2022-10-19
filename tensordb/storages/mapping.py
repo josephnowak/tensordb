@@ -1,5 +1,10 @@
+import os
+
 from collections.abc import MutableMapping
 from typing import ContextManager
+from concurrent.futures import ThreadPoolExecutor
+
+import pandas as pd
 from zarr.storage import FSStore
 
 
@@ -146,3 +151,20 @@ class Mapping(MutableMapping):
         for key in self:
             if key.startswith(path):
                 del self[key]
+
+    def modified(self, key):
+        return pd.Timestamp(self.mapper.fs.modified(self.full_path(key)))
+
+    def copy_to_mapping(self, local_map: "Mapping", after_date: pd.Timestamp):
+        total_paths = list(set(list(self.keys()) + list(local_map.keys())))
+
+        def _move_data(path):
+            if path not in self:
+                del local_map[path]
+                return
+            if self.modified(path) < after_date:
+                return
+            local_map[path] = self[path]
+
+        with ThreadPoolExecutor(os.cpu_count()) as p:
+            list(p.map(_move_data, total_paths))
