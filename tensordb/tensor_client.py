@@ -488,7 +488,7 @@ class TensorClient(Algorithms):
             kwargs_groups: Dict[str, Dict[str, Any]] = None,
             tensors: List[TensorDefinition] = None,
             max_parallelization_per_group: Dict[str, int] = None,
-            semaphore_type: Literal['thread', 'dask'] = 'dask',
+            semaphore_type: Literal['thread', 'dask', 'process'] = 'process',
             map_paths: Dict[str, str] = None,
             task_prefix: str = 'task-',
             final_task_name: str = 'WAIT',
@@ -507,14 +507,20 @@ class TensorClient(Algorithms):
 
         tensors = [tensor for tensor in tensors if tensor.dag is not None]
         groups = {tensor.path: tensor.dag.group for tensor in tensors}
+        manager = None
+        if semaphore_type == "process":
+            from multiprocessing import Manager
+            manager = Manager()
 
         semaphores = dict()
         for group in set(groups.values()):
             if group not in max_parallelization_per_group:
                 semaphores[group] = NoLock()
             elif semaphore_type == 'thread':
-                import threading
-                semaphores[group] = threading.Semaphore(max_parallelization_per_group[group])
+                from threading import Semaphore
+                semaphores[group] = Semaphore(max_parallelization_per_group[group])
+            elif semaphore_type == "process":
+                semaphores[group] = manager.Semaphore(max_parallelization_per_group[group])
             else:
                 semaphores[group] = dask.distributed.Semaphore(
                     max_parallelization_per_group[group],
