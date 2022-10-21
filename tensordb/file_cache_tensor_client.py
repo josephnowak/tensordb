@@ -30,8 +30,6 @@ from tensordb.utils.tools import (
 from tensordb.tensor_client import TensorClient
 
 
-
-
 class FileCacheTensorClient:
     """
     Parameters
