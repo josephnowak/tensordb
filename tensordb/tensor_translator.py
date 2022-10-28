@@ -122,7 +122,6 @@ def _generate_lazy_dataset(
         dtypes: List[Any],
         data_names: List[Hashable],
         func_parameters: Dict[str, Any],
-        pure: bool = True
 ):
     """
     Create an Xarray Dataset from a function applied on every chunk
