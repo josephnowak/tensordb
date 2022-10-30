@@ -281,7 +281,7 @@ class Algorithms:
         """
         This method was created as a replacement of the groupby of Xarray when the group is only
         over one dimension or when the group is of the same shape as the data and the func must be applied
-        over a specific function
+        over a specific dim
 
         Parameters
         ----------
