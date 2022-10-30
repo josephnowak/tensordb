@@ -48,8 +48,7 @@ def groupby_chunks(
         for name, group in it.groupby(
         sorted(iterable, key=sort_func),
         group_func
-    )
-    ))
+    )))
     )
 
 
