@@ -1,10 +1,9 @@
 import numpy as np
 import pandas as pd
 import pytest
-import xarray
 import xarray as xr
 
-from tensordb.algorithms import Algorithms, NumpyAlgorithms
+from tensordb.algorithms import Algorithms
 
 
 # TODO: Add more tests for the dataset cases
@@ -212,9 +211,6 @@ def test_apply_on_groups(dim, keep_shape, output_dim, func):
     groups = {k: v for k, v in zip(arr.coords[dim].values, grouper[dim])}
 
     g = getattr(arr.groupby(xr.IndexVariable(dim, grouper[dim])), func)(dim)
-    if func == "max":
-        func = "nanmax"
-
     arr = Algorithms.apply_on_groups(
         arr, groups=groups, dim=dim, func=func, keep_shape=keep_shape, output_dim=output_dim
     )
@@ -226,21 +222,21 @@ def test_apply_on_groups(dim, keep_shape, output_dim, func):
     if keep_shape:
         g = g.reindex({dim: grouper[dim]})
         g.coords[dim] = arr.coords[dim].values
-
     assert g.equals(arr)
 
 
 @pytest.mark.parametrize(
-    'dim, keep_shape, output_dim',
+    'dim, keep_shape, output_dim, func',
     [
-        ('a', False, None),
-        ('b', False, None),
-        ('a', True, None),
-        ('b', True, None),
-        ('b', True, 'h')
+        ('a', True, None, 'rank'),
+        ('a', False, None, 'max'),
+        ('b', False, None, 'max'),
+        ('a', True, None, 'max'),
+        ('b', True, None, 'max'),
+        ('b', True, 'h', 'max')
     ]
 )
-def test_apply_on_groups_array(dim, keep_shape, output_dim):
+def test_apply_on_groups_array(dim, keep_shape, output_dim, func):
     arr = xr.DataArray(
         [
             [1, 2, 3, 4, 3],
@@ -264,27 +260,29 @@ def test_apply_on_groups_array(dim, keep_shape, output_dim):
         coords={'a': [1, 2, 3, 4, 5], 'b': [0, 1, 2, 3, 4]}
     ).chunk((3, 2))
     unique_groups = np.unique(groups.values)
+    axis = arr.dims.index(dim)
 
     result = Algorithms.apply_on_groups(
-        arr, groups=groups, dim=dim, func='nanmax', keep_shape=keep_shape, output_dim=output_dim
+        arr, groups=groups, dim=dim, func=func, keep_shape=keep_shape, output_dim=output_dim,
     )
+    if output_dim is None:
+        output_dim = dim
 
     iterate_dim = 'b' if dim == 'a' else 'a'
-    for i in range(arr.sizes[iterate_dim]):
-        x = arr.isel({iterate_dim: i})
-        grouper = groups.isel({iterate_dim: i})
-        r = result.isel({iterate_dim: i})
-        g = x.groupby(xr.IndexVariable(dim, grouper)).max(dim)
-        if output_dim:
-            g = g.rename({dim: output_dim})
-        else:
-            output_dim = dim
-
+    for coord in arr.coords[iterate_dim].values:
+        x = arr.sel({iterate_dim: coord}, drop=True)
+        grouper = groups.sel({iterate_dim: coord}, drop=True).compute()
+        r = result.sel({iterate_dim: coord}, drop=True)
+        kwargs = {"method": "first", "axis": axis} if func == "rank" else {}
+        s = x.to_pandas()
+        g = getattr(s.groupby(grouper.to_pandas()), func)(**kwargs).to_xarray()
+        if output_dim not in g.dims:
+            g = g.rename({g.dims[0]: output_dim})
         if keep_shape:
-            g = g.reindex({output_dim: grouper.values})
-            g.coords[output_dim] = arr.coords[dim].values
-
-        if not keep_shape:
+            if func != "rank":
+                g = g.reindex({output_dim: grouper.values})
+                g.coords[output_dim] = arr.coords[dim].values
+        else:
             assert np.all(r.coords[dim].values == unique_groups)
             assert r.sum() == g.sum()
             r = r.sel({dim: g.coords[dim]})
@@ -306,7 +304,7 @@ def test_merge_duplicates_coord(dim):
     ).chunk((3, 2))
 
     g = arr.groupby(dim).max(dim)
-    arr = Algorithms.merge_duplicates_coord(arr, dim, 'nanmax')
+    arr = Algorithms.merge_duplicates_coord(arr, dim, 'max')
     assert g.equals(arr)
 
 

@@ -3,7 +3,6 @@ from typing import List
 import numpy as np
 import pytest
 import xarray as xr
-
 from tensordb.tensor_translator import defined_translation
 
 
@@ -29,7 +28,8 @@ class TestTensorTranslation:
 
     @staticmethod
     def read_by_coords_dataset(dataset: xr.Dataset, coords) -> List[xr.DataArray]:
-        return [dataset[name].sel(**coords) for name in ['first', 'second']]
+        return dataset[['first', 'second']].sel(**coords)
+        # return [dataset[name] for name in ['first', 'second']]
 
     def test_defined_translation_data_array(self):
         data = defined_translation(
