@@ -1,5 +1,6 @@
 from collections.abc import MutableMapping
 from typing import ContextManager
+
 from zarr.storage import FSStore
 
 
@@ -116,7 +117,7 @@ class Mapping(MutableMapping):
         if hasattr(self.mapper, 'fs') and hasattr(self.mapper.fs, 'listdir'):
             try:
                 return self.mapper.fs.listdir(self.add_root(path), detail=False)
-            except (FileNotFoundError,  KeyError) as e:
+            except (FileNotFoundError, KeyError) as e:
                 return []
 
         path = '' if path is None else path

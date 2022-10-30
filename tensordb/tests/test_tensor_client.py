@@ -324,13 +324,13 @@ class TestTensorClient:
         assert self.tensor_client.read('1').equals(self.arr * 2)
 
     @pytest.mark.parametrize(
-        'max_per_group, semaphore_type',
+        'max_per_group, client_type',
         [
-            ({"first": 2, "second": 2}, 'thread'),
+            ({"first": 1, "second": 2}, 'thread'),
             ({"first": 2, "second": 1}, 'dask'),
         ]
     )
-    def test_get_dag_for_dask(self, max_per_group, semaphore_type):
+    def test_get_dag_for_dask(self, max_per_group, client_type, dask_client):
         # TODO: Improve this tests, it only generates a DAG, so it does not need to check if the results
         #   of the computations are correct.
         definitions = [
@@ -368,6 +368,17 @@ class TestTensorClient:
                 dag={'depends': ['0'], 'group': 'second'}
             ),
             TensorDefinition(
+                path='4',
+                definition={
+                    'store': {
+                        'data_transformation': [
+                            {'method_name': 'read_from_formula', 'parameters': {'formula': "`0` + 1"}}
+                        ]
+                    }
+                },
+                dag={'depends': ['0'], 'group': 'first'}
+            ),
+            TensorDefinition(
                 path='3',
                 definition={
                     'store': {
@@ -382,24 +393,19 @@ class TestTensorClient:
         for definition in definitions:
             self.tensor_client.create_tensor(definition)
 
-        get = None
-        client = None
-        if semaphore_type == 'dask':
-            from dask.distributed import Client
-            client = Client()
-            get = client.get
-        elif semaphore_type == 'thread':
-            get = dask.threaded.get
-        else:
-            get = dask.multiprocessing.get
-
         dask_graph = self.tensor_client.get_dag_for_dask(
             method='store',
             max_parallelization_per_group=max_per_group,
-            semaphore_type=semaphore_type,
             final_task_name='FinalTask',
         )
+        get = None
+        if client_type == 'dask':
+            get = dask_client.get
+        else:
+            get = dask.threaded.get
+
         get(dask_graph, "FinalTask")
+
         assert self.tensor_client.read('0').equals(self.arr)
         assert self.tensor_client.read('1').equals(self.arr * 2)
         assert self.tensor_client.read('2').equals(self.arr + 1)
@@ -409,14 +415,10 @@ class TestTensorClient:
             method='store',
             tensors=[self.tensor_client.get_tensor_definition('1')],
             max_parallelization_per_group=max_per_group,
-            semaphore_type=semaphore_type,
             final_task_name='FinalTask',
         )
         get(dask_graph, "FinalTask")
         assert self.tensor_client.read('1').equals(self.arr * 2)
-
-        if client is not None:
-            client.close()
 
 
 if __name__ == "__main__":

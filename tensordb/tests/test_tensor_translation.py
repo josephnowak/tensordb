@@ -3,7 +3,6 @@ from typing import List
 import numpy as np
 import pytest
 import xarray as xr
-
 from tensordb.tensor_translator import defined_translation
 
 

@@ -1,4 +1,4 @@
-from typing import Union, List, Dict, Literal, Any, Callable
+from typing import Union, List, Dict, Literal, Any
 
 import dask
 import dask.array as da
@@ -12,6 +12,7 @@ class NumpyAlgorithms:
     def nanrankdata(a, method, axis):
         from scipy.stats import rankdata
         return np.where(np.isnan(a), np.nan, rankdata(a, method=method, axis=axis))
+
     @staticmethod
     def nanrankdata_1d(a, method):
         from scipy.stats import rankdata
@@ -29,6 +30,7 @@ class NumpyAlgorithms:
             v[:shift] = np.nan
         a[pos] = v
         return a
+
     @staticmethod
     def apply_rolling_operator(a, drop_nan, window, min_periods, operator, fill_method):
         s = pd.Series(a)
@@ -39,6 +41,7 @@ class NumpyAlgorithms:
         if drop_nan:
             s = s.reindex(index, method=fill_method)
         return s.values
+
     @staticmethod
     def replace(x, sorted_key_groups, group_values):
         valid_replace = np.isin(x, sorted_key_groups)

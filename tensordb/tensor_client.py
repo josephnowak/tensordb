@@ -10,8 +10,6 @@ import pandas as pd
 import xarray as xr
 from loguru import logger
 from pydantic import validate_arguments
-from xarray.backends.common import AbstractWritableDataStore
-
 from tensordb import dag
 from tensordb.algorithms import Algorithms
 from tensordb.storages import (
@@ -20,13 +18,15 @@ from tensordb.storages import (
     CachedStorage,
     MAPPING_STORAGES
 )
-from tensordb.storages.mapping import Mapping, NoLock
+from tensordb.storages.mapping import Mapping
 from tensordb.tensor_definition import TensorDefinition, MethodDescriptor, Definition
 from tensordb.utils.method_inspector import get_parameters
 from tensordb.utils.tools import (
     groupby_chunks,
     extract_paths_from_formula,
+    iter_by_group_chunks
 )
+from xarray.backends.common import AbstractWritableDataStore
 
 
 class TensorClient(Algorithms):
@@ -488,7 +488,6 @@ class TensorClient(Algorithms):
             kwargs_groups: Dict[str, Dict[str, Any]] = None,
             tensors: List[TensorDefinition] = None,
             max_parallelization_per_group: Dict[str, int] = None,
-            semaphore_type: Literal['thread', 'dask'] = 'dask',
             map_paths: Dict[str, str] = None,
             task_prefix: str = 'task-',
             final_task_name: str = 'WAIT',
@@ -507,42 +506,32 @@ class TensorClient(Algorithms):
 
         tensors = [tensor for tensor in tensors if tensor.dag is not None]
         groups = {tensor.path: tensor.dag.group for tensor in tensors}
+        # The new dependencies are applied to limit the amount of tasks processed in parallel
+        # on each group
+        new_dependencies = {}
 
-        semaphores = dict()
-        for group in set(groups.values()):
-            if group not in max_parallelization_per_group:
-                semaphores[group] = NoLock()
-            elif semaphore_type == 'thread':
-                import threading
-                semaphores[group] = threading.Semaphore(max_parallelization_per_group[group])
-            else:
-                semaphores[group] = dask.distributed.Semaphore(
-                    max_parallelization_per_group[group],
-                    name=f'max_parallelization_{group}'
-                )
+        for level in dag.get_tensor_dag(tensors, False):
+            prev_dependencies = set()
+            for i, (name, group) in enumerate(iter_by_group_chunks(
+                    level, max_parallelization_per_group, lambda tensor: tensor.dag.group
+            )):
+                if i != 0:
+                    new_dependencies.update({tensor.path: prev_dependencies for tensor in group})
+                prev_dependencies = set(tensor.path for tensor in group)
 
         def _exec_on_dask(
                 func: Callable,
                 params,
-                sem,
                 process: bool,
                 *prev_tasks,
         ):
-            if not process:
-                return None
-
-            with sem:
-                try:
-                    result = func(**params)
-                except Exception as e:
-                    raise e.__class__(f"The tensor with path: {params['path']} had an error") from e
-
-            return result
+            if process:
+                return func(**params)
 
         graph = {}
         for tensor in tensors:
             path = tensor.path
-            depends = set(tensor.dag.depends)
+            depends = set(tensor.dag.depends) | new_dependencies.get(path, set())
             group = groups[path]
             parameters = kwargs_groups.get(group, {}).copy()
             parameters['path'] = path
@@ -550,7 +539,6 @@ class TensorClient(Algorithms):
                 _exec_on_dask,
                 method,
                 parameters,
-                semaphores[group],
                 method.__name__ not in tensor.dag.omit_on,
                 *tuple(map_paths.get(p, task_prefix + p) for p in depends)
             )

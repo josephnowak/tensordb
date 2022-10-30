@@ -1,6 +1,5 @@
 from setuptools import setup, find_packages
 
-
 with open('requirements.txt') as f:
     required = f.read().splitlines()
 
@@ -16,7 +15,7 @@ setup(
         'Intended Audience :: Science/Research',
         'Intended Audience :: General',
         'Natural Language :: English',
-        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ],
     keywords='Database Files Xarray Handler Zarr Store Read Write Append Update Upsert Backup Delete S3',
     packages=find_packages(),
