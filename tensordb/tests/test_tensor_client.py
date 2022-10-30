@@ -328,6 +328,7 @@ class TestTensorClient:
         [
             ({"first": 1, "second": 2}, 'thread'),
             ({"first": 2, "second": 1}, 'dask'),
+            ({"first": 2, "second": 1}, 'process'),
         ]
     )
     def test_get_dag_for_dask(self, max_per_group, client_type, dask_client):
