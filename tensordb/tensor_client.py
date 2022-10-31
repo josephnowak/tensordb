@@ -332,6 +332,20 @@ class TensorClient(Algorithms):
         )
         return storage
 
+    @staticmethod
+    def _exec_on_dask(
+            func: Callable,
+            params,
+            process: bool,
+            *prev_tasks,
+    ):
+        if process:
+            try:
+                return func(**params)
+            except Exception as e:
+                e.args = (f"Tensor path: {params['path']}", *e.args)
+                raise
+
     @classmethod
     def exec_on_parallel(
             cls,
@@ -386,10 +400,10 @@ class TensorClient(Algorithms):
                 logger.info(f"Processing the following tensors: {sub_paths}")
                 futures = [
                     pool.submit(
+                        TensorClient._exec_on_dask,
                         method,
-                        path=path,
-                        compute=compute,
-                        **paths_kwargs[path]
+                        {"path": path, "compute": compute, **paths_kwargs[path]},
+                        True
                     )
                     for path in sub_paths
                 ]
@@ -519,15 +533,6 @@ class TensorClient(Algorithms):
                     new_dependencies.update({tensor.path: prev_dependencies for tensor in group})
                 prev_dependencies = set(tensor.path for tensor in group)
 
-        def _exec_on_dask(
-                func: Callable,
-                params,
-                process: bool,
-                *prev_tasks,
-        ):
-            if process:
-                return func(**params)
-
         graph = {}
         for tensor in tensors:
             path = tensor.path
@@ -536,7 +541,7 @@ class TensorClient(Algorithms):
             parameters = kwargs_groups.get(group, {}).copy()
             parameters['path'] = path
             graph[map_paths.get(path, task_prefix + path)] = (
-                _exec_on_dask,
+                TensorClient._exec_on_dask,
                 method,
                 parameters,
                 method.__name__ not in tensor.dag.omit_on,
