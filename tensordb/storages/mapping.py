@@ -155,16 +155,49 @@ class Mapping(MutableMapping):
     def modified(self, key):
         return pd.Timestamp(self.mapper.fs.modified(self.full_path(key)))
 
-    def copy_to_mapping(self, local_map: "Mapping", after_date: pd.Timestamp):
-        total_paths = list(set(list(self.keys()) + list(local_map.keys())))
+    def checksum(self, key):
+        return self.mapper.fs.checksum(self.full_path(key))
+
+    @staticmethod
+    def synchronize(
+            remote_map: "Mapping",
+            local_map: "Mapping",
+            checksum_map: "Mapping",
+            to_local: bool,
+            force: bool = False,
+    ):
+        remote_paths = set(list(remote_map.keys()))
+        local_paths = set(list(local_map.keys()))
+        total_paths = list(remote_paths | local_paths)
 
         def _move_data(path):
-            if path not in self:
-                del local_map[path]
-                return
-            if self.modified(path) < after_date:
-                return
-            local_map[path] = self[path]
+            if to_local:
+                if path in local_paths and path not in remote_paths:
+                    del local_map[path]
+                    if path in checksum_map:
+                        del local_map[path]
+                    return
+
+                remote_checksum = str(remote_map.checksum(path))
+                if not force and path in checksum_map:
+                    local_checksum = checksum_map[path].decode()
+                    if local_checksum == remote_checksum:
+                        return
+
+                local_map[path] = remote_map[path]
+                checksum_map[path] = remote_checksum.encode()
+            else:
+                if path in remote_paths and path not in local_paths:
+                    del remote_paths[path]
+                    return
+
+                if not force and path in checksum_map:
+                    remote_checksum = str(remote_map.checksum(path))
+                    local_checksum = checksum_map[path].decode()
+                    if local_checksum == remote_checksum:
+                        return
+
+                remote_map[path] = local_map[path]
 
         with ThreadPoolExecutor(os.cpu_count()) as p:
             list(p.map(_move_data, total_paths))
