@@ -1,9 +1,8 @@
-from typing import Union, List, Dict, Literal, Any, Callable
+from typing import Union, List, Dict, Literal, Any
 
 import dask
 import dask.array as da
 import numpy as np
-import numpy_groupies as npg
 import pandas as pd
 import xarray as xr
 
@@ -79,7 +78,6 @@ class Algorithms:
             dim: str,
             method: Literal['average', 'min', 'max', 'dense', 'ordinal'] = 'ordinal',
             rank_nan: bool = False,
-            use_map_block: bool = False
     ) -> xr.DataArray:
         """
         This is an implementation of scipy rankdata on xarray, with the possibility to avoid the rank of the nans.
@@ -107,26 +105,15 @@ class Algorithms:
 
             from scipy.stats import rankdata
 
-            if use_map_block:
-                func = rankdata if rank_nan else NumpyAlgorithms.nanrankdata
-                data = new_data.chunk({dim: -1}).data
-                ranked = data.map_blocks(
-                    func=func,
-                    dtype=np.float64,
-                    chunks=data.chunks,
-                    axis=new_data.dims.index(dim),
-                    method=method
-                )
-            else:
-                func = rankdata if rank_nan else NumpyAlgorithms.nanrankdata_1d
-                ranked = da.apply_along_axis(
-                    func1d=func,
-                    axis=new_data.dims.index(dim),
-                    arr=new_data.data,
-                    dtype=float,
-                    shape=(new_data.sizes[dim],),
-                    method=method,
-                )
+            func = rankdata if rank_nan else NumpyAlgorithms.nanrankdata
+            data = new_data.chunk({dim: -1}).data
+            ranked = data.map_blocks(
+                func=func,
+                dtype=np.float64,
+                chunks=data.chunks,
+                axis=new_data.dims.index(dim),
+                method=method
+            )
 
             return xr.DataArray(
                 ranked,
@@ -288,21 +275,16 @@ class Algorithms:
             new_data: Union[xr.DataArray, xr.Dataset],
             groups: Union[Dict, xr.DataArray],
             dim: str,
-            func: Union[str, Callable],
-            fill_value: Any = np.nan,
+            func: str,
             keep_shape: bool = False,
             output_dim: str = None,
             unique_groups: np.ndarray = None,
-            group_algorithm: Literal[
-                'aggregate',
-                'aggregate_nb',
-                'aggregate_np',
-                'custom'
-            ] = 'aggregate',
+            **kwargs
     ):
         """
-        Method created as a replacement for the xarray groupby that right now has performance problems,
-        this is going to unify the chunks along the dim, so it is memory inefficient.
+        This method was created as a replacement of the groupby of Xarray when the group is only
+        over one dimension or when the group is of the same shape as the data and the func must be applied
+        over a specific dim
 
         Parameters
         ----------
@@ -321,11 +303,8 @@ class Algorithms:
             Dimension on which apply the groupby
 
         func: str
-            Function to be applied on the groupby, this can be any of the function name in numpy-groupies docs
-            or also a custom function, recomendation use partial for sending parameters
-
-        fill_value: Any
-            Read numpy-groupies docs for more info
+            Function to be applied on the groupby, this can be any of the function name that are
+            in Xarray (like sum, cumprod and so on) + any function of the Algorithm class
 
         keep_shape: bool, default False
             Indicate if the array want to be reduced or not base on the groups, to preserve the shape this algorithm
@@ -338,21 +317,25 @@ class Algorithms:
             Useful when the group array has the same shape as the data and more than one dim, for this case
             is necessary extract the unique elements, so you can provide them here (optional).
 
-        group_algorithm: str, default 'aggregate'
-            Algorithm use by numpy_groupies to apply the groupby, read numpy-groupies docs for more info
+        **kwargs
+            Any extra parameter to send to the function
 
         """
         if isinstance(new_data, xr.Dataset):
             return xr.Dataset(
                 {
-                    name: cls.apply_on_groups(data, groups, dim, func, fill_value, keep_shape)
+                    name: cls.apply_on_groups(data, groups, dim, func, keep_shape)
                     for name, data in new_data.items()
                 },
                 attrs=new_data.attrs
             )
 
         if isinstance(groups, dict):
-            groups = xr.DataArray(list(groups.values()), dims=[dim], coords={dim: list(groups.keys())})
+            groups = xr.DataArray(
+                list(groups.values()),
+                dims=[dim],
+                coords={dim: list(groups.keys())}
+            )
 
         if len(groups.dims) != 1 and groups.dims != new_data.dims:
             raise ValueError(
@@ -361,76 +344,69 @@ class Algorithms:
             )
 
         axis = new_data.dims.index(dim)
-        if group_algorithm == "custom":
-            group_algorithm = func
-        else:
-            group_algorithm = getattr(npg, group_algorithm)
-        data = new_data.chunk({dim: -1}).data
         output_dim = dim if output_dim is None else output_dim
+        groups.name = "group"
 
-        group_idx, unique_groups, max_element = None, None, None
-        if len(groups.dims) == 1:
-            unique_groups = pd.Index(np.unique(groups.values))
-            group_idx = unique_groups.get_indexer_for(groups.loc[new_data.coords[dim].values].values)
-            groups = None
-        else:
-            if not keep_shape:
-                # In case of grouping by an array of more than 1 dimension and the keep_shape is False.
-                unique_groups = da.unique(groups.data).compute() if unique_groups is None else unique_groups
-                # max_element ins only useful for grouping by an array of more than one dim and keep_shape False.
-                max_element = np.max(unique_groups)
+        if unique_groups is None:
+            unique_groups = da.unique(groups.data).compute()
 
-            groups = groups.chunk(data.chunks).data
-
-        chunks, output_coord = None, new_data.coords[dim].values
+        output_coord = new_data.coords[dim].values
         if not keep_shape:
+            # In case of grouping by an array of more than 1 dimension and the keep_shape is False.
             output_coord = unique_groups
-            chunks = new_data.chunks[:axis] + (len(output_coord),) + new_data.chunks[axis + 1:]
 
-        def _reduce(x, grouper):
-            if group_idx is not None:
-                arr = group_algorithm(group_idx, x, axis=axis, func=func, fill_value=fill_value)
-                arr = np.take(arr, group_idx, axis=axis) if keep_shape else arr
+        chunks = new_data.chunks[:axis] + (len(output_coord),) + new_data.chunks[axis + 1:]
+
+        def _reduce(x, g):
+            if len(g.dims) == 1:
+                grouped = x.groupby(g)
+                if hasattr(grouped, func):
+                    arr = getattr(grouped, func)(dim=dim, **kwargs)
+                else:
+                    arr = grouped.map(getattr(Algorithms, func), dim=dim, **kwargs).compute()
+
+                if "group" not in arr.dims:
+                    # If the function do not reduce the dimension then preserve the same arr
+                    pass
+                else:
+                    arr = arr.rename({"group": dim})
+                    if keep_shape:
+                        arr = arr.reindex({dim: g.values})
+                        arr.coords[dim] = g.coords[dim]
+                    else:
+                        arr = arr.reindex({dim: unique_groups})
+
                 return arr
 
-            # create a list of 1D slices of the arrays and the groups
-            x = np.array_split(
-                np.ravel(np.moveaxis(x, axis, -1)),
-                x.size / x.shape[axis]
-            )
-            grouper = np.array_split(
-                np.ravel(np.moveaxis(grouper, axis, -1)),
-                grouper.size / grouper.shape[axis]
-            )
-            if keep_shape:
-                return np.moveaxis(np.array([
-                    group_algorithm(_group_idx, _x, func=func, fill_value=fill_value)[_group_idx]
-                    for _x, _group_idx in zip(x, grouper)
-                ]), -1, axis)
+            f_dim = next(d for d in x.dims if d != dim)
+            arr = xr.concat([
+                _reduce(x.sel({f_dim: v}), g.sel({f_dim: v}))
+                for v in x.coords[f_dim].values
+            ], dim=f_dim)
+            arr = arr.transpose(*x.dims)
+            return arr
 
-            return np.moveaxis(np.array([
-                np.pad(
-                    group_algorithm(_group_idx, _x, func=func, fill_value=fill_value),
-                    (0, max_element - np.max(_group_idx)),
-                    constant_values=(np.nan,)
-                )[unique_groups]
-                for _x, _group_idx in zip(x, grouper)
-            ]), -1, axis)
+        data = new_data.chunk({dim: -1})
+        if len(groups.dims) == len(data.dims):
+            groups = groups.chunk(data.chunks)
+        new_coords = {k: output_coord if k == dim else v for k, v in new_data.coords.items()}
 
-        return xr.DataArray(
-            dask.array.map_blocks(
-                _reduce,
-                data,
-                groups,
-                chunks=chunks,
-                dtype=float,
-                drop_axis=[] if keep_shape else axis,
-                new_axis=None if keep_shape else axis,
-            ),
-            coords={d: output_coord if d == dim else v for d, v in new_data.coords.items()},
-            dims=new_data.dims,
-            attrs=new_data.attrs
-        ).rename({dim: output_dim})
+        data = data.map_blocks(
+            _reduce,
+            [groups],
+            template=xr.DataArray(
+                da.empty(
+                    dtype=float,
+                    chunks=chunks,
+                    shape=[len(v) for v in new_coords.values()]
+                ),
+                coords=new_coords,
+                dims=new_data.dims,
+            )
+        )
+        if dim != output_dim:
+            data = data.rename({dim: output_dim})
+        return data
 
     @classmethod
     def merge_duplicates_coord(
@@ -438,7 +414,6 @@ class Algorithms:
             new_data: Union[xr.DataArray, xr.Dataset],
             dim: str,
             func: str,
-            fill_value: int = np.nan
     ):
         """
         Group and merge duplicates coord base on a function, this can be a sum or a max. Read numpy-groupies
@@ -448,12 +423,15 @@ class Algorithms:
         if new_data.indexes[dim].is_unique:
             return new_data
 
+        new_data = new_data.copy()
+        groups = {i: v for i, v in enumerate(new_data.indexes[dim])}
+        new_data.coords[dim] = np.arange(new_data.sizes[dim])
+
         return cls.apply_on_groups(
             new_data=new_data,
-            groups={v: v for v in new_data.indexes[dim]},
+            groups=groups,
             dim=dim,
             func=func,
-            fill_value=fill_value,
             keep_shape=False
         )
 
@@ -497,3 +475,24 @@ class Algorithms:
         else:
             valid_coords = [c.result() for c in client.compute(valid_coords)]
         return new_data.sel(dict(zip(dims, valid_coords)))
+
+    @classmethod
+    def append_previous(
+            cls,
+            old_data: Union[xr.DataArray, xr.Dataset],
+            new_data: Union[xr.DataArray, xr.Dataset],
+            dim: str,
+    ):
+        """
+        This method only add at the begining of the new_data the previous data, and this only
+        works if the new data is sorted in ascending order over the dimension.
+
+        """
+        # Find the nearest coord that is smaller than the first one of the new_data
+        position = old_data.indexes[dim][old_data.indexes[dim] < new_data.indexes[dim][0]]
+        if len(position) == 0:
+            return new_data
+        position = position[-1]
+        return xr.concat([
+            old_data.sel({dim: [position]}).compute(), new_data
+        ], dim=dim)

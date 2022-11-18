@@ -1,5 +1,5 @@
 from . import tensor_definition
-from . import tensor_translator
+from . import utils
 from .algorithms import Algorithms
 from .file_cache_tensor_client import FileCacheTensorClient
 from .tensor_client import TensorClient
