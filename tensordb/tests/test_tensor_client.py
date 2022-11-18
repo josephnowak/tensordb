@@ -433,17 +433,6 @@ class TestTensorClient:
         for definition in definitions:
             self.tensor_client.create_tensor(definition)
 
-        get = None
-        client = None
-        if semaphore_type == 'dask':
-            from dask.distributed import Client
-            client = Client()
-            get = client.get
-        elif semaphore_type == 'thread':
-            get = dask.threaded.get
-        else:
-            get = dask.multiprocessing.get
-
         dask_graph = self.tensor_client.remote_client.get_dag_for_dask(
             method=self.tensor_client.store,
             max_parallelization_per_group=max_per_group,
@@ -452,8 +441,10 @@ class TestTensorClient:
         get = None
         if client_type == 'dask':
             get = dask_client.get
-        else:
+        elif client_type == 'thread':
             get = dask.threaded.get
+        else:
+            get = dask.multiprocessing.get
 
         get(dask_graph, "FinalTask")
 
