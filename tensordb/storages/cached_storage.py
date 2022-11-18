@@ -83,6 +83,7 @@ class CachedStorage:
             data = data.sel({self.dim: ~data.coords[self.dim].isin(new_data.coords[self.dim])})
         data = new_data.combine_first(data)
         self._cache["update"]['new_data'][-1] = data
+
     def merge_update_on_append(self):
         append_data = self._cache["append"]["new_data"]
         update_data = self._cache["update"]["new_data"]

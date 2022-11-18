@@ -1,10 +1,9 @@
 import numpy as np
 import pandas as pd
 import pytest
-import xarray
 import xarray as xr
 
-from tensordb.algorithms import Algorithms, NumpyAlgorithms
+from tensordb.algorithms import Algorithms
 
 
 # TODO: Add more tests for the dataset cases

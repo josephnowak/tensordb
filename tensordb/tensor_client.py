@@ -1,6 +1,6 @@
 from collections.abc import MutableMapping
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-from typing import Dict, List, Any, Union, Literal, Callable, ContextManager
+from typing import Dict, List, Any, Union, Literal, Callable
 
 import dask
 import dask.array as da
@@ -230,7 +230,7 @@ class TensorClient(Algorithms):
             Read the docs of the `TensorDefinition` class for more info of the definition.
 
         """
-        self._tensors_definition.upsert(path=definition.path, new_data=definition.dict(exclude_unset=True))
+        self._tensors_definition.upsert(path=definition.path, new_data=definition.dict())
 
     @validate_arguments
     def get_tensor_definition(self, path: str) -> TensorDefinition:
@@ -337,9 +337,8 @@ class TensorClient(Algorithms):
         )
         return storage
 
-    @classmethod
+    @staticmethod
     def exec_on_parallel(
-            cls,
             method: Callable,
             paths_kwargs: Dict[str, Dict[str, Any]],
             max_parallelization: int = None,
@@ -405,7 +404,7 @@ class TensorClient(Algorithms):
 
     def exec_on_dag_order(
             self,
-            method: Literal['append', 'update', 'store', 'upsert'],
+            method: Union[Literal['append', 'update', 'store', 'upsert'], Callable],
             kwargs_groups: Dict[str, Dict[str, Any]] = None,
             tensors_path: List[str] = None,
             parallelization_kwargs: Dict[str, Any] = None,
@@ -458,7 +457,7 @@ class TensorClient(Algorithms):
         kwargs_groups = kwargs_groups or {}
         parallelization_kwargs = parallelization_kwargs or {}
         max_parallelization_per_group = max_parallelization_per_group or {}
-        method = getattr(self, method)
+        method = getattr(self, method) if isinstance(method, str) else method
 
         if tensors_path is None:
             tensors = [tensor for tensor in self.get_all_tensors_definition() if tensor.dag is not None]
@@ -489,7 +488,7 @@ class TensorClient(Algorithms):
 
     def get_dag_for_dask(
             self,
-            method: Literal['append', 'update', 'store', 'upsert'],
+            method: Union[Literal['append', 'update', 'store', 'upsert'], Callable],
             kwargs_groups: Dict[str, Dict[str, Any]] = None,
             tensors: List[TensorDefinition] = None,
             max_parallelization_per_group: Dict[str, int] = None,
@@ -505,7 +504,7 @@ class TensorClient(Algorithms):
         kwargs_groups = kwargs_groups or {}
         map_paths = map_paths or {}
         max_parallelization_per_group = max_parallelization_per_group or {}
-        method = getattr(self, method)
+        method = getattr(self, method) if isinstance(method, str) else method
 
         if tensors is None:
             tensors = self.get_all_tensors_definition()
@@ -734,7 +733,7 @@ class TensorClient(Algorithms):
         """
         return self.storage_method_caller(path=path, method_name='drop', parameters=kwargs)
 
-    def exist(self, path: str, **kwargs) -> bool:
+    def exist(self, path: str, only_definition: bool = False, **kwargs) -> bool:
         """
         Calls :meth:`TensorClient.storage_method_caller` with exist as method_name (has the same parameters).
 
@@ -743,7 +742,10 @@ class TensorClient(Algorithms):
         A bool indicating if the file exist or not (True means yes).
         """
         try:
-            return self._tensors_definition.exist(path) and self.get_storage(path).exist(**kwargs)
+            exist_definition = self._tensors_definition.exist(path)
+            if only_definition:
+                return exist_definition
+            return exist_definition and self.get_storage(path).exist(**kwargs)
         except KeyError:
             return False
 
@@ -909,4 +911,3 @@ class TensorClient(Algorithms):
             exec(formula, formula_globals, kwargs)
             return kwargs['new_data']
         return eval(formula, formula_globals, kwargs)
-

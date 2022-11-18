@@ -42,14 +42,14 @@ def groupby_chunks(
         # Iterate in order over the chunked groups, this will generate a combinations like
         # [chunk0_group0, chunk0_group1, chunk0_group2] and [chunk1_group0, chunk1_group1, chunk1_group2].
         for tensors in it.zip_longest(*(
-            # chunk the group based on the group_chunk_size size
-            list(mit.chunked(group, group_chunk_size.get(name, None)))
-            # group the data
-            for name, group in it.groupby(
-                sorted(iterable, key=sort_func),
-                group_func
-            )
-        ))
+        # chunk the group based on the group_chunk_size size
+        list(mit.chunked(group, group_chunk_size.get(name, None)))
+        # group the data
+        for name, group in it.groupby(
+        sorted(iterable, key=sort_func),
+        group_func
+    )
+    ))
     )
 
 

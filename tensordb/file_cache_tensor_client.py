@@ -1,33 +1,16 @@
-from collections.abc import MutableMapping
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-from typing import Dict, List, Any, Union, Literal, Callable, ContextManager
+from typing import List, Any, Union, Literal
 
-import dask
-import dask.array as da
-import more_itertools as mit
-import numpy as np
 import pandas as pd
 import xarray as xr
-from loguru import logger
 from pydantic import validate_arguments
 from xarray.backends.common import AbstractWritableDataStore
 
-from tensordb import dag
-from tensordb.algorithms import Algorithms
 from tensordb.storages import (
-    BaseStorage,
-    JsonStorage,
-    CachedStorage,
-    MAPPING_STORAGES
+    BaseStorage
 )
-from tensordb.storages.mapping import Mapping, NoLock
-from tensordb.tensor_definition import TensorDefinition, MethodDescriptor, Definition
-from tensordb.utils.method_inspector import get_parameters
-from tensordb.utils.tools import (
-    groupby_chunks,
-    extract_paths_from_formula,
-)
+from tensordb.storages import Mapping, PrefixLock
 from tensordb.tensor_client import TensorClient
+from tensordb.tensor_definition import TensorDefinition
 
 
 class FileCacheTensorClient:
@@ -43,11 +26,12 @@ class FileCacheTensorClient:
         that the same file is downloaded from the remote client at the same time causing data corruption.
         If you need a lock at chunk level then use the locks of the Mapping class
     """
+
     def __init__(
             self,
             remote_client: TensorClient,
             local_client: TensorClient,
-            tensor_lock: ContextManager,
+            tensor_lock: PrefixLock,
             checksum_path: str,
             synchronizer_mode: Literal["delayed", "automatic"] = "automatic",
     ):
@@ -73,6 +57,8 @@ class FileCacheTensorClient:
             force = True
 
         local_definition = self.local_client.get_tensor_definition(path)
+        print(path)
+        print(local_definition)
 
         if "modification_date" not in local_definition.metadata:
             raise ValueError(f"There is no modification date on the local definition metadata")
@@ -159,12 +145,16 @@ class FileCacheTensorClient:
 
     ):
         func = getattr(self.local_client, func)
-        with self.tensor_lock(path):
-            if not only_read:
-                self.update_tensor_metadata(path, {"modification_date": str(pd.Timestamp.now())})
+        with self.tensor_lock.get_lock(path):
+            exist_local = self.local_client.exist(path)
             if fetch:
                 self.fetch(path, force=force)
-            if drop_checksums:
+            if not only_read:
+                print(self.local_client.get_tensor_definition(path))
+                self.local_client.update_tensor_metadata(path, {"modification_date": str(pd.Timestamp.now())})
+                print(self.local_client.get_tensor_definition(path))
+            if drop_checksums and exist_local:
+                print(list(self.checksum_map.sub_map(path).keys()))
                 self.checksum_map.rmdir(path)
             result = func(path=path, **kwargs)
             if merge:
@@ -200,6 +190,20 @@ class FileCacheTensorClient:
             **kwargs
         )
 
+    def append(
+            self,
+            path: Union[str, TensorDefinition, xr.DataArray, xr.Dataset],
+            **kwargs
+    ) -> Union[xr.DataArray, xr.Dataset]:
+        return self._exec_callable(
+            "append",
+            path=path,
+            fetch=True,
+            merge=True,
+            only_read=False,
+            **kwargs
+        )
+
     def update(
             self,
             path: Union[str, TensorDefinition, xr.DataArray, xr.Dataset],
@@ -232,13 +236,12 @@ class FileCacheTensorClient:
             self,
             path: Union[str, TensorDefinition, xr.DataArray, xr.Dataset],
             **kwargs
-    ) -> Union[xr.DataArray, xr.Dataset]:
+    ) -> bool:
         return self.remote_client.exist(path, **kwargs)
 
     def drop(
             self,
             path: Union[str, TensorDefinition],
-            only_local: bool = True,
             **kwargs
     ) -> List[AbstractWritableDataStore]:
         return self._exec_callable(
@@ -252,16 +255,15 @@ class FileCacheTensorClient:
 
     @validate_arguments
     def create_tensor(self, definition: TensorDefinition):
-        with self.tensor_lock(path):
-            if path in self.remote_client:
-                raise KeyError(f"Overwrite the tensor definition on the path {path} "
-                               f"can produce synchronization problems")
-            self.remote_client.create_tensor(definition)
-            self.local_client.create_tensor(definition)
+        if self.remote_client.exist(definition.path, only_definition=True):
+            raise KeyError(f"Overwrite the tensor definition on the path {definition.path} "
+                           f"can produce synchronization problems")
+        self.remote_client.create_tensor(definition)
+        self.local_client.create_tensor(definition)
 
     @validate_arguments
     def get_tensor_definition(self, path: str) -> TensorDefinition:
-        with self.tensor_lock(path):
+        with self.tensor_lock.get_lock(path):
             self.fetch(path, force=False)
             return self.local_client.get_tensor_definition(path)
 
@@ -270,9 +272,9 @@ class FileCacheTensorClient:
             self,
             path: str,
             only_data: bool = False,
-            only_local: bool = True,
+            only_local: bool = False,
     ) -> Any:
-        with self.tensor_lock(path):
+        with self.tensor_lock.get_lock(path):
             if self.local_client.exist(path):
                 self.local_client.delete_tensor(path=path, only_data=only_data)
             if not only_local:
@@ -303,4 +305,3 @@ class FileCacheTensorClient:
             merge=False,
             only_read=True,
         )
-
