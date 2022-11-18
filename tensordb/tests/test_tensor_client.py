@@ -1,10 +1,15 @@
+import os
+
 import dask.threaded
 import fsspec
 import numpy as np
 import pytest
 import xarray as xr
+from filelock import FileLock
 
+from tensordb import FileCacheTensorClient
 from tensordb import TensorClient
+from tensordb.storages import PrefixLock
 from tensordb.tensor_definition import TensorDefinition
 
 
@@ -35,12 +40,24 @@ class TestTensorClient:
     @pytest.fixture(autouse=True)
     def test_setup_tests(self, tmpdir):
         path = tmpdir.strpath
-        self.tensor_client = TensorClient(
-            base_map=fsspec.get_mapper(path),
+        os.makedirs(path + '/lock')
+        self.local_tensor_client = TensorClient(
+            base_map=fsspec.get_mapper(path + '/local'),
             tmp_map=fsspec.get_mapper(f'{path}/tmp'),
             synchronizer='thread',
-            local_cache_protocol=None,
-            local_cache_options={'check_files': True}
+        )
+        self.tensor_client = FileCacheTensorClient(
+            local_client=self.local_tensor_client,
+            remote_client=TensorClient(
+                base_map=fsspec.get_mapper(path + '/remote'),
+                tmp_map=fsspec.get_mapper(f'{path}/tmp'),
+                synchronizer='thread',
+            ),
+            checksum_path='checksum',
+            tensor_lock=PrefixLock(
+                path + '/lock',
+                FileLock
+            )
         )
         self.arr = xr.DataArray(
             data=np.array([
@@ -89,27 +106,35 @@ class TestTensorClient:
     def test_create_tensor(self):
         pass
 
-    def test_store(self):
+    @pytest.mark.parametrize('use_local', [True, False])
+    def test_store(self, use_local):
+        tensor_client = self.local_tensor_client if use_local else self.tensor_client
         for path, data in [('data_one', self.arr), ('data_two', self.arr2), ('data_three', self.arr3)]:
-            assert self.tensor_client.read(path=path).equals(data)
+            assert tensor_client.read(path=path).equals(data)
 
-    def test_update(self):
-        self.tensor_client.update(new_data=self.arr2, path='data_one')
-        assert self.tensor_client.read(path='data_one').equals(self.arr2)
+    @pytest.mark.parametrize('use_local', [True, False])
+    def test_update(self, use_local):
+        tensor_client = self.local_tensor_client if use_local else self.tensor_client
+        tensor_client.update(new_data=self.arr2, path='data_one')
+        assert tensor_client.read(path='data_one').equals(self.arr2)
 
-    def test_drop(self):
+    @pytest.mark.parametrize('use_local', [True, False])
+    def test_drop(self, use_local):
+        tensor_client = self.local_tensor_client if use_local else self.tensor_client
         coords = {'index': [0, 3], 'columns': [1, 2]}
-        self.tensor_client.drop(path='data_one', coords=coords)
-        self.tensor_client.read('data_one').equals(
+        tensor_client.drop(path='data_one', coords=coords)
+        tensor_client.read('data_one').equals(
             self.arr.drop_sel(coords)
         )
 
-    def test_append(self):
+    @pytest.mark.parametrize('use_local', [True, False])
+    def test_append(self, use_local):
+        tensor_client = self.local_tensor_client if use_local else self.tensor_client
         arr = create_dummy_array(10, 5, dtype=int)
         arr = arr.sel(
             index=(
                 ~arr.coords['index'].isin(
-                    self.tensor_client.read(
+                    tensor_client.read(
                         path='data_one'
                     ).coords['index']
                 )
@@ -117,16 +142,20 @@ class TestTensorClient:
         )
 
         for i in range(arr.sizes['index']):
-            self.tensor_client.append(new_data=arr.isel(index=[i]), path='data_one')
+            tensor_client.append(new_data=arr.isel(index=[i]), path='data_one')
 
-        assert self.tensor_client.read(path='data_one').sel(arr.coords).equals(arr)
-        assert self.tensor_client.read(path='data_one').sizes['index'] > arr.sizes['index']
+        assert tensor_client.read(path='data_one').sel(arr.coords).equals(arr)
+        assert tensor_client.read(path='data_one').sizes['index'] > arr.sizes['index']
 
-    def test_delete_tensor(self):
-        self.tensor_client.delete_tensor('data_one')
-        assert not self.tensor_client.exist('data_one')
+    @pytest.mark.parametrize('use_local', [True, False])
+    def test_delete_tensor(self, use_local):
+        tensor_client = self.local_tensor_client if use_local else self.tensor_client
+        tensor_client.delete_tensor('data_one')
+        assert not tensor_client.exist('data_one')
 
-    def test_read_from_formula(self):
+    @pytest.mark.parametrize('use_local', [True, False])
+    def test_read_from_formula(self, use_local):
+        tensor_client = self.local_tensor_client if use_local else self.tensor_client
         definition = TensorDefinition(
             path='data_four',
             definition={
@@ -139,14 +168,16 @@ class TestTensorClient:
                 }
             }
         )
-        self.tensor_client.create_tensor(definition=definition)
+        tensor_client.create_tensor(definition=definition)
 
-        data_four = self.tensor_client.read(path='data_four')
-        data_one = self.tensor_client.read(path='data_one')
-        data_two = self.tensor_client.read(path='data_two')
+        data_four = tensor_client.read(path='data_four')
+        data_one = tensor_client.read(path='data_one')
+        data_two = tensor_client.read(path='data_two')
         assert data_four.equals((data_one * data_two).rolling({'index': 3}).sum())
 
-    def test_self_read_from_formula(self):
+    @pytest.mark.parametrize('use_local', [True, False])
+    def test_read_from_formula(self, use_local):
+        tensor_client = self.local_tensor_client if use_local else self.tensor_client
         definition = TensorDefinition(
             path='data_four',
             definition={
@@ -158,11 +189,13 @@ class TestTensorClient:
                 }
             }
         )
-        self.tensor_client.create_tensor(definition=definition)
-        self.tensor_client.store('data_four', new_data=self.arr)
-        assert self.tensor_client.read('data_four').equals(self.arr * self.arr2)
+        tensor_client.create_tensor(definition=definition)
+        tensor_client.store('data_four', new_data=self.arr)
+        assert tensor_client.read('data_four').equals(self.arr * self.arr2)
 
-    def test_read_data_transformation(self):
+    @pytest.mark.parametrize('use_local', [True, False])
+    def test_read_data_transformation(self, use_local):
+        tensor_client = self.local_tensor_client if use_local else self.tensor_client
         definition = TensorDefinition(
             path='data_four',
             definition={
@@ -176,10 +209,12 @@ class TestTensorClient:
                 },
             }
         )
-        self.tensor_client.create_tensor(definition=definition)
-        assert self.tensor_client.read('data_four').equals(self.arr * self.arr2)
+        tensor_client.create_tensor(definition=definition)
+        assert tensor_client.read('data_four').equals(self.arr * self.arr2)
 
-    def test_data_transformation_parameters_priority(self):
+    @pytest.mark.parametrize('use_local', [True, False])
+    def test_data_transformation_parameters_priority(self, use_local):
+        tensor_client = self.local_tensor_client if use_local else self.tensor_client
         definition = TensorDefinition(
             path='data_four',
             definition={
@@ -193,8 +228,8 @@ class TestTensorClient:
                 },
             }
         )
-        self.tensor_client.create_tensor(definition=definition)
-        assert self.tensor_client.read('data_four', formula='`data_three`').equals(self.arr3)
+        tensor_client.create_tensor(definition=definition)
+        assert tensor_client.read('data_four', formula='`data_three`').equals(self.arr3)
 
         definition = TensorDefinition(
             path='data_five',
@@ -210,10 +245,12 @@ class TestTensorClient:
                 'read_from_formula': {'formula': '`data_one` * `data_two`'}
             }
         )
-        self.tensor_client.create_tensor(definition=definition)
-        assert self.tensor_client.read('data_five').equals(self.arr3)
+        tensor_client.create_tensor(definition=definition)
+        assert tensor_client.read('data_five').equals(self.arr3)
 
-    def test_specifics_definition(self):
+    @pytest.mark.parametrize('use_local', [True, False])
+    def test_specifics_definition(self, use_local):
+        tensor_client = self.local_tensor_client if use_local else self.tensor_client
         definition = TensorDefinition(
             path='specific_definition',
             definition={
@@ -225,11 +262,13 @@ class TestTensorClient:
                 },
             }
         )
-        self.tensor_client.create_tensor(definition=definition)
-        self.tensor_client.store('specific_definition')
-        assert self.tensor_client.read('specific_definition').equals(self.tensor_client.read('data_one') ** 2)
+        tensor_client.create_tensor(definition=definition)
+        tensor_client.store('specific_definition')
+        assert tensor_client.read('specific_definition').equals(self.tensor_client.read('data_one') ** 2)
 
-    def test_different_client(self):
+    @pytest.mark.parametrize('use_local', [True, False])
+    def test_different_client(self, use_local):
+        tensor_client = self.local_tensor_client if use_local else self.tensor_client
         definition = TensorDefinition(
             path='different_client',
             storage={
@@ -237,9 +276,9 @@ class TestTensorClient:
             },
             definition={}
         )
-        self.tensor_client.create_tensor(definition=definition)
-        self.tensor_client.store(path='different_client', new_data={'a': 100})
-        assert {'a': 100} == self.tensor_client.read(path='different_client', name='different_client')
+        tensor_client.create_tensor(definition=definition)
+        tensor_client.store(path='different_client', new_data={'a': 100})
+        assert {'a': 100} == tensor_client.read(path='different_client', name='different_client')
 
     @pytest.mark.parametrize(
         'max_parallelization, compute',
@@ -300,8 +339,8 @@ class TestTensorClient:
         for definition in definitions:
             self.tensor_client.create_tensor(definition)
 
-        self.tensor_client.exec_on_dag_order(
-            method='store',
+        self.tensor_client.remote_client.exec_on_dag_order(
+            method=self.tensor_client.store,
             parallelization_kwargs={
                 'compute': compute,
                 'max_parallelization': max_parallelization
@@ -312,8 +351,8 @@ class TestTensorClient:
         assert self.tensor_client.read('2').equals(self.arr + 1)
         assert self.tensor_client.read('3').equals(self.arr + 1 + self.arr * 2)
 
-        self.tensor_client.exec_on_dag_order(
-            method='store',
+        self.tensor_client.remote_client.exec_on_dag_order(
+            method=self.tensor_client.store,
             tensors_path=['1'],
             autofill_dependencies=True,
             parallelization_kwargs={
@@ -394,16 +433,18 @@ class TestTensorClient:
         for definition in definitions:
             self.tensor_client.create_tensor(definition)
 
-        dask_graph = self.tensor_client.get_dag_for_dask(
-            method='store',
+        dask_graph = self.tensor_client.remote_client.get_dag_for_dask(
+            method=self.tensor_client.store,
             max_parallelization_per_group=max_per_group,
             final_task_name='FinalTask',
         )
         get = None
         if client_type == 'dask':
             get = dask_client.get
-        else:
+        elif client_type == 'thread':
             get = dask.threaded.get
+        else:
+            get = dask.multiprocessing.get
 
         get(dask_graph, "FinalTask")
 
@@ -412,8 +453,8 @@ class TestTensorClient:
         assert self.tensor_client.read('2').equals(self.arr + 1)
         assert self.tensor_client.read('3').equals(self.arr + 1 + self.arr * 2)
         #
-        dask_graph = self.tensor_client.get_dag_for_dask(
-            method='store',
+        dask_graph = self.tensor_client.remote_client.get_dag_for_dask(
+            method=self.tensor_client.store,
             tensors=[self.tensor_client.get_tensor_definition('1')],
             max_parallelization_per_group=max_per_group,
             final_task_name='FinalTask',
