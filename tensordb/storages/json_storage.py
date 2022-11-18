@@ -8,11 +8,9 @@ from tensordb.storages.base_storage import BaseStorage
 class JsonStorage(BaseStorage):
     """
     This class was created with the idea of simplify how the tensor client store the definitions.
-    Every path is converted into a name replacing the "/" by "_" with the idea of create unique names and allow
-    to identify every tensor without the use of folders
     """
 
-    default_character = "."
+    default_character = "/"
 
     @classmethod
     def to_json_file_name(cls, path):

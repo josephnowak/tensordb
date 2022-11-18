@@ -1,18 +1,10 @@
+import os
 from collections.abc import MutableMapping
-from typing import ContextManager
+from concurrent.futures import ThreadPoolExecutor
 
 from zarr.storage import FSStore
 
-
-class NoLock:
-    def __init__(self, *args, **kwargs):
-        pass
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        pass
+from tensordb.storages.lock import PrefixLock, NoLock
 
 
 class Mapping(MutableMapping):
@@ -20,17 +12,17 @@ class Mapping(MutableMapping):
             self,
             mapper: MutableMapping,
             sub_path: str = None,
-            read_lock: ContextManager = None,
-            write_lock: ContextManager = None,
+            read_lock: PrefixLock = None,
+            write_lock: PrefixLock = None,
             root: str = None,
             enable_sub_map: bool = True,
     ):
         self.mapper = mapper
         self.sub_path = sub_path
-        self.read_lock = NoLock if read_lock is None else read_lock
+        self.read_lock = PrefixLock("", NoLock) if read_lock is None else read_lock
         self.write_lock = self.read_lock if write_lock is None else write_lock
         self._root = root
-        self.enable_sub_map = enable_sub_map
+        self.enable_sub_map = enable_sub_map and hasattr(mapper, 'fs')
 
     @property
     def root(self):
@@ -50,16 +42,17 @@ class Mapping(MutableMapping):
     def sub_map(self, sub_path):
         mapper = self.mapper
         root = self.root
-        if self.enable_sub_map and hasattr(mapper, 'fs'):
+        if self.enable_sub_map:
             if root is not None:
                 root = f'{root}/{sub_path}'
 
             if isinstance(mapper, FSStore):
                 mapper = FSStore(root, fs=mapper.fs)
-            elif hasattr(mapper.fs, 'get_mapper'):
+            else:
                 mapper = mapper.fs.get_mapper(root)
-            sub_path = None
-        return Mapping(mapper, sub_path, self.read_lock, self.write_lock, root)
+
+        sub_path = self.add_sub_path(sub_path)
+        return Mapping(mapper, sub_path, self.read_lock, self.write_lock, root, self.enable_sub_map)
 
     def add_root(self, key):
         if key is None:
@@ -69,33 +62,37 @@ class Mapping(MutableMapping):
         return f'{self.root}/{key}'
 
     def add_sub_path(self, key):
+        if self.enable_sub_map or self.sub_path is None:
+            return key
+
         if key is None:
             return self.sub_path
-        if self.sub_path is None:
-            return key
+
         return f'{self.sub_path}/{key}'
 
     def full_path(self, key):
         return self.add_root(self.add_sub_path(key))
 
+    def add_lock_path(self, key):
+        if self.sub_path is None:
+            return key
+        return f'{self.sub_path}/{key}'
+
     def __getitem__(self, key):
-        key = self.add_sub_path(key)
-        with self.read_lock(self.add_root(key)):
-            return self.mapper[key]
+        with self.read_lock.get_lock(self.add_lock_path(key)):
+            return self.mapper[self.add_sub_path(key)]
 
     def __setitem__(self, key, value):
-        key = self.add_sub_path(key)
-        with self.write_lock(self.add_root(key)):
-            self.mapper[key] = value
+        with self.write_lock.get_lock(self.add_lock_path(key)):
+            self.mapper[self.add_sub_path(key)] = value
 
     def __delitem__(self, key):
-        key = self.add_sub_path(key)
-        with self.write_lock(self.add_root(key)):
-            del self.mapper[key]
+        with self.write_lock.get_lock(self.add_lock_path(key)):
+            del self.mapper[self.add_sub_path(key)]
 
     def __iter__(self):
         for key in self.mapper:
-            if self.sub_path is None or key.startswith(self.sub_path):
+            if self.enable_sub_map or key.startswith(self.sub_path):
                 yield key
 
     def __len__(self):
@@ -106,10 +103,7 @@ class Mapping(MutableMapping):
         return key in self.mapper
 
     def listdir(self, path=None):
-        if path is None:
-            path = self.sub_path
-        else:
-            path = self.add_sub_path(path)
+        path = self.add_sub_path(path)
 
         if hasattr(self.mapper, 'listdir'):
             return self.mapper.listdir(path)
@@ -130,10 +124,10 @@ class Mapping(MutableMapping):
         return sorted(children)
 
     def rmdir(self, path=None):
-        if path is None:
-            path = self.sub_path
-        elif path is not None:
-            path = self.add_sub_path(path)
+        path = self.add_sub_path(path)
+        total_keys = list(self.keys())
+        if len(total_keys) == 0:
+            return
 
         if hasattr(self.mapper, 'rmdir'):
             return self.mapper.rmdir(path)
@@ -144,6 +138,53 @@ class Mapping(MutableMapping):
             return self.mapper.fs.delete(path, recursive=True)
 
         path = path if path is not None else ''
-        for key in self:
+        for key in total_keys:
             if key.startswith(path):
                 del self[key]
+
+    def checksum(self, key):
+        return self.mapper.fs.checksum(self.full_path(key))
+
+    @staticmethod
+    def synchronize(
+            remote_map: "Mapping",
+            local_map: "Mapping",
+            checksum_map: "Mapping",
+            to_local: bool,
+            force: bool = False,
+    ):
+        remote_paths = set(list(remote_map.keys()))
+        local_paths = set(list(local_map.keys()))
+        total_paths = list(remote_paths | local_paths)
+
+        def _move_data(path):
+            if to_local:
+                if path in local_paths and path not in remote_paths:
+                    del local_map[path]
+                    if path in checksum_map:
+                        del local_map[path]
+                    return
+
+                remote_checksum = str(remote_map.checksum(path))
+                if not force and path in checksum_map:
+                    local_checksum = checksum_map[path].decode()
+                    if local_checksum == remote_checksum:
+                        return
+
+                local_map[path] = remote_map[path]
+                checksum_map[path] = remote_checksum.encode()
+            else:
+                if path in remote_paths and path not in local_paths:
+                    del remote_paths[path]
+                    return
+
+                if not force and path in checksum_map:
+                    remote_checksum = str(remote_map.checksum(path))
+                    local_checksum = checksum_map[path].decode()
+                    if local_checksum == remote_checksum:
+                        return
+
+                remote_map[path] = local_map[path]
+
+        with ThreadPoolExecutor(os.cpu_count()) as p:
+            list(p.map(_move_data, total_paths))
