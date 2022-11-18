@@ -1,7 +1,55 @@
-from tensordb.utils.tools import groupby_chunks
+import pytest
+import numpy as np
+import xarray as xr
+from typing import List
+
+from tensordb.utils.tools import groupby_chunks, xarray_from_func
 
 
 class TestTools:
+
+    @pytest.fixture(autouse=True)
+    def setup_tests(self):
+        self.data_array = xr.DataArray(
+            np.arange(56).reshape((7, 8)).astype(np.float64),
+            dims=['a', 'b'],
+            coords={'a': list(range(7)), 'b': list(range(8))}
+        )
+        self.dataset = xr.Dataset(
+            {'first': self.data_array, 'second': self.data_array + 10}
+        )
+
+    @staticmethod
+    def read_by_coords(data: xr.DataArray, coords) -> xr.DataArray:
+        return data.sel(**coords)
+
+    @staticmethod
+    def read_by_coords_dataset(dataset: xr.Dataset, coords) -> List[xr.DataArray]:
+        return dataset[['first', 'second']].sel(**coords)
+        # return [dataset[name] for name in ['first', 'second']]
+
+    def test_xarray_from_func_data_array(self):
+        data = xarray_from_func(
+            self.read_by_coords,
+            dims=['a', 'b'],
+            coords={'a': np.array(list(range(6))), 'b': list(range(8))},
+            chunks=[2, 3],
+            dtypes=np.float64,
+            func_parameters={'data': self.data_array}
+        )
+        assert data.equals(self.data_array.sel(**data.coords))
+
+    def test_xarray_from_func_dataset(self):
+        data = xarray_from_func(
+            self.read_by_coords_dataset,
+            dims=['a', 'b'],
+            coords={'a': list(range(6)), 'b': list(range(8))},
+            chunks=[2, 3],
+            dtypes=[np.float64, np.float64],
+            data_names=['first', 'second'],
+            func_parameters={'dataset': self.dataset},
+        )
+        assert data.equals(self.dataset.sel(**data.coords))
 
     def test_groupby_chunks(self):
         e = {'a': 0, 'b': 1, 'c': 0, 'd': 0, 'e': 0, 'm': 1, 'g': 2, 'l': 2}

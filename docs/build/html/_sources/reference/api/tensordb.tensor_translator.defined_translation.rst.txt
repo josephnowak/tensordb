@@ -3,4 +3,4 @@
 
 .. currentmodule:: tensordb.tensor_translator
 
-.. autofunction:: defined_translation
+.. autofunction:: xarray_from_func

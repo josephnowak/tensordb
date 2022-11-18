@@ -12,4 +12,4 @@ Translation
 .. autosummary::
    :toctree: api/
 
-   defined_translation
+   xarray_from_func

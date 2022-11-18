@@ -475,3 +475,24 @@ class Algorithms:
         else:
             valid_coords = [c.result() for c in client.compute(valid_coords)]
         return new_data.sel(dict(zip(dims, valid_coords)))
+
+    @classmethod
+    def append_previous(
+            cls,
+            old_data: Union[xr.DataArray, xr.Dataset],
+            new_data: Union[xr.DataArray, xr.Dataset],
+            dim: str,
+    ):
+        """
+        This method only add at the begining of the new_data the previous data, and this only
+        works if the new data is sorted in ascending order over the dimension.
+
+        """
+        # Find the nearest coord that is smaller than the first one of the new_data
+        position = old_data.indexes[dim][old_data.indexes[dim] < new_data.indexes[dim][0]]
+        if len(position) == 0:
+            return new_data
+        position = position[-1]
+        return xr.concat([
+            old_data.sel({dim: [position]}).compute(), new_data
+        ], dim=dim)
