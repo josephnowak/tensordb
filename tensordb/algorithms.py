@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
+from dask.distributed import Client
+
 
 class NumpyAlgorithms:
     @staticmethod
@@ -441,7 +443,7 @@ class Algorithms:
             new_data: Union[xr.DataArray, xr.Dataset],
             dims: List[str],
             how: Literal['all'] = 'all',
-            client: dask.distributed.Client = None
+            client: Client = None
     ):
         """
         Equivalent of xarray dropna but for multiple dimension and restricted to the all option
@@ -460,7 +462,7 @@ class Algorithms:
             new_data: Union[xr.DataArray, xr.Dataset],
             dims: List[str],
             how: Literal['all'] = 'all',
-            client: dask.distributed.Client = None
+            client: Client = None
     ):
         """
         Equivalent of xarray dropna but for boolean and for multiple dimension and restricted to the all option

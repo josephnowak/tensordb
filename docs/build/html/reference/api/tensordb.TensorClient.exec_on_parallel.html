@@ -327,7 +327,7 @@ None means call all in parallel</p>
 </dd>
 <dt><strong>compute: bool, default True</strong></dt><dd><p>Indicate if the computation must be delayed or not, read the use on zarr_storage doc for more info</p>
 </dd>
-<dt><strong>client: dask.distributed.Client, default None</strong></dt><dd><p>Dask client, useful for in combination with the compute parameter</p>
+<dt><strong>client: Client, default None</strong></dt><dd><p>Dask client, useful for in combination with the compute parameter</p>
 </dd>
 <dt><strong>call_pool: Literal[‘thread’, ‘process’], default ‘thread’</strong></dt><dd><p>Internally this method use a Pool of process/thread to apply the method on all the tensors
 this indicates the kind of pool</p>

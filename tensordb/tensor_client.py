@@ -8,8 +8,11 @@ import more_itertools as mit
 import numpy as np
 import pandas as pd
 import xarray as xr
+from dask.distributed import Client
 from loguru import logger
 from pydantic import validate_arguments
+from xarray.backends.common import AbstractWritableDataStore
+
 from tensordb import dag
 from tensordb.algorithms import Algorithms
 from tensordb.storages import (
@@ -26,7 +29,6 @@ from tensordb.utils.tools import (
     extract_paths_from_formula,
     iter_by_group_chunks
 )
-from xarray.backends.common import AbstractWritableDataStore
 
 
 class TensorClient(Algorithms):
@@ -357,7 +359,7 @@ class TensorClient(Algorithms):
             paths_kwargs: Dict[str, Dict[str, Any]],
             max_parallelization: int = None,
             compute: bool = False,
-            client: dask.distributed.Client = None,
+            client: Client = None,
             call_pool: Literal['thread', 'process'] = 'thread',
             compute_kwargs: Dict[str, Any] = None,
     ):
@@ -381,7 +383,7 @@ class TensorClient(Algorithms):
         compute: bool, default True
             Indicate if the computation must be delayed or not, read the use on zarr_storage doc for more info
 
-        client: dask.distributed.Client, default None
+        client: Client, default None
             Dask client, useful for in combination with the compute parameter
 
         call_pool: Literal['thread', 'process'], default 'thread'
