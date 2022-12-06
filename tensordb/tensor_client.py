@@ -905,4 +905,6 @@ class TensorClient(Algorithms):
         if use_exec:
             exec(formula, formula_globals, kwargs)
             return kwargs['new_data']
+
+        formula = formula.replace("\n", "")
         return eval(formula, formula_globals, kwargs)
