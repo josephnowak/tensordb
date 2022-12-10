@@ -1,8 +1,7 @@
 import pytest
 import numpy as np
 import xarray as xr
-from typing import List
-
+from threading import Lock
 from tensordb.utils.tools import groupby_chunks, xarray_from_func
 
 
@@ -18,24 +17,25 @@ class TestTools:
         self.dataset = xr.Dataset(
             {'first': self.data_array, 'second': self.data_array + 10}
         )
+        # TODO: Once this issue is fixed https://github.com/pydata/xarray/issues/7059 this lock should be dropped
+        self.lock = Lock()
 
-    @staticmethod
-    def read_by_coords(data: xr.DataArray, coords) -> xr.DataArray:
-        return data.sel(**coords)
+    def read_by_coords(self, arr: xr.DataArray) -> xr.DataArray:
+        with self.lock:
+            return self.data_array.sel(arr.coords)
 
-    @staticmethod
-    def read_by_coords_dataset(dataset: xr.Dataset, coords) -> List[xr.DataArray]:
-        return dataset[['first', 'second']].sel(**coords)
-        # return [dataset[name] for name in ['first', 'second']]
+    def read_by_coords_dataset(self, arr: xr.Dataset) -> xr.Dataset:
+        with self.lock:
+            return self.dataset.loc[arr.coords]
 
     def test_xarray_from_func_data_array(self):
         data = xarray_from_func(
             self.read_by_coords,
             dims=['a', 'b'],
-            coords={'a': np.array(list(range(6))), 'b': list(range(8))},
+            coords={'a': list(range(6)), 'b': list(range(8))},
             chunks=[2, 3],
             dtypes=np.float64,
-            func_parameters={'data': self.data_array}
+            func_parameters={}
         )
         assert data.equals(self.data_array.sel(**data.coords))
 
@@ -47,9 +47,9 @@ class TestTools:
             chunks=[2, 3],
             dtypes=[np.float64, np.float64],
             data_names=['first', 'second'],
-            func_parameters={'dataset': self.dataset},
+            func_parameters={},
         )
-        assert data.equals(self.dataset.sel(**data.coords))
+        assert data.equals(self.dataset.sel(data.coords))
 
     def test_groupby_chunks(self):
         e = {'a': 0, 'b': 1, 'c': 0, 'd': 0, 'e': 0, 'm': 1, 'g': 2, 'l': 2}
