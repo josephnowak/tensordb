@@ -105,8 +105,8 @@ def xarray_from_func(
 
     The most useful part of this function is that you can pivot a table faster (you already has the coords, why pivot
     as if you don't know the shape of your tensor?). The idea is that your function make the pivot of the data,
-    but the function in fact will be only doing a pivot of a chunk with a known shape (an small portion of the data)
-    and with dask the chunks are processed in parallel, which is ideal for cases when you have to query an slow DB.
+    but the function in fact will be only doing a pivot of a chunk with a known shape (a small portion of the data)
+    and with dask the chunks are processed in parallel, which is ideal for cases when you have to query a slow DB.
 
     Parameters
     ----------
@@ -129,7 +129,7 @@ def xarray_from_func(
 
     dtypes: Union[List[Any], Any]
         Indicate the dtype for every DataArray inside your Dataset, in case of sent a unique dtype
-        the array will be consider as a DataArray instead of a Dataset.
+        the array will be considered as a DataArray instead of a Dataset.
         For multiple dtypes the results of the func must be aligned with the dtypes in other
         case it will raise a Dask error.
 
@@ -145,17 +145,21 @@ def xarray_from_func(
     chunks = [len(coords[dim]) if chunk is None else chunk for chunk, dim in zip(chunks, dims)]
     func_parameters = {} if func_parameters is None else func_parameters
 
-    if data_names is None:
+    if data_names is None or isinstance(data_names, str):
         arr = empty_xarray(dims, coords, chunks, dtypes)
     else:
         if len(dtypes) != len(data_names):
             raise ValueError(
-                f'The number of dtypes ({len(dtypes)}) does not match the number of dataset names ({len(data_names)}), '
-                f'you need to specify a dtype for every data array in your dataset'
+                f'The number of dtypes ({len(dtypes)}) does not match the number of dataset names '
+                f'({len(data_names)}), you need to specify a dtype for every data array in your dataset'
             )
         arr = xr.Dataset({
             name: empty_xarray(dims, coords, chunks, dtype)
             for name, dtype in zip(data_names, dtypes)
-        })
+        }, coords=coords)
 
-    return arr.map_blocks(lambda x: func(coords=x.coords, **func_parameters))
+    return arr.map_blocks(
+        func,
+        kwargs=func_parameters,
+        template=arr
+    )
