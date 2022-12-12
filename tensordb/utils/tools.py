@@ -97,7 +97,7 @@ def xarray_from_func(
         coords: Dict[Hashable, Union[List, np.ndarray]],
         chunks: List[Union[int, None]],
         dtypes: Union[List[Any], Any],
-        data_names: List[Hashable] = None,
+        data_names: Union[List[Hashable], str] = None,
         func_parameters: Dict[str, Any] = None,
 ) -> Union[xr.DataArray, xr.Dataset]:
     """
