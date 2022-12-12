@@ -400,7 +400,7 @@ class Algorithms:
                 da.empty(
                     dtype=float,
                     chunks=chunks,
-                    shape=[len(v) for v in new_coords.values()]
+                    shape=[len(new_coords[v]) for v in new_data.dims]
                 ),
                 coords=new_coords,
                 dims=new_data.dims,
