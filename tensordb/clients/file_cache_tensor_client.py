@@ -9,11 +9,11 @@ from tensordb.storages import (
     BaseStorage
 )
 from tensordb.storages import Mapping, PrefixLock
-from tensordb.tensor_client import TensorClient
+from tensordb.clients.tensor_client import BaseTensorClient, TensorClient
 from tensordb.tensor_definition import TensorDefinition
 
 
-class FileCacheTensorClient:
+class FileCacheTensorClient(BaseTensorClient):
     """
     Parameters
     ----------
@@ -25,6 +25,10 @@ class FileCacheTensorClient:
         If there are multiple instances using the file cache tensor client then it is possible
         that the same file is downloaded from the remote client at the same time causing data corruption.
         If you need a lock at chunk level then use the locks of the Mapping class
+
+    default_client: Literal["local", "remote"]
+        In case that a method is not overwritten by this class then it is going to automatically
+        call the method on the default client
     """
 
     def __init__(
@@ -34,12 +38,41 @@ class FileCacheTensorClient:
             tensor_lock: PrefixLock,
             checksum_path: str,
             synchronizer_mode: Literal["delayed", "automatic"] = "automatic",
+            default_client: Literal["local", "remote"] = "remote"
     ):
         self.remote_client = remote_client
         self.local_client = local_client
         self.synchronizer_mode = synchronizer_mode
         self.tensor_lock = tensor_lock
         self.checksum_map = self.local_client.base_map.sub_map(checksum_path)
+        self.default_client = remote_client
+        if default_client == "local":
+            self.default_client = local_client
+
+    def add_custom_data(self, path, new_data):
+        self.remote_client.add_custom_data(path, new_data)
+
+    def get_custom_data(self, path, default=None):
+        return self.remote_client.get_custom_data(path, default)
+
+    def upsert_tensor(self, definition: TensorDefinition):
+        self.local_client.upsert_tensor(definition)
+
+    def get_all_tensors_definition(self, include_local: bool = True) -> List[TensorDefinition]:
+        definitions = self.remote_client.get_all_tensors_definition()
+        if include_local:
+            local_definitions = self.local_client.get_all_tensors_definition()
+            definitions = {v.path: v for v in definitions}
+            local_definitions = {v.path: v for v in local_definitions}
+            definitions.update(local_definitions)
+            definitions = list(definitions.values())
+
+        return definitions
+
+    def __getattr__(self, item):
+        if item.startswith('_'):
+            raise AttributeError(item)
+        return getattr(self.default_client, item)
 
     def merge(
             self,
@@ -57,8 +90,6 @@ class FileCacheTensorClient:
             force = True
 
         local_definition = self.local_client.get_tensor_definition(path)
-        print(path)
-        print(local_definition)
 
         if "modification_date" not in local_definition.metadata:
             raise ValueError(f"There is no modification date on the local definition metadata")
@@ -150,11 +181,8 @@ class FileCacheTensorClient:
             if fetch:
                 self.fetch(path, force=force)
             if not only_read:
-                print(self.local_client.get_tensor_definition(path))
                 self.local_client.update_tensor_metadata(path, {"modification_date": str(pd.Timestamp.now())})
-                print(self.local_client.get_tensor_definition(path))
             if drop_checksums and exist_local:
-                print(list(self.checksum_map.sub_map(path).keys()))
                 self.checksum_map.rmdir(path)
             result = func(path=path, **kwargs)
             if merge:

@@ -339,7 +339,7 @@ class TestTensorClient:
         for definition in definitions:
             self.tensor_client.create_tensor(definition)
 
-        self.tensor_client.remote_client.exec_on_dag_order(
+        self.tensor_client.exec_on_dag_order(
             method=self.tensor_client.store,
             parallelization_kwargs={
                 'compute': compute,
@@ -351,7 +351,7 @@ class TestTensorClient:
         assert self.tensor_client.read('2').equals(self.arr + 1)
         assert self.tensor_client.read('3').equals(self.arr + 1 + self.arr * 2)
 
-        self.tensor_client.remote_client.exec_on_dag_order(
+        self.tensor_client.exec_on_dag_order(
             method=self.tensor_client.store,
             tensors_path=['1'],
             autofill_dependencies=True,
@@ -433,7 +433,7 @@ class TestTensorClient:
         for definition in definitions:
             self.tensor_client.create_tensor(definition)
 
-        dask_graph = self.tensor_client.remote_client.get_dag_for_dask(
+        dask_graph = self.tensor_client.get_dag_for_dask(
             method=self.tensor_client.store,
             max_parallelization_per_group=max_per_group,
             final_task_name='FinalTask',
@@ -453,7 +453,7 @@ class TestTensorClient:
         assert self.tensor_client.read('2').equals(self.arr + 1)
         assert self.tensor_client.read('3').equals(self.arr + 1 + self.arr * 2)
         #
-        dask_graph = self.tensor_client.remote_client.get_dag_for_dask(
+        dask_graph = self.tensor_client.get_dag_for_dask(
             method=self.tensor_client.store,
             tensors=[self.tensor_client.get_tensor_definition('1')],
             max_parallelization_per_group=max_per_group,
