@@ -366,7 +366,9 @@ class BaseTensorClient(Algorithms):
         The result vary depending on the method called.
 
         """
-        tensor_definition = self.get_tensor_definition(path) if isinstance(path, str) else path
+        tensor_definition = path
+        if isinstance(path, str):
+            tensor_definition = self.get_tensor_definition(path)
         definition = tensor_definition.definition
 
         storage = self.get_storage(path=tensor_definition)

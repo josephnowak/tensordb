@@ -49,6 +49,11 @@ class FileCacheTensorClient(BaseTensorClient):
         if default_client == "local":
             self.default_client = local_client
 
+    def __getattr__(self, item):
+        if item.startswith('_'):
+            raise AttributeError(item)
+        return getattr(self.default_client, item)
+
     def add_custom_data(self, path, new_data):
         self.remote_client.add_custom_data(path, new_data)
 
@@ -56,7 +61,9 @@ class FileCacheTensorClient(BaseTensorClient):
         return self.remote_client.get_custom_data(path, default)
 
     def upsert_tensor(self, definition: TensorDefinition):
-        self.local_client.upsert_tensor(definition)
+        with self.tensor_lock.get_lock(definition.path):
+            self.local_client.upsert_tensor(definition)
+            self.remote_client.upsert_tensor(definition)
 
     def get_all_tensors_definition(self, include_local: bool = True) -> List[TensorDefinition]:
         definitions = self.remote_client.get_all_tensors_definition()
@@ -69,10 +76,32 @@ class FileCacheTensorClient(BaseTensorClient):
 
         return definitions
 
-    def __getattr__(self, item):
-        if item.startswith('_'):
-            raise AttributeError(item)
-        return getattr(self.default_client, item)
+    @validate_arguments
+    def create_tensor(self, definition: TensorDefinition, keep_metadata: bool = True):
+        if self.remote_client.exist(definition.path) and keep_metadata:
+            actual_definition = self.remote_client.get_tensor_definition(definition.path)
+            definition.metadata.update(actual_definition.metadata)
+        for client in [self.remote_client, self.local_client]:
+            client.create_tensor(definition)
+
+    @validate_arguments
+    def get_tensor_definition(self, path: str) -> TensorDefinition:
+        return self.remote_client.get_tensor_definition(path)
+
+    @validate_arguments
+    def get_storage(
+            self,
+            path: Union[str, TensorDefinition]
+    ) -> BaseStorage:
+        path = path.path if isinstance(path, TensorDefinition) else path
+        return self._exec_callable(
+            "get_storage",
+            path=path,
+            fetch=True,
+            merge=False,
+            only_read=True,
+            apply_client=self.local_client,
+        )
 
     def merge(
             self,
@@ -107,7 +136,7 @@ class FileCacheTensorClient(BaseTensorClient):
                                  f"while the local copy was updated on {local_modification_date}, please update "
                                  f"first the local copy before merging it.")
 
-        self.remote_client.upsert_tensor(local_definition)
+        self.remote_client.create_tensor(local_definition)
 
         if not only_definition:
             Mapping.synchronize(
@@ -153,7 +182,7 @@ class FileCacheTensorClient(BaseTensorClient):
                                  f"that they are out of sync and this is not possible "
                                  f"if the synchronizer mode is not delayed")
 
-        self.local_client.upsert_tensor(remote_definition)
+        self.local_client.create_tensor(remote_definition)
         if not only_definition:
             Mapping.synchronize(
                 remote_map=self.remote_client.base_map.sub_map(path),
@@ -172,10 +201,10 @@ class FileCacheTensorClient(BaseTensorClient):
             only_read: bool,
             force: bool = False,
             drop_checksums: bool = False,
+            apply_client: TensorClient = None,
             **kwargs
 
     ):
-        func = getattr(self.local_client, func)
         with self.tensor_lock.get_lock(path):
             exist_local = self.local_client.exist(path)
             if fetch:
@@ -184,10 +213,19 @@ class FileCacheTensorClient(BaseTensorClient):
                 self.local_client.update_tensor_metadata(path, {"modification_date": str(pd.Timestamp.now())})
             if drop_checksums and exist_local:
                 self.checksum_map.rmdir(path)
-            result = func(path=path, **kwargs)
+
+            if apply_client is not None:
+                result = getattr(apply_client, func)(path=path, **kwargs)
+
             if merge:
                 self.merge(path, force=force)
-            return result
+
+        if apply_client is None:
+            result = self.storage_method_caller(
+                path=path, method_name=func, parameters=kwargs
+            )
+
+        return result
 
     def read(
             self,
@@ -282,20 +320,6 @@ class FileCacheTensorClient(BaseTensorClient):
         )
 
     @validate_arguments
-    def create_tensor(self, definition: TensorDefinition):
-        if self.remote_client.exist(definition.path, only_definition=True):
-            raise KeyError(f"Overwrite the tensor definition on the path {definition.path} "
-                           f"can produce synchronization problems")
-        self.remote_client.create_tensor(definition)
-        self.local_client.create_tensor(definition)
-
-    @validate_arguments
-    def get_tensor_definition(self, path: str) -> TensorDefinition:
-        with self.tensor_lock.get_lock(path):
-            self.fetch(path, force=False)
-            return self.local_client.get_tensor_definition(path)
-
-    @validate_arguments
     def delete_tensor(
             self,
             path: str,
@@ -321,15 +345,3 @@ class FileCacheTensorClient(BaseTensorClient):
             except KeyError:
                 pass
 
-    @validate_arguments
-    def get_storage(
-            self,
-            path: Union[str, TensorDefinition]
-    ) -> BaseStorage:
-        return self._exec_callable(
-            "get_storage",
-            path=path,
-            fetch=True,
-            merge=False,
-            only_read=True,
-        )

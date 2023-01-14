@@ -2,6 +2,7 @@ from typing import Dict
 
 import orjson
 import xarray as xr
+from pydantic.utils import deep_update
 from tensordb.storages.base_storage import BaseStorage
 
 
@@ -34,7 +35,7 @@ class JsonStorage(BaseStorage):
             d = orjson.loads(self.base_map[new_name])
         except KeyError:
             d = {}
-        d.update(new_data)
+        d = deep_update(d, new_data)
         self.store(path=path, new_data=d)
 
     def read(self, path: str = None) -> Dict:

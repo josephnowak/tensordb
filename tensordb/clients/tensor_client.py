@@ -417,9 +417,10 @@ class TensorClient(BaseTensorClient, Algorithms):
         """
         try:
             exist_definition = self._tensors_definition.exist(path)
-            if only_definition:
+            if only_definition or exist_definition:
                 return exist_definition
-            return exist_definition and self.get_storage(path).exist(**kwargs)
+            self.get_storage(path).read(**kwargs)
+            return True
         except KeyError:
             return False
 
