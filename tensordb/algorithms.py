@@ -1,4 +1,4 @@
-from typing import Union, List, Dict, Literal, Any
+from typing import Union, List, Dict, Literal, Any, Callable
 
 import dask
 import dask.array as da
@@ -277,7 +277,7 @@ class Algorithms:
             new_data: Union[xr.DataArray, xr.Dataset],
             groups: Union[Dict, xr.DataArray],
             dim: str,
-            func: str,
+            func: Union[str, Callable],
             keep_shape: bool = False,
             output_dim: str = None,
             unique_groups: np.ndarray = None,
@@ -304,7 +304,7 @@ class Algorithms:
         dim: str
             Dimension on which apply the groupby
 
-        func: str
+        func: Union[str, Callable]
             Function to be applied on the groupby, this can be any of the function name that are
             in Xarray (like sum, cumprod and so on) + any function of the Algorithm class
 
@@ -362,7 +362,9 @@ class Algorithms:
         def _reduce(x, g):
             if len(g.dims) == 1:
                 grouped = x.groupby(g)
-                if hasattr(grouped, func):
+                if not isinstance(func, str):
+                    arr = grouped.map(func)
+                elif hasattr(grouped, func):
                     arr = getattr(grouped, func)(dim=dim, **kwargs)
                 else:
                     arr = grouped.map(getattr(Algorithms, func), dim=dim, **kwargs).compute()
