@@ -341,8 +341,9 @@ class Algorithms:
 
         if len(groups.dims) != 1 and groups.dims != new_data.dims:
             raise ValueError(
-                f'The dimension of the groups must be the same as the dimension of the new_data'
-                f' or one of its dimensions, but got {groups.dims} and {new_data.dims}'
+                f'The dimension of the groups must be the same as the dimension of the new_data '
+                f'or it must has only one of its dimensions, '
+                f'but got {groups.dims} and {new_data.dims}'
             )
 
         axis = new_data.dims.index(dim)
@@ -393,6 +394,8 @@ class Algorithms:
         data = new_data.chunk({dim: -1})
         if len(groups.dims) == len(data.dims):
             groups = groups.chunk(data.chunks)
+        else:
+            groups = groups.compute()
         new_coords = {k: output_coord if k == dim else v for k, v in new_data.coords.items()}
 
         data = data.map_blocks(
