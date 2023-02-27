@@ -7,17 +7,20 @@ import pandas as pd
 import xarray as xr
 
 from dask.distributed import Client
+from scipy.stats import rankdata
 
 
 class NumpyAlgorithms:
     @staticmethod
     def nanrankdata(a, method, axis):
-        from scipy.stats import rankdata
-        return np.where(np.isnan(a), np.nan, rankdata(a, method=method, axis=axis))
+        return np.where(
+            np.isnan(a),
+            np.nan,
+            rankdata(a, method=method, axis=axis, nan_policy="omit"),
+        )
 
     @staticmethod
     def nanrankdata_1d(a, method):
-        from scipy.stats import rankdata
         idx = ~np.isnan(a)
         a[idx] = rankdata(a[idx], method=method)
         return a
@@ -104,8 +107,6 @@ class Algorithms:
                     coords=new_data.coords,
                     attrs=new_data.attrs
                 )
-
-            from scipy.stats import rankdata
 
             func = rankdata if rank_nan else NumpyAlgorithms.nanrankdata
             data = new_data.chunk({dim: -1}).data
