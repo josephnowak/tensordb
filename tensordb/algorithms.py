@@ -1,4 +1,5 @@
 from typing import Union, List, Dict, Literal, Any, Callable
+from functools import partial
 
 import dask
 import dask.array as da
@@ -11,20 +12,6 @@ from scipy.stats import rankdata
 
 
 class NumpyAlgorithms:
-    @staticmethod
-    def nanrankdata(a, method, axis):
-        return np.where(
-            np.isnan(a),
-            np.nan,
-            rankdata(a, method=method, axis=axis, nan_policy="omit"),
-        )
-
-    @staticmethod
-    def nanrankdata_1d(a, method):
-        idx = ~np.isnan(a)
-        a[idx] = rankdata(a[idx], method=method)
-        return a
-
     @staticmethod
     def shift_on_valid(a, shift):
         pos = np.arange(len(a))[~np.isnan(a)]
@@ -82,7 +69,8 @@ class Algorithms:
             new_data: Union[xr.DataArray, xr.Dataset],
             dim: str,
             method: Literal['average', 'min', 'max', 'dense', 'ordinal'] = 'ordinal',
-            rank_nan: bool = False,
+            ascending=True,
+            nan_policy: Literal["omit", "propagate", "error"] = "omit"
     ) -> xr.DataArray:
         """
         This is an implementation of scipy rankdata on xarray, with the possibility to avoid the rank of the nans.
@@ -92,38 +80,36 @@ class Algorithms:
         and the other using dask apply_along_axis without an axis on the rankdata func, I think that the last one
         is better when there are many nans on the data
         """
-        try:
-            if method == 'average' and not rank_nan:
-                return new_data.rank(dim=dim)
-            raise NotImplementedError
-        except NotImplementedError:
-
-            if isinstance(new_data, xr.Dataset):
-                return xr.Dataset(
-                    {
-                        name: cls.rank(data, dim, method, rank_nan)
-                        for name, data in new_data.items()
-                    },
-                    coords=new_data.coords,
-                    attrs=new_data.attrs
-                )
-
-            func = rankdata if rank_nan else NumpyAlgorithms.nanrankdata
-            data = new_data.chunk({dim: -1}).data
-            ranked = data.map_blocks(
-                func=func,
-                dtype=np.float64,
-                chunks=data.chunks,
-                axis=new_data.dims.index(dim),
-                method=method
-            )
-
-            return xr.DataArray(
-                ranked,
+        if isinstance(new_data, xr.Dataset):
+            return xr.Dataset(
+                {
+                    name: cls.rank(data, dim, method, ascending, nan_policy)
+                    for name, data in new_data.items()
+                },
                 coords=new_data.coords,
-                dims=new_data.dims,
                 attrs=new_data.attrs
             )
+
+        func = rankdata
+        if not ascending:
+            new_data = -new_data
+
+        data = new_data.chunk({dim: -1}).data
+        ranked = data.map_blocks(
+            func=func,
+            dtype=np.float64,
+            chunks=data.chunks,
+            axis=new_data.dims.index(dim),
+            method=method,
+            nan_policy=nan_policy
+        )
+
+        return xr.DataArray(
+            ranked,
+            coords=new_data.coords,
+            dims=new_data.dims,
+            attrs=new_data.attrs
+        )
 
     @classmethod
     def shift_on_valid(

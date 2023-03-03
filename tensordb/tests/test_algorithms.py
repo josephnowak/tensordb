@@ -36,7 +36,7 @@ def test_ffill():
 
 
 @pytest.mark.parametrize(
-    'method, rank_nan',
+    'method, ascending',
     [
         ('average', True),
         ('min', False),
@@ -45,7 +45,7 @@ def test_ffill():
         ('dense', False)
     ]
 )
-def test_rank(method, rank_nan):
+def test_rank(method, ascending):
     arr = xr.DataArray(
         [
             [1, 2, 3],
@@ -62,10 +62,10 @@ def test_rank(method, rank_nan):
         arr,
         'b',
         method=method,
-        rank_nan=rank_nan
+        ascending=ascending
     )
     rank_pandas_method = 'first' if method == 'ordinal' else method
-    expected = df.rank(axis=1, method=rank_pandas_method, na_option='bottom' if rank_nan else 'keep')
+    expected = df.rank(axis=1, method=rank_pandas_method, na_option='keep', ascending=ascending)
     assert result.equals(
         xr.DataArray(
             expected.values,
