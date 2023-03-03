@@ -100,7 +100,7 @@ class BaseTensorClient(Algorithms):
                 return func(**params)
             except Exception as e:
                 e.args = (f"Tensor path: {params['path']}", *e.args)
-                raise
+                raise e
 
     @staticmethod
     def exec_on_parallel(
