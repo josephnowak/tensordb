@@ -90,13 +90,12 @@ class Algorithms:
                 attrs=new_data.attrs
             )
 
-        func = rankdata
         if not ascending:
             new_data = -new_data
 
         data = new_data.chunk({dim: -1}).data
         ranked = data.map_blocks(
-            func=func,
+            func=rankdata,
             dtype=np.float64,
             chunks=data.chunks,
             axis=new_data.dims.index(dim),
