@@ -9,3 +9,4 @@ orjson==3.*
 pydantic==1.*
 more-itertools==9.*
 scipy==1.*
+flox==0.*
