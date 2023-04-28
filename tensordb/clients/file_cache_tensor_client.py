@@ -5,11 +5,11 @@ import xarray as xr
 from pydantic import validate_arguments
 from xarray.backends.common import AbstractWritableDataStore
 
+from tensordb.clients.tensor_client import BaseTensorClient, TensorClient
 from tensordb.storages import (
     BaseStorage
 )
 from tensordb.storages import Mapping, PrefixLock
-from tensordb.clients.tensor_client import BaseTensorClient, TensorClient
 from tensordb.tensor_definition import TensorDefinition
 
 
@@ -199,9 +199,9 @@ class FileCacheTensorClient(BaseTensorClient):
             fetch: bool,
             merge: bool,
             only_read: bool,
+            apply_client: TensorClient,
             force: bool = False,
             drop_checksums: bool = False,
-            apply_client: TensorClient = None,
             **kwargs
 
     ):
@@ -214,16 +214,10 @@ class FileCacheTensorClient(BaseTensorClient):
             if drop_checksums and exist_local:
                 self.checksum_map.rmdir(path)
 
-            if apply_client is not None:
-                result = getattr(apply_client, func)(path=path, **kwargs)
+            result = getattr(apply_client, func)(path=path, **kwargs)
 
             if merge:
                 self.merge(path, force=force)
-
-        if apply_client is None:
-            result = self.storage_method_caller(
-                path=path, method_name=func, parameters=kwargs
-            )
 
         return result
 
@@ -238,6 +232,7 @@ class FileCacheTensorClient(BaseTensorClient):
             fetch=True,
             merge=False,
             only_read=True,
+            apply_client=self.local_client,
             **kwargs
         )
 
@@ -253,6 +248,7 @@ class FileCacheTensorClient(BaseTensorClient):
             merge=True,
             only_read=False,
             drop_checksums=True,
+            apply_client=self.local_client,
             **kwargs
         )
 
@@ -267,6 +263,7 @@ class FileCacheTensorClient(BaseTensorClient):
             fetch=True,
             merge=True,
             only_read=False,
+            apply_client=self.local_client,
             **kwargs
         )
 
@@ -281,6 +278,7 @@ class FileCacheTensorClient(BaseTensorClient):
             fetch=True,
             merge=True,
             only_read=False,
+            apply_client=self.local_client,
             **kwargs
         )
 
@@ -295,6 +293,7 @@ class FileCacheTensorClient(BaseTensorClient):
             fetch=True,
             merge=True,
             only_read=False,
+            apply_client=self.local_client,
             **kwargs
         )
 
@@ -316,6 +315,7 @@ class FileCacheTensorClient(BaseTensorClient):
             fetch=True,
             merge=True,
             only_read=False,
+            apply_client=self.local_client,
             **kwargs
         )
 
@@ -344,4 +344,3 @@ class FileCacheTensorClient(BaseTensorClient):
                 self.delete_tensor(path, only_data=only_data, only_local=only_local)
             except KeyError:
                 pass
-

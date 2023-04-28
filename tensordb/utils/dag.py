@@ -2,6 +2,9 @@ from functools import reduce
 from typing import List
 
 from tensordb.tensor_definition import TensorDefinition
+from tensordb.utils.tools import (
+    iter_by_group_chunks
+)
 
 
 # TODO: Update to python 3.9 or 3.10 to start using graphlib instead of use this function
@@ -55,3 +58,26 @@ def add_dependencies(
             continue
         total_paths.update(tensor.dag.depends)
     return [total_tensors_search[path] for path in total_paths]
+
+
+def get_leaf_tasks(tensors, new_dependencies=None):
+    # Add the non blocking tasks to a final task
+    final_tasks = set(tensor.path for tensor in tensors)
+    final_tasks -= set().union(*[
+        set(tensor.dag.depends) | new_dependencies.get(tensor.path, set())
+        for tensor in tensors
+    ])
+    return final_tasks
+
+
+def get_limit_dependencies(tensors, max_parallelization_per_group):
+    new_dependencies = {}
+    for level in get_tensor_dag(tensors, False):
+        prev_dependencies = set()
+        for i, (name, group) in enumerate(iter_by_group_chunks(
+                level, max_parallelization_per_group, lambda tensor: tensor.dag.group
+        )):
+            if i != 0:
+                new_dependencies.update({tensor.path: prev_dependencies for tensor in group})
+            prev_dependencies = set(tensor.path for tensor in group)
+    return new_dependencies

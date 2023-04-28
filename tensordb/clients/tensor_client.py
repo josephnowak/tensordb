@@ -1,36 +1,20 @@
 from collections.abc import MutableMapping
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-from typing import Dict, List, Any, Union, Literal, Callable
+from typing import Dict, List, Any, Union
 
-import dask
-import dask.array as da
-import more_itertools as mit
-import numpy as np
 import orjson
-import pandas as pd
 import xarray as xr
-from dask.distributed import Client
 from pydantic import validate_arguments
 from xarray.backends.common import AbstractWritableDataStore
 
-from tensordb import dag
 from tensordb.algorithms import Algorithms
+from tensordb.clients.base import BaseTensorClient
 from tensordb.storages import (
     BaseStorage,
     JsonStorage,
-    CachedStorage,
     MAPPING_STORAGES
 )
 from tensordb.storages.mapping import Mapping
-from tensordb.tensor_definition import TensorDefinition, MethodDescriptor, Definition
-from tensordb.utils.method_inspector import get_parameters
-from tensordb.utils.tools import (
-    groupby_chunks,
-    extract_paths_from_formula,
-    iter_by_group_chunks
-)
-from tensordb.clients.base import BaseTensorClient
-
+from tensordb.tensor_definition import TensorDefinition
 
 
 class TensorClient(BaseTensorClient, Algorithms):
@@ -417,9 +401,9 @@ class TensorClient(BaseTensorClient, Algorithms):
         """
         try:
             exist_definition = self._tensors_definition.exist(path)
-            if only_definition or exist_definition:
+            if only_definition or (not exist_definition):
                 return exist_definition
-            self.get_storage(path).read(**kwargs)
+            self.read(path=path, **kwargs)
             return True
         except KeyError:
             return False

@@ -209,8 +209,13 @@ def test_apply_on_groups(dim, keep_shape, output_dim, func):
         'b': [0, 1, 1, 0, -1]
     }
     groups = {k: v for k, v in zip(arr.coords[dim].values, grouper[dim])}
-
-    g = getattr(arr.groupby(xr.IndexVariable(dim, grouper[dim])), func)(dim)
+    groups_arr = xr.DataArray(
+        list(groups.values()),
+        dims=[dim],
+        coords={dim: list(groups.keys())}
+    )
+    g = arr.groupby(groups_arr).max(dim=dim)
+    g = g.rename({"group": dim})
     arr = Algorithms.apply_on_groups(
         arr, groups=groups, dim=dim, func=func, keep_shape=keep_shape, output_dim=output_dim
     )

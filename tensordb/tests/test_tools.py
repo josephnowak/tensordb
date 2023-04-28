@@ -1,7 +1,8 @@
-import pytest
+import dask
 import numpy as np
+import pytest
 import xarray as xr
-from threading import Lock
+
 from tensordb.utils.tools import groupby_chunks, xarray_from_func
 
 
@@ -18,7 +19,7 @@ class TestTools:
             {'first': self.data_array, 'second': self.data_array + 10}
         )
         # TODO: Once this issue is fixed https://github.com/pydata/xarray/issues/7059 this lock should be dropped
-        self.lock = Lock()
+        self.lock = dask.utils.SerializableLock()
 
     def read_by_coords(self, arr: xr.DataArray) -> xr.DataArray:
         with self.lock:

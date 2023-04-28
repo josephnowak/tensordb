@@ -16,7 +16,7 @@ class TestCachedTensor:
         storage = ZarrStorage(
             base_map=fsspec.get_mapper(sub_path),
             tmp_map=fsspec.get_mapper(sub_path + '/tmp'),
-            path='zarr',
+            path='zarr_cache',
             dataset_names='cached_test',
             chunks={'index': 3, 'columns': 2},
         )

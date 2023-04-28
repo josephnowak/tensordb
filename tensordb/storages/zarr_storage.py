@@ -3,6 +3,7 @@ from typing import Dict, List, Union, Any, Literal
 import numpy as np
 import xarray as xr
 import zarr
+
 from tensordb.algorithms import Algorithms
 from tensordb.storages.base_storage import BaseStorage
 from tensordb.storages.mapping import Mapping
@@ -152,10 +153,7 @@ class ZarrStorage(BaseStorage):
                 synchronizer=self.synchronizer,
             )
 
-        try:
-            self.base_map.rmdir()
-        except FileNotFoundError:
-            pass
+        self.delete_tensor()
 
         delayed_write = new_data.to_zarr(
             self.base_map,

@@ -13,18 +13,17 @@ from loguru import logger
 from pydantic import validate_arguments
 from xarray.backends.common import AbstractWritableDataStore
 
-from tensordb import dag
 from tensordb.algorithms import Algorithms
 from tensordb.storages import (
     BaseStorage,
     CachedStorage
 )
 from tensordb.tensor_definition import TensorDefinition, MethodDescriptor, Definition
+from tensordb.utils import dag
 from tensordb.utils.method_inspector import get_parameters
 from tensordb.utils.tools import (
     groupby_chunks,
-    extract_paths_from_formula,
-    iter_by_group_chunks
+    extract_paths_from_formula
 )
 
 
@@ -92,15 +91,13 @@ class BaseTensorClient(Algorithms):
     def _exec_on_dask(
             func: Callable,
             params,
-            process: bool,
             *prev_tasks,
     ):
-        if process:
-            try:
-                return func(**params)
-            except Exception as e:
-                e.args = (f"Tensor path: {params['path']}", *e.args)
-                raise e
+        try:
+            return func(**params)
+        except Exception as e:
+            e.args = (f"Tensor path: {params['path']}", *e.args)
+            raise e
 
     @staticmethod
     def exec_on_parallel(
@@ -158,7 +155,6 @@ class BaseTensorClient(Algorithms):
                         BaseTensorClient._exec_on_dask,
                         method,
                         {"path": path, "compute": compute, **paths_kwargs[path]},
-                        True
                     )
                     for path in sub_paths
                 ]
@@ -269,6 +265,7 @@ class BaseTensorClient(Algorithms):
         map_paths = map_paths or {}
         max_parallelization_per_group = max_parallelization_per_group or {}
         method = getattr(self, method) if isinstance(method, str) else method
+        none_func = lambda *x: None
 
         if tensors is None:
             tensors = self.get_all_tensors_definition()
@@ -277,33 +274,28 @@ class BaseTensorClient(Algorithms):
         groups = {tensor.path: tensor.dag.group for tensor in tensors}
         # The new dependencies are applied to limit the amount of tasks processed in parallel
         # on each group
-        new_dependencies = {}
-
-        for level in dag.get_tensor_dag(tensors, False):
-            prev_dependencies = set()
-            for i, (name, group) in enumerate(iter_by_group_chunks(
-                    level, max_parallelization_per_group, lambda tensor: tensor.dag.group
-            )):
-                if i != 0:
-                    new_dependencies.update({tensor.path: prev_dependencies for tensor in group})
-                prev_dependencies = set(tensor.path for tensor in group)
+        new_dependencies = dag.get_limit_dependencies(
+            tensors, max_parallelization_per_group
+        )
 
         graph = {}
         for tensor in tensors:
             path = tensor.path
             depends = set(tensor.dag.depends) | new_dependencies.get(path, set())
-            group = groups[path]
-            parameters = kwargs_groups.get(group, {}).copy()
-            parameters['path'] = path
+            params = kwargs_groups.get(groups[path], {})
+            params["path"] = path
+            func = none_func if method.__name__ in tensor.dag.omit_on else self._exec_on_dask
             graph[map_paths.get(path, task_prefix + path)] = (
-                BaseTensorClient._exec_on_dask,
+                func,
                 method,
-                parameters,
-                method.__name__ not in tensor.dag.omit_on,
+                params,
                 *tuple(map_paths.get(p, task_prefix + p) for p in depends)
             )
 
-        graph[final_task_name] = (lambda *prev_tasks: None, *tuple(graph.keys()))
+        final_tasks = dag.get_leaf_tasks(tensors, new_dependencies)
+        final_tasks = tuple(task_prefix + path for path in final_tasks)
+
+        graph[final_task_name] = (none_func, *tuple(final_tasks))
         return graph
 
     def apply_data_transformation(
