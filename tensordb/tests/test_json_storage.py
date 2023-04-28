@@ -9,7 +9,7 @@ class TestJsonStorage:
     def setup_tests(self, tmpdir):
         sub_path = tmpdir.strpath
         self.storage = JsonStorage(
-            base_map=fsspec.get_mapper(sub_path),
+            base_map=fsspec.get_mapper(sub_path + '/json'),
             tmp_map=fsspec.get_mapper(sub_path + '/tmp'),
             path='json_storage'
         )

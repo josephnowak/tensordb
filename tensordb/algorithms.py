@@ -1,12 +1,10 @@
 from typing import Union, List, Dict, Literal, Any, Callable
-from functools import partial
 
 import dask
 import dask.array as da
 import numpy as np
 import pandas as pd
 import xarray as xr
-
 from dask.distributed import Client
 from scipy.stats import rankdata
 
@@ -477,7 +475,7 @@ class Algorithms:
             dim: str,
     ):
         """
-        This method only add at the begining of the new_data the previous data, and this only
+        This method only add at the beginning of the new_data the previous data, and this only
         works if the new data is sorted in ascending order over the dimension.
 
         """

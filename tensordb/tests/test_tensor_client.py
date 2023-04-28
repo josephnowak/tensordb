@@ -334,7 +334,7 @@ class TestTensorClient:
                     }
                 },
                 dag={'depends': ['2', '1']}
-            ),
+            )
         ]
         for definition in definitions:
             self.tensor_client.create_tensor(definition)
@@ -429,6 +429,17 @@ class TestTensorClient:
                 },
                 dag={'depends': ['2', '1'], 'group': 'second'}
             ),
+            TensorDefinition(
+                path='5',
+                definition={
+                    'store': {
+                        'data_transformation': [
+                            {'method_name': 'read_from_formula', 'parameters': {'formula': "`99` + `2`"}}
+                        ]
+                    }
+                },
+                dag={'depends': ['3'], 'omit_on': ["store"]}
+            ),
         ]
         for definition in definitions:
             self.tensor_client.create_tensor(definition)
@@ -438,7 +449,6 @@ class TestTensorClient:
             max_parallelization_per_group=max_per_group,
             final_task_name='FinalTask',
         )
-        get = None
         if client_type == 'dask':
             get = dask_client.get
         elif client_type == 'thread':
@@ -452,7 +462,8 @@ class TestTensorClient:
         assert self.tensor_client.read('1').equals(self.arr * 2)
         assert self.tensor_client.read('2').equals(self.arr + 1)
         assert self.tensor_client.read('3').equals(self.arr + 1 + self.arr * 2)
-        #
+        assert not self.tensor_client.exist('5', only_definition=False)
+
         dask_graph = self.tensor_client.get_dag_for_dask(
             method=self.tensor_client.store,
             tensors=[self.tensor_client.get_tensor_definition('1')],
