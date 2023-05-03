@@ -33,11 +33,14 @@ class NumpyAlgorithms:
         return s.values
 
     @staticmethod
-    def replace(x, sorted_key_groups, group_values):
+    def replace(x, sorted_key_groups, group_values, default_replace):
         valid_replace = np.isin(x, sorted_key_groups)
         # put 0 to the positions that are not in the keys of the groups
         positions = np.searchsorted(sorted_key_groups, x) * valid_replace
-        return np.where(valid_replace, group_values[positions], x)
+        arr = np.where(valid_replace, group_values[positions], x)
+        if default_replace is not None:
+            arr[~valid_replace] = default_replace
+        return arr
 
 
 class Algorithms:
@@ -184,6 +187,7 @@ class Algorithms:
             new_data: Union[xr.DataArray, xr.Dataset],
             to_replace: Dict,
             dtype: Any = None,
+            default_replace=None
     ):
         if isinstance(new_data, xr.Dataset):
             return xr.Dataset(
@@ -206,7 +210,8 @@ class Algorithms:
                 sorted_key_groups=sorted_key_groups,
                 dtype=dtype,
                 group_values=group_values,
-                chunks=new_data.chunks
+                chunks=new_data.chunks,
+                default_replace=default_replace
             ),
             coords=new_data.coords,
             dims=new_data.dims,

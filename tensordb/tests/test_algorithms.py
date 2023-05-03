@@ -115,7 +115,11 @@ def test_rolling_along_axis():
                     assert expected.equals(rolling_arr)
 
 
-def test_replace():
+@pytest.mark.parametrize(
+    'default_replace',
+    [np.nan, None]
+)
+def test_replace(default_replace):
     arr = xr.DataArray(
         [
             [1, 2, 3],
@@ -139,22 +143,25 @@ def test_replace():
         7: 16
     }
 
-    for method in ('vectorized', 'unique'):
-        new_data = Algorithms.replace(
-            new_data=arr,
-            # method=method,
-            to_replace=to_replace,
-            dtype=float,
-        )
-        replaced_df = df.replace(to_replace)
+    new_data = Algorithms.replace(
+        new_data=arr,
+        to_replace=to_replace,
+        dtype=float,
+        default_replace=default_replace
+    )
 
-        assert xr.DataArray(
-            replaced_df.values,
-            coords={'a': replaced_df.index, 'b': replaced_df.columns},
-            dims=['a', 'b']
-        ).equals(
-            new_data
-        )
+    if default_replace is not None:
+        df[~df.isin(list(to_replace.keys()))] = default_replace
+
+    replaced_df = df.replace(to_replace)
+
+    assert xr.DataArray(
+        replaced_df.values,
+        coords={'a': replaced_df.index, 'b': replaced_df.columns},
+        dims=['a', 'b']
+    ).equals(
+        new_data
+    )
 
 
 def test_vindex():
