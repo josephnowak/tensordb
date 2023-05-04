@@ -33,11 +33,41 @@ class NumpyAlgorithms:
         return s.values
 
     @staticmethod
-    def replace(x, sorted_key_groups, group_values):
+    def replace(x, sorted_key_groups, group_values, default_replace):
         valid_replace = np.isin(x, sorted_key_groups)
         # put 0 to the positions that are not in the keys of the groups
         positions = np.searchsorted(sorted_key_groups, x) * valid_replace
-        return np.where(valid_replace, group_values[positions], x)
+        arr = np.where(valid_replace, group_values[positions], x)
+        if default_replace is not None:
+            arr[~valid_replace] = default_replace
+        return arr
+
+    @staticmethod
+    def cumulative_on_sort(
+            x,
+            axis,
+            cum_func,
+            ascending: bool = False,
+            keep_nan: bool = True
+    ):
+        arg_x = x
+        # The sort factor allows to modify the order of the sort in numpy
+        sort_factor = 1 if ascending else -1
+
+        x = sort_factor * np.sort(sort_factor * x, axis=axis)
+        x = cum_func(x, axis=axis)
+
+        # Get the argsort of the original array
+        undo_sort = np.argsort(sort_factor * arg_x, axis=axis)
+        # Then get the argsort of the argsort which is equivalent to the original order
+        undo_sort = np.argsort(undo_sort, axis=axis)
+
+        x = np.take_along_axis(x, undo_sort, axis=axis)
+        if keep_nan:
+            x[np.isnan(arg_x)] = np.nan
+        return x
+
+
 
 
 class Algorithms:
@@ -184,6 +214,7 @@ class Algorithms:
             new_data: Union[xr.DataArray, xr.Dataset],
             to_replace: Dict,
             dtype: Any = None,
+            default_replace=None
     ):
         if isinstance(new_data, xr.Dataset):
             return xr.Dataset(
@@ -206,7 +237,8 @@ class Algorithms:
                 sorted_key_groups=sorted_key_groups,
                 dtype=dtype,
                 group_values=group_values,
-                chunks=new_data.chunks
+                chunks=new_data.chunks,
+                default_replace=default_replace
             ),
             coords=new_data.coords,
             dims=new_data.dims,
@@ -263,7 +295,6 @@ class Algorithms:
             dim: str,
             func: Union[str, Callable],
             keep_shape: bool = False,
-            output_dim: str = None,
             unique_groups: np.ndarray = None,
             **kwargs
     ):
@@ -295,9 +326,6 @@ class Algorithms:
         keep_shape: bool, default False
             Indicate if the array want to be reduced or not base on the groups, to preserve the shape this algorithm
             is going to replace the original value by its corresponding result of the groupby algorithm
-
-        output_dim: str, default None
-            Name of the dimension of the output array, if None the dimension name is the same as the input dim
 
         unique_groups: np.ndarray, default None
             Useful when the group array has the same shape as the data and more than one dim, for this case
@@ -331,7 +359,6 @@ class Algorithms:
             )
 
         axis = new_data.dims.index(dim)
-        output_dim = dim if output_dim is None else output_dim
         groups.name = "group"
 
         if unique_groups is None:
@@ -395,8 +422,6 @@ class Algorithms:
                 dims=new_data.dims,
             )
         )
-        if dim != output_dim:
-            data = data.rename({dim: output_dim})
         return data
 
     @classmethod
@@ -487,3 +512,36 @@ class Algorithms:
         return xr.concat([
             old_data.sel({dim: [position]}).compute(), new_data
         ], dim=dim)
+
+    @classmethod
+    def cumulative_on_sort(
+            cls,
+            new_data: Union[xr.DataArray, xr.Dataset],
+            dim: str,
+            func: Union[str, Callable],
+            ascending=False,
+            keep_nan=True
+    ):
+        """
+        Apply cumulative calculation like cumsum and so on but on a sorted way,
+        this is useful to generate cumulative rankings
+
+        """
+        func = getattr(Algorithms, func) if isinstance(func, str) else func
+        data = new_data.chunk({dim: -1}).data
+        ranked = data.map_blocks(
+            func=NumpyAlgorithms.cumulative_on_sort,
+            dtype=data.dtype,
+            chunks=data.chunks,
+            axis=new_data.dims.index(dim),
+            cum_func=func,
+            keep_nan=keep_nan,
+            ascending=ascending
+        )
+
+        return xr.DataArray(
+            ranked,
+            coords=new_data.coords,
+            dims=new_data.dims,
+            attrs=new_data.attrs
+        )

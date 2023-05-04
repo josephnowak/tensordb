@@ -115,7 +115,11 @@ def test_rolling_along_axis():
                     assert expected.equals(rolling_arr)
 
 
-def test_replace():
+@pytest.mark.parametrize(
+    'default_replace',
+    [np.nan, None]
+)
+def test_replace(default_replace):
     arr = xr.DataArray(
         [
             [1, 2, 3],
@@ -139,22 +143,25 @@ def test_replace():
         7: 16
     }
 
-    for method in ('vectorized', 'unique'):
-        new_data = Algorithms.replace(
-            new_data=arr,
-            # method=method,
-            to_replace=to_replace,
-            dtype=float,
-        )
-        replaced_df = df.replace(to_replace)
+    new_data = Algorithms.replace(
+        new_data=arr,
+        to_replace=to_replace,
+        dtype=float,
+        default_replace=default_replace
+    )
 
-        assert xr.DataArray(
-            replaced_df.values,
-            coords={'a': replaced_df.index, 'b': replaced_df.columns},
-            dims=['a', 'b']
-        ).equals(
-            new_data
-        )
+    if default_replace is not None:
+        df[~df.isin(list(to_replace.keys()))] = default_replace
+
+    replaced_df = df.replace(to_replace)
+
+    assert xr.DataArray(
+        replaced_df.values,
+        coords={'a': replaced_df.index, 'b': replaced_df.columns},
+        dims=['a', 'b']
+    ).equals(
+        new_data
+    )
 
 
 def test_vindex():
@@ -183,16 +190,15 @@ def test_vindex():
 
 
 @pytest.mark.parametrize(
-    'dim, keep_shape, output_dim, func',
+    'dim, keep_shape, func',
     [
-        ('a', False, None, "max"),
-        ('b', False, None, "max"),
-        ('a', True, None, "max"),
-        ('b', True, None, "max"),
-        ('b', True, 'h', "max"),
+        ('a', False, "max"),
+        ('b', False, "max"),
+        ('a', True, "max"),
+        ('b', True, "max"),
     ]
 )
-def test_apply_on_groups(dim, keep_shape, output_dim, func):
+def test_apply_on_groups(dim, keep_shape, func):
     arr = xr.DataArray(
         [
             [1, 2, 3, 4, 3],
@@ -209,39 +215,38 @@ def test_apply_on_groups(dim, keep_shape, output_dim, func):
         'b': [0, 1, 1, 0, -1]
     }
     groups = {k: v for k, v in zip(arr.coords[dim].values, grouper[dim])}
-    groups_arr = xr.DataArray(
-        list(groups.values()),
-        dims=[dim],
-        coords={dim: list(groups.keys())}
+
+    result = Algorithms.apply_on_groups(
+        arr, groups=groups, dim=dim, func=func, keep_shape=keep_shape
     )
-    g = arr.groupby(groups_arr).max(dim=dim)
-    g = g.rename({"group": dim})
-    arr = Algorithms.apply_on_groups(
-        arr, groups=groups, dim=dim, func=func, keep_shape=keep_shape, output_dim=output_dim
-    )
-    if output_dim:
-        g = g.rename({dim: output_dim})
-        grouper[output_dim] = grouper[dim]
-        dim = output_dim
+
+    expected = arr.to_pandas()
+    axis = 0 if dim == "a" else 1
 
     if keep_shape:
-        g = g.reindex({dim: grouper[dim]})
-        g.coords[dim] = arr.coords[dim].values
-    assert g.equals(arr)
+        expected = expected.groupby(groups, axis=axis).transform(func)
+    else:
+        expected = getattr(expected.groupby(groups, axis=axis), func)()
+
+    expected = xr.DataArray(
+        expected.values,
+        coords=result.coords,
+        dims=result.dims
+    )
+    assert expected.equals(result)
 
 
 @pytest.mark.parametrize(
-    'dim, keep_shape, output_dim, func',
+    'dim, keep_shape, func',
     [
-        ('a', True, None, 'rank'),
-        ('a', False, None, 'max'),
-        ('b', False, None, 'max'),
-        ('a', True, None, 'max'),
-        ('b', True, None, 'max'),
-        ('b', True, 'h', 'max')
+        ('a', True, 'rank'),
+        ('a', False, 'max'),
+        ('b', False, 'max'),
+        ('a', True, 'max'),
+        ('b', True, 'max'),
     ]
 )
-def test_apply_on_groups_array(dim, keep_shape, output_dim, func):
+def test_apply_on_groups_array(dim, keep_shape, func):
     arr = xr.DataArray(
         [
             [1, 2, 3, 4, 3],
@@ -268,10 +273,8 @@ def test_apply_on_groups_array(dim, keep_shape, output_dim, func):
     axis = arr.dims.index(dim)
 
     result = Algorithms.apply_on_groups(
-        arr, groups=groups, dim=dim, func=func, keep_shape=keep_shape, output_dim=output_dim,
+        arr, groups=groups, dim=dim, func=func, keep_shape=keep_shape
     )
-    if output_dim is None:
-        output_dim = dim
 
     iterate_dim = 'b' if dim == 'a' else 'a'
     for coord in arr.coords[iterate_dim].values:
@@ -280,18 +283,18 @@ def test_apply_on_groups_array(dim, keep_shape, output_dim, func):
         r = result.sel({iterate_dim: coord}, drop=True)
         kwargs = {"method": "first", "axis": axis} if func == "rank" else {}
         s = x.to_pandas()
-        g = getattr(s.groupby(grouper.to_pandas()), func)(**kwargs).to_xarray()
-        if output_dim not in g.dims:
-            g = g.rename({g.dims[0]: output_dim})
+        expected = getattr(s.groupby(grouper.to_pandas()), func)(**kwargs).to_xarray()
+        if dim not in expected.dims:
+            expected = expected.rename({expected.dims[0]: dim})
         if keep_shape:
             if func != "rank":
-                g = g.reindex({output_dim: grouper.values})
-                g.coords[output_dim] = arr.coords[dim].values
+                expected = expected.reindex({dim: grouper.values})
+                expected.coords[dim] = arr.coords[dim].values
         else:
             assert np.all(r.coords[dim].values == unique_groups)
-            assert r.sum() == g.sum()
-            r = r.sel({dim: g.coords[dim]})
-        assert g.equals(r)
+            assert r.sum() == expected.sum()
+            r = r.sel({dim: expected.coords[dim]})
+        assert expected.equals(r)
 
 
 @pytest.mark.parametrize('dim', ['a', 'b'])
@@ -311,6 +314,52 @@ def test_merge_duplicates_coord(dim):
     g = arr.groupby(dim).max(dim)
     arr = Algorithms.merge_duplicates_coord(arr, dim, 'max')
     assert g.equals(arr)
+
+
+@pytest.mark.parametrize(
+    'dim, ascending, func',
+    [
+        ('a', True, 'cumsum'),
+        ('a', False, 'cumsum'),
+        ('b', True, 'cumsum'),
+        ('b', False, 'cumsum'),
+        ('b', False, 'cumprod'),
+    ]
+)
+def test_cumulative_on_sort(dim, ascending, func):
+    arr = xr.DataArray(
+        [
+            [1, 2, 3],
+            [4, 4, 1],
+            [5, 2, 3],
+            [np.nan, 3, 0],
+            [8, 7, 9]
+        ],
+        dims=['a', 'b'],
+        coords={'a': list(range(5)), 'b': list(range(3))}
+    ).chunk((5, 3))
+    result = Algorithms.cumulative_on_sort(
+        arr,
+        dim=dim,
+        func=getattr(np, f"nan{func}"),
+        ascending=ascending
+    )
+
+    expected = arr.to_series()
+    expected = expected.groupby(
+        level="a" if dim == "b" else "b",
+        group_keys=False
+    ).apply(
+        lambda x: getattr(x.sort_values(ascending=ascending), func)()
+    )
+    expected = expected.unstack()
+    expected = xr.DataArray(
+        expected.values,
+        dims=result.dims,
+        coords=result.coords
+    )
+
+    assert result.equals(expected)
 
 
 if __name__ == "__main__":
