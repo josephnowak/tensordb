@@ -293,6 +293,13 @@ class ZarrStorage(BaseStorage):
         new_data = self._transform_to_dataset(new_data)
 
         act_coords = {k: coord for k, coord in act_data.coords.items()}
+
+        # The new data must contain only coordinates that are on the act_coords
+        new_data = new_data.sel({
+            k: new_data.coords[k].isin(v)
+            for k, v in act_coords.items()
+        })
+
         if complete_update_dims is not None:
             if isinstance(complete_update_dims, str):
                 complete_update_dims = [complete_update_dims]
