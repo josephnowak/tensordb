@@ -45,13 +45,6 @@ class StorageDefinition(BaseModel):
         Indicate which data storage want to be used.
         """
     )
-    synchronizer: Optional[Literal['process', 'thread']] = Field(
-        title='Synchronizer',
-        default=None,
-        description="""
-        Type of synchronizer used in the storage (read the docs of the storages).
-        """
-    )
 
     class Config:
         extra = Extra.allow

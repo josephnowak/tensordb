@@ -117,7 +117,7 @@ def test_rolling_along_axis():
 
 @pytest.mark.parametrize(
     'default_replace',
-    [np.nan, None]
+    [np.nan, None, 5.3]
 )
 def test_replace(default_replace):
     arr = xr.DataArray(

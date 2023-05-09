@@ -1,12 +1,12 @@
-from typing import Dict, List, Union, Any, Literal
+from typing import Dict, List, Union, Any, Literal, Callable
 
 import numpy as np
 import xarray as xr
 import zarr
-
 from tensordb.algorithms import Algorithms
 from tensordb.storages.base_storage import BaseStorage
 from tensordb.storages.mapping import Mapping
+from tensordb.storages.lock import PrefixLock
 
 
 class ZarrStorage(BaseStorage):
@@ -36,21 +36,24 @@ class ZarrStorage(BaseStorage):
     def __init__(self,
                  tmp_map: Mapping,
                  chunks: Dict[str, int] = None,
-                 synchronizer: Union[Literal['process', 'thread'], None] = 'thread',
+                 synchronizer: Union[Literal['process', 'thread'], None, PrefixLock] = None,
                  unique_coords: bool = False,
                  sorted_coords: Dict[str, bool] = None,
                  encoding: Dict[str, Any] = None,
                  **kwargs):
 
-        synchronizer = synchronizer
+        super().__init__(tmp_map=tmp_map, **kwargs)
+
+        lock_path = f'{tmp_map.root}/zarr_process_lock'
+        if self.base_map.sub_path is not None:
+            lock_path = f"{lock_path}/{self.base_map.sub_path}"
+
         if synchronizer == 'process':
-            synchronizer = zarr.ProcessSynchronizer(f'{tmp_map.root}/_zarr_process_lock/')
+            synchronizer = zarr.ProcessSynchronizer(lock_path)
         elif synchronizer == 'thread':
             synchronizer = zarr.ThreadSynchronizer()
         elif synchronizer is not None:
-            raise NotImplemented(f"{synchronizer} is not a valid option for the synchronizer")
-
-        super().__init__(tmp_map=tmp_map, **kwargs)
+            synchronizer = synchronizer(lock_path)
 
         self.chunks = chunks
         self.synchronizer = synchronizer

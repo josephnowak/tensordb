@@ -3,14 +3,13 @@ from typing import List, Any, Union, Literal
 import pandas as pd
 import xarray as xr
 from pydantic import validate_arguments
-from xarray.backends.common import AbstractWritableDataStore
-
 from tensordb.clients.tensor_client import BaseTensorClient, TensorClient
 from tensordb.storages import (
     BaseStorage
 )
 from tensordb.storages import Mapping, PrefixLock
 from tensordb.tensor_definition import TensorDefinition
+from xarray.backends.common import AbstractWritableDataStore
 
 
 class FileCacheTensorClient(BaseTensorClient):
@@ -21,7 +20,7 @@ class FileCacheTensorClient(BaseTensorClient):
     synchronizer_mode: Literal["delayed", "automatic"] = "automatic"
         If this option is enable then all the writes on the base_map are also executed on the remote_map
 
-    tensor_lock: ContextManager = None
+    tensor_lock: PrefixLock = None
         If there are multiple instances using the file cache tensor client then it is possible
         that the same file is downloaded from the remote client at the same time causing data corruption.
         If you need a lock at chunk level then use the locks of the Mapping class
@@ -61,7 +60,7 @@ class FileCacheTensorClient(BaseTensorClient):
         return self.remote_client.get_custom_data(path, default)
 
     def upsert_tensor(self, definition: TensorDefinition):
-        with self.tensor_lock.get_lock(definition.path):
+        with self.tensor_lock[definition.path]:
             self.local_client.upsert_tensor(definition)
             self.remote_client.upsert_tensor(definition)
 
@@ -205,7 +204,7 @@ class FileCacheTensorClient(BaseTensorClient):
             **kwargs
 
     ):
-        with self.tensor_lock.get_lock(path):
+        with self.tensor_lock[path]:
             exist_local = self.local_client.exist(path)
             if fetch:
                 self.fetch(path, force=force)
@@ -326,7 +325,7 @@ class FileCacheTensorClient(BaseTensorClient):
             only_data: bool = False,
             only_local: bool = False,
     ) -> Any:
-        with self.tensor_lock.get_lock(path):
+        with self.tensor_lock[path]:
             if self.local_client.exist(path):
                 self.local_client.delete_tensor(path=path, only_data=only_data)
             if not only_local:
