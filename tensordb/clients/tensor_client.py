@@ -1,20 +1,20 @@
 from collections.abc import MutableMapping
-from typing import Dict, List, Any, Union
+from typing import Dict, List, Any, Union, Literal
 
 import orjson
 import xarray as xr
 from pydantic import validate_arguments
-from xarray.backends.common import AbstractWritableDataStore
-
 from tensordb.algorithms import Algorithms
 from tensordb.clients.base import BaseTensorClient
 from tensordb.storages import (
     BaseStorage,
     JsonStorage,
-    MAPPING_STORAGES
+    MAPPING_STORAGES,
+    PrefixLock
 )
 from tensordb.storages.mapping import Mapping
 from tensordb.tensor_definition import TensorDefinition
+from xarray.backends.common import AbstractWritableDataStore
 
 
 class TensorClient(BaseTensorClient, Algorithms):
@@ -49,9 +49,9 @@ class TensorClient(BaseTensorClient, Algorithms):
         Equivalent to the base_map but for the temporary storage, this is only used when there is the necessity of
         restore a tensor (insert new data in the middle of a tensor).
 
-    synchronizer: str
+    synchronizer: Union[Literal['process', 'thread'], None, PrefixLock] = None
         Some Storages used to handle the files support a synchronizer, this parameter is used as a default
-        synchronizer option for every one of them (you can pass different synchronizer to every tensor).
+        synchronizer option for every one of them.
         The Mapping class provided by this library offers a lock solution for this purpose.
 
     **kwargs: Dict
@@ -176,7 +176,7 @@ class TensorClient(BaseTensorClient, Algorithms):
             self,
             base_map: MutableMapping,
             tmp_map: MutableMapping = None,
-            synchronizer: str = None,
+            synchronizer: Union[Literal['process', 'thread'], None, PrefixLock] = None,
             **kwargs
     ):
         self.base_map = base_map
@@ -302,13 +302,11 @@ class TensorClient(BaseTensorClient, Algorithms):
 
         storage = MAPPING_STORAGES['zarr_storage']
 
-        if definition.storage.synchronizer is None:
-            definition.storage.synchronizer = self.synchronizer
-
         storage = MAPPING_STORAGES[definition.storage.storage_name]
         storage = storage(
             base_map=self.base_map.sub_map(definition.path),
             tmp_map=self.tmp_map.sub_map(definition.path),
+            synchronizer=self.synchronizer,
             **definition.storage.dict(exclude_unset=True)
         )
         return storage

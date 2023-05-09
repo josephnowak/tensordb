@@ -2,9 +2,8 @@ import os
 from collections.abc import MutableMapping
 from concurrent.futures import ThreadPoolExecutor
 
-from zarr.storage import FSStore
-
 from tensordb.storages.lock import PrefixLock, NoLock
+from zarr.storage import FSStore
 
 
 class Mapping(MutableMapping):
@@ -19,7 +18,7 @@ class Mapping(MutableMapping):
     ):
         self.mapper = mapper
         self.sub_path = sub_path
-        self.read_lock = PrefixLock("", NoLock) if read_lock is None else read_lock
+        self.read_lock = PrefixLock("") if read_lock is None else read_lock
         self.write_lock = self.read_lock if write_lock is None else write_lock
         self._root = root
         self.enable_sub_map = enable_sub_map and hasattr(mapper, 'fs')
@@ -52,7 +51,14 @@ class Mapping(MutableMapping):
                 mapper = mapper.fs.get_mapper(root)
 
         sub_path = self.add_sub_path(sub_path)
-        return Mapping(mapper, sub_path, self.read_lock, self.write_lock, root, self.enable_sub_map)
+        return Mapping(
+            mapper,
+            sub_path,
+            self.read_lock,
+            self.write_lock,
+            root,
+            self.enable_sub_map
+        )
 
     def add_root(self, key):
         if key is None:
@@ -79,15 +85,15 @@ class Mapping(MutableMapping):
         return f'{self.sub_path}/{key}'
 
     def __getitem__(self, key):
-        with self.read_lock.get_lock(self.add_lock_path(key)):
+        with self.read_lock[self.add_lock_path(key)]:
             return self.mapper[self.add_sub_path(key)]
 
     def __setitem__(self, key, value):
-        with self.write_lock.get_lock(self.add_lock_path(key)):
+        with self.write_lock[self.add_lock_path(key)]:
             self.mapper[self.add_sub_path(key)] = value
 
     def __delitem__(self, key):
-        with self.write_lock.get_lock(self.add_lock_path(key)):
+        with self.write_lock[self.add_lock_path(key)]:
             del self.mapper[self.add_sub_path(key)]
 
     def __iter__(self):
@@ -101,6 +107,14 @@ class Mapping(MutableMapping):
     def __contains__(self, key):
         key = self.add_sub_path(key)
         return key in self.mapper
+
+    def setitems(self, values):
+        # Not possible to lock
+        self.mapper.setitems({self.add_sub_path(k): v for k, v in values.items()})
+
+    def getitems(self, keys, **kwargs):
+        # Not possible to lock
+        return self.mapper.getitems([self.add_sub_path(k) for k in keys], **kwargs)
 
     def listdir(self, path=None):
         path = self.add_sub_path(path)

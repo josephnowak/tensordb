@@ -3,7 +3,6 @@ from collections.abc import MutableMapping
 from typing import Dict, List, Union
 
 import xarray as xr
-
 from tensordb.storages.mapping import Mapping
 
 
@@ -30,11 +29,13 @@ class BaseStorage:
 
     """
 
-    def __init__(self,
-                 base_map: Union[Mapping, MutableMapping],
-                 tmp_map: Union[Mapping, MutableMapping],
-                 data_names: Union[str, List[str]] = "data",
-                 **kwargs):
+    def __init__(
+            self,
+            base_map: Union[Mapping, MutableMapping],
+            tmp_map: Union[Mapping, MutableMapping],
+            data_names: Union[str, List[str]] = "data",
+            **kwargs
+    ):
         if not isinstance(base_map, Mapping):
             base_map = Mapping(base_map)
         if not isinstance(tmp_map, Mapping):

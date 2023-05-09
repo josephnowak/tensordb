@@ -1,3 +1,4 @@
+import abc
 import os.path
 from abc import ABC
 from typing import Type
@@ -26,10 +27,10 @@ class NoLock(BaseLock):
 
 
 class PrefixLock:
-    def __init__(self, prefix: str, lock: Type[BaseLock]):
+    def __init__(self, prefix: str, lock: Type[BaseLock] = None):
         self.prefix = prefix
-        self.lock = lock
+        self.lock = NoLock if lock is None else lock
 
-    def get_lock(self, path):
-        path = os.path.join(self.prefix, path.replace('/', '-') + '.lock')
+    def __getitem__(self, path):
+        path = os.path.join(self.prefix, path)
         return self.lock(path)

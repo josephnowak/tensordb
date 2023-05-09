@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from tensordb.storages import ZarrStorage
+from tensordb.storages import ZarrStorage, Mapping
 from tensordb.storages.cached_storage import CachedStorage
 
 
@@ -14,7 +14,7 @@ class TestCachedTensor:
     def setup_tests(self, tmpdir):
         sub_path = tmpdir.strpath
         storage = ZarrStorage(
-            base_map=fsspec.get_mapper(sub_path),
+            base_map=fsspec.get_mapper(sub_path + "/store"),
             tmp_map=fsspec.get_mapper(sub_path + '/tmp'),
             path='zarr_cache',
             dataset_names='cached_test',

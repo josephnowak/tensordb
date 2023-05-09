@@ -34,12 +34,18 @@ class NumpyAlgorithms:
 
     @staticmethod
     def replace(x, sorted_key_groups, group_values, default_replace):
+        if len(sorted_key_groups) == 0:
+            if default_replace is not None:
+                x = x.copy()
+                x[:] = default_replace
+            return x
+
         valid_replace = np.isin(x, sorted_key_groups)
         # put 0 to the positions that are not in the keys of the groups
         positions = np.searchsorted(sorted_key_groups, x) * valid_replace
-        arr = np.where(valid_replace, group_values[positions], x)
         if default_replace is not None:
-            arr[~valid_replace] = default_replace
+            x = default_replace
+        arr = np.where(valid_replace, group_values[positions], x)
         return arr
 
     @staticmethod
@@ -68,9 +74,29 @@ class NumpyAlgorithms:
         return x
 
 
-
-
 class Algorithms:
+    @classmethod
+    def map_blocks_along_axis(
+            cls,
+            new_data: Union[xr.DataArray, xr.Dataset],
+            func,
+            dim: str,
+            dtype,
+            **kwargs
+    ) -> xr.DataArray:
+
+        data = new_data.chunk({dim: -1}).data
+        return xr.DataArray(
+            data.map_blocks(
+                dtype=dtype,
+                chunks=data.chunks,
+                func=func,
+                **kwargs
+            ),
+            coords=new_data.coords,
+            dims=new_data.dims,
+            attrs=new_data.attrs
+        )
 
     @classmethod
     def ffill(
@@ -99,14 +125,10 @@ class Algorithms:
             method: Literal['average', 'min', 'max', 'dense', 'ordinal'] = 'ordinal',
             ascending=True,
             nan_policy: Literal["omit", "propagate", "error"] = "omit"
-    ) -> xr.DataArray:
+    ) -> Union[xr.DataArray, xr.Dataset]:
         """
         This is an implementation of scipy rankdata on xarray, with the possibility to avoid the rank of the nans.
 
-        Note:
-        there are two implementations of the algorithm, one using dask map_blocks with an axis on the rankdata func
-        and the other using dask apply_along_axis without an axis on the rankdata func, I think that the last one
-        is better when there are many nans on the data
         """
         if isinstance(new_data, xr.Dataset):
             return xr.Dataset(
@@ -122,8 +144,16 @@ class Algorithms:
             new_data = -new_data
 
         data = new_data.chunk({dim: -1}).data
+
+        def _rank(x, axis, method, nan_policy):
+            ranked = rankdata(
+                x, method=method, axis=axis, nan_policy=nan_policy
+            ).astype(np.float64)
+            ranked[np.isnan(x)] = np.nan
+            return ranked
+
         ranked = data.map_blocks(
-            func=rankdata,
+            func=_rank,
             dtype=np.float64,
             chunks=data.chunks,
             axis=new_data.dims.index(dim),
@@ -375,7 +405,7 @@ class Algorithms:
             if len(g.dims) == 1:
                 grouped = x.groupby(g)
                 if not isinstance(func, str):
-                    arr = grouped.map(func)
+                    arr = grouped.map(func, **kwargs)
                 elif hasattr(grouped, func):
                     arr = getattr(grouped, func)(dim=dim, **kwargs)
                 else:
@@ -414,7 +444,7 @@ class Algorithms:
             [groups],
             template=xr.DataArray(
                 da.empty(
-                    dtype=float,
+                    dtype=np.float64,
                     chunks=chunks,
                     shape=[len(new_coords[v]) for v in new_data.dims]
                 ),
@@ -528,20 +558,13 @@ class Algorithms:
 
         """
         func = getattr(Algorithms, func) if isinstance(func, str) else func
-        data = new_data.chunk({dim: -1}).data
-        ranked = data.map_blocks(
+        return Algorithms.map_blocks_along_axis(
+            new_data=new_data,
+            dtype=new_data.dtype,
+            dim=dim,
             func=NumpyAlgorithms.cumulative_on_sort,
-            dtype=data.dtype,
-            chunks=data.chunks,
             axis=new_data.dims.index(dim),
             cum_func=func,
             keep_nan=keep_nan,
-            ascending=ascending
-        )
-
-        return xr.DataArray(
-            ranked,
-            coords=new_data.coords,
-            dims=new_data.dims,
-            attrs=new_data.attrs
+            ascending=ascending,
         )

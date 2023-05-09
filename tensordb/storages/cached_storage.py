@@ -1,7 +1,6 @@
 from typing import Dict, Any, List, Literal
 
 import xarray as xr
-
 from tensordb.storages import BaseStorage
 
 
@@ -124,9 +123,7 @@ class CachedStorage:
             try:
                 getattr(self.storage, type_operation)(**operation)
             except Exception as e:
-                raise Exception(
-                    f"Actual index of the data is {operation['new_data'].indexes[self.dim].values} "
-                ) from e
+                raise e
 
         self._clean_cache()
 
