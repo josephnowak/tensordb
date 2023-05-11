@@ -20,6 +20,7 @@ class TestZarrStorage:
             data_names='data_test',
             chunks={'index': 3, 'columns': 2},
             synchronizer='thread',
+            synchronize_only_write=True
         )
         self.storage_dataset = ZarrStorage(
             base_map=fsspec.get_mapper(sub_path + '/zarr_dataset'),
@@ -27,6 +28,7 @@ class TestZarrStorage:
             data_names=['a', 'b', 'c'],
             chunks={'index': 3, 'columns': 2},
             synchronizer='thread',
+            synchronize_only_write=True
         )
         self.storage_sorted_unique = ZarrStorage(
             base_map=fsspec.get_mapper(sub_path + '/zarr'),
@@ -36,6 +38,7 @@ class TestZarrStorage:
             unique_coords=True,
             sorted_coords={'index': False, 'columns': False},
             synchronizer='thread',
+            synchronize_only_write=True
         )
         self.storage_dataset_sorted_unique = ZarrStorage(
             base_map=fsspec.get_mapper(sub_path + '/zarr_dataset'),
@@ -45,6 +48,7 @@ class TestZarrStorage:
             unique_coords=True,
             sorted_coords={'index': False, 'columns': False},
             synchronizer='thread',
+            synchronize_only_write=True
         )
         self.arr = xr.DataArray(
             data=np.array([

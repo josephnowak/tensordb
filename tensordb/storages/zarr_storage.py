@@ -21,7 +21,7 @@ class ZarrStorage(BaseStorage):
         `to_zarr <https://xr.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
         in the parameter 'chunks' for more details.
 
-    synchronizer: {'thread', 'process'}, default None
+    synchronizer: Union[Literal['process', 'thread'], None, PrefixLock], default None
         Depending on the option send it will create a zarr.sync.ThreadSynchronizer or a zarr.sync.ProcessSynchronizer
         for more info read the doc of `Zarr synchronizer <https://zarr.readthedocs.io/en/stable/api/sync.html>`_
         and the Xarray method `to_zarr <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
@@ -40,6 +40,7 @@ class ZarrStorage(BaseStorage):
                  unique_coords: bool = False,
                  sorted_coords: Dict[str, bool] = None,
                  encoding: Dict[str, Any] = None,
+                 synchronize_only_write: bool = False,
                  **kwargs):
 
         super().__init__(tmp_map=tmp_map, **kwargs)
@@ -60,6 +61,7 @@ class ZarrStorage(BaseStorage):
         self.unique_coords = unique_coords
         self.sorted_coords = {} if sorted_coords is None else sorted_coords
         self.encoding = encoding
+        self.synchronize_only_write = synchronize_only_write
 
     def _keep_unique_coords(self, new_data):
         if not self.unique_coords:
@@ -394,7 +396,7 @@ class ZarrStorage(BaseStorage):
             arr = xr.open_zarr(
                 self.base_map,
                 consolidated=True,
-                synchronizer=self.synchronizer,
+                synchronizer=None if self.synchronize_only_write else self.synchronizer,
                 group=self.group
             )
             return arr[self.data_names]
