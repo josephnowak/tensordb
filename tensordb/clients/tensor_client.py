@@ -4,6 +4,8 @@ from typing import Dict, List, Any, Union, Literal
 import orjson
 import xarray as xr
 from pydantic import validate_arguments
+from xarray.backends.common import AbstractWritableDataStore
+
 from tensordb.algorithms import Algorithms
 from tensordb.clients.base import BaseTensorClient
 from tensordb.storages import (
@@ -14,7 +16,6 @@ from tensordb.storages import (
 )
 from tensordb.storages.mapping import Mapping
 from tensordb.tensor_definition import TensorDefinition
-from xarray.backends.common import AbstractWritableDataStore
 
 
 class TensorClient(BaseTensorClient, Algorithms):
@@ -177,6 +178,7 @@ class TensorClient(BaseTensorClient, Algorithms):
             base_map: MutableMapping,
             tmp_map: MutableMapping = None,
             synchronizer: Union[Literal['process', 'thread'], None, PrefixLock] = None,
+            synchronize_only_write: bool = False,
             **kwargs
     ):
         self.base_map = base_map
@@ -188,6 +190,8 @@ class TensorClient(BaseTensorClient, Algorithms):
             self.tmp_map: Mapping = Mapping(tmp_map)
 
         self.synchronizer = synchronizer
+        # TODO: Drop this parameter once this is fix https://github.com/zarr-developers/zarr-python/issues/1414
+        self.synchronize_only_write = synchronize_only_write
         self._tensors_definition = JsonStorage(
             base_map=self.base_map.sub_map('_tensors_definition'),
             tmp_map=self.tmp_map.sub_map('_tensors_definition'),
@@ -307,6 +311,7 @@ class TensorClient(BaseTensorClient, Algorithms):
             base_map=self.base_map.sub_map(definition.path),
             tmp_map=self.tmp_map.sub_map(definition.path),
             synchronizer=self.synchronizer,
+            synchronize_only_write=self.synchronize_only_write,
             **definition.storage.dict(exclude_unset=True)
         )
         return storage

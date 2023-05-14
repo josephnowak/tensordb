@@ -33,6 +33,22 @@ class NumpyAlgorithms:
         return s.values
 
     @staticmethod
+    def replace_unique(x, sorted_key_groups, group_values, default_replace):
+        uniques, index = np.unique(x, return_inverse=True)
+
+        valid_replaces = np.isin(sorted_key_groups, uniques, assume_unique=True)
+        sorted_key_groups = sorted_key_groups[valid_replaces]
+        group_values = group_values[valid_replaces]
+
+        valid_replaces = np.isin(uniques, sorted_key_groups, assume_unique=True)
+        uniques[valid_replaces] = group_values
+
+        if default_replace is not None:
+            uniques[~valid_replaces] = default_replace
+
+        return uniques[index].reshape(x.shape)
+
+    @staticmethod
     def replace(x, sorted_key_groups, group_values, default_replace):
         if len(sorted_key_groups) == 0:
             if default_replace is not None:

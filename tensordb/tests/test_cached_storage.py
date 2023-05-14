@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from tensordb.storages import ZarrStorage, Mapping
+from tensordb.storages import ZarrStorage
 from tensordb.storages.cached_storage import CachedStorage
 
 

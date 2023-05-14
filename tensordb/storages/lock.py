@@ -1,12 +1,12 @@
 import abc
 import os.path
-from abc import ABC
+from functools import partial
 from typing import Type
 
+from dask.distributed import Lock
 
-class BaseLock(ABC):
-    def __init__(self, path: str, *args, **kwargs):
-        raise NotImplementedError
+
+class BaseLock(abc.ABC):
 
     def __enter__(self):
         raise NotImplementedError
@@ -26,7 +26,7 @@ class NoLock(BaseLock):
         pass
 
 
-class PrefixLock:
+class PrefixLock(BaseLock):
     def __init__(self, prefix: str, lock: Type[BaseLock] = None):
         self.prefix = prefix
         self.lock = NoLock if lock is None else lock
@@ -34,3 +34,6 @@ class PrefixLock:
     def __getitem__(self, path):
         path = os.path.join(self.prefix, path)
         return self.lock(path)
+
+
+DistributedLock = partial(PrefixLock, lock=Lock)
