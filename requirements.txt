@@ -11,3 +11,4 @@ more-itertools==9.*
 scipy==1.*
 flox==0.*
 numba==0.*
+loguru==0.*
