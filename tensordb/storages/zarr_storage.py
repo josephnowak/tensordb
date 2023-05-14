@@ -105,6 +105,14 @@ class ZarrStorage(BaseStorage):
             new_data = new_data if self.chunks is None else new_data.chunk(self.chunks)
         return new_data
 
+    @staticmethod
+    def clear_encoding(dataset):
+        # TODO: Once https://github.com/pydata/xarray/issues/4380 is fixed delete the temporal solution of encoding
+        for arr in dataset.values():
+            arr.encoding.clear()
+            for dim in arr.dims:
+                arr.coords[dim].encoding.clear()
+
     def store(
             self,
             new_data: Union[xr.DataArray, xr.Dataset],
@@ -143,13 +151,10 @@ class ZarrStorage(BaseStorage):
         new_data = self._keep_sorted_coords(new_data)
         new_data = self._transform_to_dataset(new_data)
 
+        self.clear_encoding(new_data)
+
         if rewrite:
             compute = True
-
-            # TODO: Once https://github.com/pydata/xarray/issues/4380 is fixed delete the temporal solution of encoding
-            for v in new_data:
-                new_data[v].encoding.clear()
-
             new_data.to_zarr(
                 self.tmp_map,
                 mode='w',
@@ -217,6 +222,8 @@ class ZarrStorage(BaseStorage):
         new_data = self._keep_unique_coords(new_data)
         new_data = self._keep_sorted_coords(new_data)
         new_data = self._transform_to_dataset(new_data, chunk_data=False)
+
+        self.clear_encoding(new_data)
 
         rewrite = False
         act_coords = {k: coord for k, coord in act_data.indexes.items()}
@@ -299,6 +306,8 @@ class ZarrStorage(BaseStorage):
 
         act_data = self._transform_to_dataset(self.read(), chunk_data=False)
         new_data = self._transform_to_dataset(new_data)
+
+        self.clear_encoding(new_data)
 
         act_coords = {k: coord for k, coord in act_data.coords.items()}
 
