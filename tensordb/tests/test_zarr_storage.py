@@ -15,11 +15,11 @@ class TestZarrStorage:
     def setup_tests(self, tmpdir):
         sub_path = tmpdir.strpath
         self.storage = ZarrStorage(
-            base_map=fsspec.get_mapper(sub_path + '/zarr'),
-            tmp_map=fsspec.get_mapper(sub_path + '/tmp/zarr'),
+            base_map=fsspec.get_mapper(sub_path + '/zarr_storage'),
+            tmp_map=fsspec.get_mapper(sub_path + '/tmp/zarr_storage'),
             data_names='data_test',
             chunks={'index': 3, 'columns': 2},
-            synchronizer='thread',
+            synchronizer='process',
             synchronize_only_write=True
         )
         self.storage_dataset = ZarrStorage(
@@ -31,8 +31,8 @@ class TestZarrStorage:
             synchronize_only_write=True
         )
         self.storage_sorted_unique = ZarrStorage(
-            base_map=fsspec.get_mapper(sub_path + '/zarr'),
-            tmp_map=fsspec.get_mapper(sub_path + '/tmp/zarr'),
+            base_map=fsspec.get_mapper(sub_path + '/zarr_sorted_unique'),
+            tmp_map=fsspec.get_mapper(sub_path + '/tmp/zarr_sorted_unique'),
             data_names='data_test',
             chunks={'index': 3, 'columns': 2},
             unique_coords=True,
@@ -41,13 +41,13 @@ class TestZarrStorage:
             synchronize_only_write=True
         )
         self.storage_dataset_sorted_unique = ZarrStorage(
-            base_map=fsspec.get_mapper(sub_path + '/zarr_dataset'),
-            tmp_map=fsspec.get_mapper(sub_path + '/tmp/zarr_dataset'),
+            base_map=fsspec.get_mapper(sub_path + '/zarr_dataset_sorted_unique'),
+            tmp_map=fsspec.get_mapper(sub_path + '/tmp/zarr_dataset_sorted_unique'),
             data_names=['a', 'b', 'c'],
             chunks={'index': 3, 'columns': 2},
             unique_coords=True,
             sorted_coords={'index': False, 'columns': False},
-            synchronizer='thread',
+            synchronizer='process',
             synchronize_only_write=True
         )
         self.arr = xr.DataArray(
@@ -110,8 +110,8 @@ class TestZarrStorage:
 
         arr, arr2 = self.arr, self.arr2
         # TODO: Check why If the data is chunked and then stored in Zarr it add nan values
-        # if as_dask:
-        #     arr, arr2 = arr.chunk((2, 3)), arr2.chunk((1, 4))
+        if as_dask:
+            arr, arr2 = arr.chunk((2, 3)), arr2.chunk((1, 4))
 
         for i in range(len(arr.index)):
             storage.append(arr.isel(index=[i]))

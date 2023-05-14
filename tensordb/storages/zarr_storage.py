@@ -3,9 +3,10 @@ from typing import Dict, List, Union, Any, Literal
 import numpy as np
 import xarray as xr
 import zarr
+
 from tensordb.algorithms import Algorithms
 from tensordb.storages.base_storage import BaseStorage
-from tensordb.storages.lock import PrefixLock
+from tensordb.storages.lock import PrefixLock, DistributedLock
 from tensordb.storages.mapping import Mapping
 
 
@@ -21,7 +22,7 @@ class ZarrStorage(BaseStorage):
         `to_zarr <https://xr.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
         in the parameter 'chunks' for more details.
 
-    synchronizer: Union[Literal['process', 'thread'], None, PrefixLock], default None
+    synchronizer: Union[Literal['process', 'thread', 'distributed'], None, PrefixLock], default None
         Depending on the option send it will create a zarr.sync.ThreadSynchronizer or a zarr.sync.ProcessSynchronizer
         for more info read the doc of `Zarr synchronizer <https://zarr.readthedocs.io/en/stable/api/sync.html>`_
         and the Xarray method `to_zarr <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
@@ -36,7 +37,10 @@ class ZarrStorage(BaseStorage):
     def __init__(self,
                  tmp_map: Mapping,
                  chunks: Dict[str, int] = None,
-                 synchronizer: Union[Literal['process', 'thread'], None, PrefixLock] = None,
+                 synchronizer: Union[
+                     Literal['process', 'thread', 'distributed'],
+                     PrefixLock
+                 ] = None,
                  unique_coords: bool = False,
                  sorted_coords: Dict[str, bool] = None,
                  encoding: Dict[str, Any] = None,
@@ -53,8 +57,10 @@ class ZarrStorage(BaseStorage):
             synchronizer = zarr.ProcessSynchronizer(lock_path)
         elif synchronizer == 'thread':
             synchronizer = zarr.ThreadSynchronizer()
+        elif synchronizer == 'distributed':
+            synchronizer = DistributedLock(lock_path)
         elif synchronizer is not None:
-            synchronizer = synchronizer(lock_path)
+            synchronizer = synchronizer(path=lock_path)
 
         self.chunks = chunks
         self.synchronizer = synchronizer
@@ -149,13 +155,11 @@ class ZarrStorage(BaseStorage):
                 mode='w',
                 compute=compute,
                 consolidated=True,
-                synchronizer=self.synchronizer,
                 encoding=self.encoding
             )
             new_data = xr.open_zarr(
                 self.tmp_map,
                 consolidated=True,
-                synchronizer=self.synchronizer,
             )
 
         self.delete_tensor()
@@ -165,7 +169,6 @@ class ZarrStorage(BaseStorage):
             mode='w',
             compute=compute,
             consolidated=True,
-            synchronizer=self.synchronizer,
             group=self.group,
             encoding=self.encoding
         )

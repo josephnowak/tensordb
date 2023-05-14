@@ -5,10 +5,10 @@ import fsspec
 import numpy as np
 import pytest
 import xarray as xr
-from filelock import FileLock
+import zarr
+
 from tensordb import FileCacheTensorClient
 from tensordb import TensorClient
-from tensordb.storages import PrefixLock
 from tensordb.tensor_definition import TensorDefinition
 
 
@@ -53,10 +53,7 @@ class TestTensorClient:
                 synchronizer='thread',
             ),
             checksum_path='checksum',
-            tensor_lock=PrefixLock(
-                path + '/lock',
-                FileLock
-            )
+            tensor_lock=zarr.ProcessSynchronizer(path + '/lock')
         )
         self.arr = xr.DataArray(
             data=np.array([
