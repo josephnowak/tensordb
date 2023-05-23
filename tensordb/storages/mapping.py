@@ -117,6 +117,9 @@ class Mapping(MutableMapping):
         # Not possible to lock
         return self.mapper.getitems([self.add_sub_path(k) for k in keys], **kwargs)
 
+    def delitems(self, keys, **kwargs):
+        self.mapper.delitems(keys, **kwargs)
+
     def listdir(self, path=None):
         path = self.add_sub_path(path)
 
@@ -153,9 +156,7 @@ class Mapping(MutableMapping):
             return self.mapper.fs.delete(path, recursive=True)
 
         path = path if path is not None else ''
-        for key in total_keys:
-            if key.startswith(path):
-                del self[key]
+        self.delitems([key.startswith(path) for key in total_keys])
 
     def checksum(self, key):
         return self.mapper.fs.checksum(self.full_path(key))

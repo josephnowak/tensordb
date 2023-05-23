@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from dask.distributed import Client
+from dask.highlevelgraph import HighLevelGraph
 from loguru import logger
 from pydantic import validate_arguments
 from xarray.backends.common import AbstractWritableDataStore
@@ -256,7 +257,7 @@ class BaseTensorClient(Algorithms):
             map_paths: Dict[str, str] = None,
             task_prefix: str = 'task-',
             final_task_name: str = 'WAIT',
-    ):
+    ) -> HighLevelGraph:
         """
         This method was designed to create a Dask DAG for the given method, this is useful for parallelization
         of the execution of the tensors. The exec on dag order will be deprecated in the future.
@@ -293,17 +294,18 @@ class BaseTensorClient(Algorithms):
             )
 
         final_tasks = dag.get_leaf_tasks(tensors, new_dependencies)
-        final_tasks = tuple(task_prefix + path for path in final_tasks)
+        final_tasks = tuple(map_paths.get(path, task_prefix + path) for path in final_tasks)
 
         graph[final_task_name] = (none_func, *tuple(final_tasks))
-        return graph
+        return HighLevelGraph.from_collections(final_task_name, graph)
 
     def apply_data_transformation(
             self,
             data_transformation: List[MethodDescriptor],
             storage: BaseStorage,
             definition: Dict[str, Definition],
-            parameters: Dict[str, Any]
+            parameters: Dict[str, Any],
+            debug: bool = False
     ):
         parameters = {**{'new_data': None}, **parameters}
         for descriptor in data_transformation:

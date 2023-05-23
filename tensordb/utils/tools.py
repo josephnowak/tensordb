@@ -95,7 +95,7 @@ def xarray_from_func(
         func: Callable,
         dims: List[Hashable],
         coords: Dict[Hashable, Union[List, np.ndarray]],
-        chunks: List[Union[int, None]],
+        chunks: Union[List[Union[int, None]], Dict[Hashable, int]],
         dtypes: Union[List[Any], Any],
         data_names: Union[List[Hashable], str] = None,
         func_parameters: Dict[str, Any] = None,
@@ -123,7 +123,7 @@ def xarray_from_func(
 
         For relational databases is useful to use a query with a Distinct over the columns to get the coords.
 
-    chunks: List[int]
+    chunks: Union[List[Union[int, None]], Dict[Hashable, int]]
         The chunks indicate how to divide the array into multiple parts (read the docs of Dask for more info)
         Internally it create chunks based on the coords.
 
@@ -141,7 +141,8 @@ def xarray_from_func(
         Extra parameters for the function
 
     """
-
+    if isinstance(chunks, dict):
+        chunks = [chunks[dim] for dim in dims]
     chunks = [len(coords[dim]) if chunk is None else chunk for chunk, dim in zip(chunks, dims)]
     func_parameters = {} if func_parameters is None else func_parameters
 

@@ -10,13 +10,14 @@ class DAGOrder(BaseModel):
     tensor execution.
     """
     depends: Optional[List[str]] = Field(
+        default=[],
         title="Depends",
         description="""
         Every element of the list is a tensor on which this tensor depends, so this can be seen like every tensor Ai
         of the list has an edge to this tensor B, so Ai->B for every i.
         """
     )
-    group: Optional[str] = Field(
+    group: str = Field(
         title="Group",
         default='regular',
         description="""
@@ -123,6 +124,7 @@ class TensorDefinition(BaseModel):
         """
     )
     dag: Optional[DAGOrder] = Field(
+        default=DAGOrder(),
         title="DAG",
         description="""
         Indicate the relations/dependencies that a tensor has with others, useful for executing an operation over
