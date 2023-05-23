@@ -1,10 +1,8 @@
 from functools import reduce
 from typing import List
 
+import more_itertools as mit
 from tensordb.tensor_definition import TensorDefinition
-from tensordb.utils.tools import (
-    iter_by_group_chunks
-)
 
 
 # TODO: Update to python 3.9 or 3.10 to start using graphlib instead of use this function
@@ -70,14 +68,25 @@ def get_leaf_tasks(tensors, new_dependencies=None):
     return final_tasks
 
 
-def get_limit_dependencies(tensors, max_parallelization_per_group):
+def get_limit_dependencies(total_tensors, max_parallelization_per_group):
     new_dependencies = {}
-    for level in get_tensor_dag(tensors, False):
-        prev_dependencies = set()
-        for i, (name, group) in enumerate(iter_by_group_chunks(
-                level, max_parallelization_per_group, lambda tensor: tensor.dag.group
-        )):
-            if i != 0:
-                new_dependencies.update({tensor.path: prev_dependencies for tensor in group})
-            prev_dependencies = set(tensor.path for tensor in group)
+    group_tensors = {}
+    for v in total_tensors:
+        if v.dag.group not in group_tensors:
+            group_tensors[v.dag.group] = []
+        group_tensors[v.dag.group].append(v)
+
+    for group, limit in max_parallelization_per_group.items():
+        if group not in group_tensors:
+            continue
+        tensors = group_tensors[group]
+        for level in get_tensor_dag(tensors, False):
+            if not level:
+                continue
+            level = sorted([tensor.path for tensor in level])
+            level = list(mit.sliced(level, limit))
+            prev_dependencies = set(level[0])
+            for act_tensors in level[1:]:
+                new_dependencies.update({tensor: prev_dependencies for tensor in act_tensors})
+                prev_dependencies = set(act_tensors)
     return new_dependencies

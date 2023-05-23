@@ -94,7 +94,10 @@ class TestTensorClient:
         for path, data in [('data_one', self.arr), ('data_two', self.arr2), ('data_three', self.arr3)]:
             definition = TensorDefinition(
                 path=path,
-                definition={}
+                definition={},
+                dag={
+                    "omit_on": ["store", "append", "update"]
+                }
             )
             self.tensor_client.create_tensor(definition=definition)
             self.tensor_client.store(new_data=data, path=path)
@@ -277,15 +280,15 @@ class TestTensorClient:
         assert {'a': 100} == tensor_client.read(path='different_client', name='different_client')
 
     @pytest.mark.parametrize(
-        'max_parallelization, compute',
+        'max_parallelization, compute, call_pool',
         [
-            (1, False),
-            (2, True),
-            (4, False),
-            (None, True),
+            (1, False, 'thread'),
+            (2, True, 'process'),
+            (4, False, 'thread'),
+            (None, True, 'thread'),
         ]
     )
-    def test_exec_on_dag_order(self, max_parallelization, compute):
+    def test_exec_on_dag_order(self, max_parallelization, compute, call_pool):
         definitions = [
             TensorDefinition(
                 path='0',
