@@ -118,7 +118,8 @@ class ZarrStorage(BaseStorage):
             new_data: Union[xr.DataArray, xr.Dataset],
             compute: bool = True,
             rewrite: bool = False,
-    ) -> xr.backends.ZarrStore:
+            on_tmp: bool = False,
+    ) -> Union[xr.backends.ZarrStore, xr.Dataset, xr.DataArray]:
 
         """
         Store the data, the dtype and all the details will depend on what you pass in the new_data
@@ -141,6 +142,11 @@ class ZarrStorage(BaseStorage):
             the temporal.
             The compute option is always set as True if the rewrite option is active
 
+        on_tmp: bool, default False
+            If this option is enable then the data is only stored on the temporal folder and
+            the stored data is returned, this can be useful for operations like dropna which raise
+            the computations automatically
+
         Returns
         -------
         An xr.backends.ZarrStore produced by the method
@@ -153,7 +159,7 @@ class ZarrStorage(BaseStorage):
 
         self.clear_encoding(new_data)
 
-        if rewrite:
+        if rewrite or on_tmp:
             compute = True
             new_data.to_zarr(
                 self.tmp_map,
@@ -166,6 +172,8 @@ class ZarrStorage(BaseStorage):
                 self.tmp_map,
                 consolidated=True,
             )
+            if on_tmp:
+                return new_data[self.data_names]
 
         self.delete_tensor()
 
