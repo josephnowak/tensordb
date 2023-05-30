@@ -7,6 +7,7 @@ import pandas as pd
 import xarray as xr
 from dask.distributed import Client
 from scipy.stats import rankdata
+from numba import guvectorize
 
 
 class NumpyAlgorithms:
@@ -159,8 +160,6 @@ class Algorithms:
         if not ascending:
             new_data = -new_data
 
-        data = new_data.chunk({dim: -1}).data
-
         def _rank(x, axis, method, nan_policy):
             ranked = rankdata(
                 x, method=method, axis=axis, nan_policy=nan_policy
@@ -168,17 +167,48 @@ class Algorithms:
             ranked[np.isnan(x)] = np.nan
             return ranked
 
-        ranked = data.map_blocks(
+        return cls.map_blocks_along_axis(
+            new_data,
             func=_rank,
             dtype=np.float64,
-            chunks=data.chunks,
             axis=new_data.dims.index(dim),
             method=method,
-            nan_policy=nan_policy
+            nan_policy=nan_policy,
+            dim=dim
         )
 
+    @classmethod
+    def multi_rank(
+            cls,
+            new_data: xr.DataArray,
+            tie_dim: str,
+            dim: str,
+    ) -> Union[xr.DataArray, xr.Dataset]:
+        """
+        Multi rank implemented using the lexsort of numpy, the nan are keep.
+
+        The same dimensions/coords are kept for compatibility with the apply_on_groups
+        but all of them are going to contain the same ranking
+        """
+
+        def _multi_rank(x, axis, tie_axis):
+            shape_tie_axis = x.shape[tie_axis]
+            x = np.split(x, shape_tie_axis, axis=tie_axis)[::-1]
+            r = np.lexsort(x, axis=axis).argsort(axis=axis) + 1
+            r = r.astype(np.float64)
+            r[np.isnan(x[-1])] = np.nan
+            r = np.concatenate([r] * shape_tie_axis, axis=tie_axis)
+            return r
+
+        data = new_data.chunk({dim: -1, tie_dim: -1}).data
         return xr.DataArray(
-            ranked,
+            data.map_blocks(
+                dtype=np.float64,
+                chunks=data.chunks,
+                func=_multi_rank,
+                axis=new_data.dims.index(dim),
+                tie_axis=new_data.dims.index(tie_dim),
+            ),
             coords=new_data.coords,
             dims=new_data.dims,
             attrs=new_data.attrs
@@ -575,7 +605,7 @@ class Algorithms:
         """
         func = getattr(Algorithms, func) if isinstance(func, str) else func
         return Algorithms.map_blocks_along_axis(
-            new_data=new_data,
+            new_data,
             dtype=new_data.dtype,
             dim=dim,
             func=NumpyAlgorithms.cumulative_on_sort,
