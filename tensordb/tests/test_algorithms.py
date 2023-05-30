@@ -75,6 +75,61 @@ def test_rank(method, ascending):
     )
 
 
+@pytest.mark.parametrize(
+    'dim',
+    ["b", "a"]
+)
+def test_multi_rank(dim):
+    coords = {'a': list(range(5)), 'b': list(range(3)), 'c': list(range(2))}
+    arr = xr.DataArray(
+        [
+            [
+                [np.nan, 2, 2],
+                [4, 4, 1],
+                [5, 2, 2],
+                [np.nan, 0, 3],
+                [7, np.nan, 9]
+            ],
+            [
+                [3, np.nan, 3],
+                [3, 3, 10],
+                [1, 2, 1],
+                [3, np.nan, 0],
+                [8, 7, 9]
+            ]
+        ],
+        dims=['c', 'a', 'b'],
+        coords=coords
+    ).chunk((3, 1))
+    result = Algorithms.multi_rank(
+        new_data=arr,
+        dim=dim,
+        tie_dim="c"
+    )
+
+    data = [
+        [np.nan,  3.,  3.],
+        [1.,  4.,  1.],
+        [2.,  2.,  2.],
+        [np.nan,  1.,  4.],
+        [3., np.nan,  5.]
+    ]
+    if dim == "b":
+        data = [
+            [np.nan, 2., 1.],
+            [2., 3., 1.],
+            [3., 2., 1.],
+            [np.nan, 1., 2.],
+            [1., np.nan, 2.]
+        ]
+    expected = xr.DataArray(
+        data,
+        coords={k: v for k, v in coords.items() if k != "c"},
+        dims=["a", "b"]
+    )
+    assert result.isel(c=0, drop=True).equals(expected)
+
+
 def test_rolling_along_axis():
     arr = xr.DataArray(
         [
