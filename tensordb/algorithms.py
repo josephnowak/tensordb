@@ -7,7 +7,6 @@ import pandas as pd
 import xarray as xr
 from dask.distributed import Client
 from scipy.stats import rankdata
-from numba import guvectorize
 
 
 class NumpyAlgorithms:
