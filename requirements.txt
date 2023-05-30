@@ -1,4 +1,4 @@
-pandas==1.*
+pandas==2.*
 xarray==2023.*
 numpy==1.*
 dask[complete]==2023.*
