@@ -2,6 +2,7 @@ from typing import Union, List, Dict, Literal, Any, Callable
 
 import dask
 import dask.array as da
+import bottleneck as bn
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -22,15 +23,30 @@ class NumpyAlgorithms:
         return a
 
     @staticmethod
-    def apply_rolling_operator(a, drop_nan, window, min_periods, operator, fill_method):
-        s = pd.Series(a)
-        index = s.index
+    def apply_rolling_operator(
+            x,
+            drop_nan,
+            window,
+            min_periods,
+            operator,
+            fill_method: Literal["ffill", None],
+            inplace=False
+    ):
+        if not inplace:
+            x = x.copy()
+
         if drop_nan:
-            s.dropna(inplace=True)
-        s = getattr(s.rolling(window, min_periods=min_periods), operator)()
-        if drop_nan:
-            s = s.reindex(index, method=fill_method)
-        return s.values
+            bitmask = ~np.isnan(x)
+        else:
+            bitmask = np.ones(x.shape, dtype=bool)
+
+        func = getattr(bn, f"move_{operator}")
+        x[bitmask] = func(x[bitmask], window, min_count=min_periods)
+
+        if drop_nan and fill_method == "ffill":
+            x = bn.push(x)
+
+        return x
 
     @staticmethod
     def replace_unique(x, sorted_key_groups, group_values, default_replace):
@@ -277,6 +293,7 @@ class Algorithms:
                 fill_method=fill_method,
                 dtype=new_data.dtype,
                 shape=(new_data.sizes[dim],),
+                inplace=True
             ),
             coords=new_data.coords,
             dims=new_data.dims,

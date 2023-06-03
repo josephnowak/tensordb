@@ -130,7 +130,10 @@ def test_multi_rank(dim):
     assert result.isel(c=0, drop=True).equals(expected)
 
 
-def test_rolling_along_axis():
+@pytest.mark.parametrize('window', list(range(1, 4)))
+@pytest.mark.parametrize('drop_nan', [True, False])
+@pytest.mark.parametrize('fill_method', [None, "ffill"])
+def test_rolling_along_axis(window, drop_nan, fill_method):
     arr = xr.DataArray(
         [
             [1, np.nan, 3],
@@ -143,31 +146,30 @@ def test_rolling_along_axis():
         coords={'a': list(range(5)), 'b': list(range(3))}
     ).chunk((3, 1))
     df = pd.DataFrame(arr.values.T, arr.b.values, arr.a.values).stack(dropna=False)
-    for window in range(1, 4):
-        for min_periods in [None] + list(range(1, window)):
-            for drop_nan in [True, False]:
-                for fill_method in [None, 'ffill']:
-                    rolling_arr = Algorithms.rolling_along_axis(
-                        arr,
-                        window=window,
-                        dim='a',
-                        operator='mean',
-                        min_periods=min_periods,
-                        drop_nan=drop_nan,
-                        fill_method=fill_method
-                    )
+    for min_periods in [None] + list(range(1, window)):
+        rolling_arr = Algorithms.rolling_along_axis(
+            arr,
+            window=window,
+            dim='a',
+            operator='mean',
+            min_periods=min_periods,
+            drop_nan=drop_nan,
+            fill_method=fill_method
+        )
 
-                    expected = df
-                    if drop_nan:
-                        expected = expected.dropna()
-                    expected = expected.groupby(level=0).rolling(window=window, min_periods=min_periods).mean()
-                    expected = expected.droplevel(0).unstack(0)
+        expected = df
+        if drop_nan:
+            expected = expected.dropna()
+        expected = expected.groupby(level=0).rolling(
+            window=window, min_periods=min_periods
+        ).mean()
+        expected = expected.droplevel(0).unstack(0)
 
-                    if fill_method == 'ffill' and drop_nan:
-                        expected.ffill(inplace=True)
+        if fill_method == 'ffill' and drop_nan:
+            expected.ffill(inplace=True)
 
-                    expected = xr.DataArray(expected.values, coords=arr.coords, dims=arr.dims)
-                    assert expected.equals(rolling_arr)
+        expected = xr.DataArray(expected.values, coords=arr.coords, dims=arr.dims)
+        assert expected.equals(rolling_arr)
 
 
 @pytest.mark.parametrize(
