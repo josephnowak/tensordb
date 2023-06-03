@@ -38,10 +38,15 @@ class NumpyAlgorithms:
         if drop_nan:
             bitmask = ~np.isnan(x)
         else:
-            bitmask = np.ones(x.shape, dtype=bool)
+            bitmask = np.full(x.shape, True, dtype=bool)
+
+        filter_x = x[bitmask]
+        window = min(len(filter_x), window)
+        if window < min_periods:
+            return np.full(x.shape, np.nan, dtype=x.dtype)
 
         func = getattr(bn, f"move_{operator}")
-        x[bitmask] = func(x[bitmask], window, min_count=min_periods)
+        x[bitmask] = func(filter_x, window, min_count=min_periods)
 
         if drop_nan and fill_method == "ffill":
             x = bn.push(x)
