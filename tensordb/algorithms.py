@@ -32,6 +32,8 @@ class NumpyAlgorithms:
             fill_method: Literal["ffill", None],
             inplace=False
     ):
+        min_periods = window if min_periods is None else min_periods
+
         if not inplace:
             x = x.copy()
 
@@ -42,6 +44,7 @@ class NumpyAlgorithms:
 
         filter_x = x[bitmask]
         window = min(len(filter_x), window)
+
         if window < min_periods:
             return np.full(x.shape, np.nan, dtype=x.dtype)
 
