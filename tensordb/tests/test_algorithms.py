@@ -75,6 +75,129 @@ def test_rank(method, ascending):
     )
 
 
+@pytest.mark.parametrize("top_size", [0, 1, 3, 5])
+@pytest.mark.parametrize("dim", ["a", "b"])
+def test_bitmask_topk(top_size, dim):
+    arr = xr.DataArray(
+        [
+            [1, 2, 3],
+            [4, 4, 1],
+            [5, 2, 3],
+            [np.nan, 3, 0],
+            [8, 2, 9],
+            [np.nan, np.nan, np.nan]
+        ],
+        dims=['a', 'b'],
+        coords={'a': list(range(6)), 'b': list(range(3))}
+    ).chunk((3, 1))
+
+    df = pd.DataFrame(arr.values, index=arr.a.values, columns=arr.b.values)
+    expected = df.rank(
+        arr.dims.index(dim),
+        method="min",
+        ascending=False
+    ) <= top_size
+
+    result = Algorithms.bitmask_topk(
+        arr,
+        dim=dim,
+        top_size=top_size
+    )
+
+    assert result.equals(
+        xr.DataArray(
+            expected.values,
+            dims=arr.dims,
+            coords=arr.coords
+        )
+    )
+
+
+# @pytest.mark.parametrize("top_size", [0, 1, 3, 5])
+# @pytest.mark.parametrize("dim", ["a", "b"])
+# def test_bitmask_topk_tie_breaker(top_size, dim):
+#
+#     arr = xr.DataArray(
+#         [
+#             [
+#                 [2, 2, 3],
+#                 [4, 4, 1],
+#                 [5, 2, 3],
+#                 [np.nan, 3, 0],
+#                 [5, 2, 9],
+#                 [np.nan, np.nan, np.nan]
+#             ],
+#             [
+#                 [np.nan, np.nan, np.nan],
+#                 [1, 2, 1],
+#                 [1, 20, 5],
+#                 [3, 3, 0],
+#                 [3, 5, 4],
+#                 [np.nan, np.nan, np.nan]
+#             ]
+#         ],
+#         dims=['c', 'a', 'b'],
+#         coords={'c': list(range(2)), 'a': list(range(6)), 'b': list(range(3))}
+#     ).chunk((3, 1))
+#
+#     df = pd.DataFrame({
+#         "data1": arr.isel(c=0).to_series(),
+#         "data2": arr.isel(c=1).to_series()
+#     }).reset_index()
+#
+#     group_dim = "b" if dim == "a" else "a"
+#     from loguru import logger
+#
+#     def f(x):
+#         logger.info(x[["data1", "data2"]].apply(
+#             tuple, axis=1
+#         ))
+#         logger.info(x[["data1", "data2"]].fillna(-np.inf).apply(
+#             tuple, axis=1
+#         ).rank(
+#             ascending=False, method="first"
+#         ).astype(int))
+#         return x[["data1", "data2"]].fillna(-np.inf).apply(
+#             tuple, axis=1
+#         ).rank(
+#             ascending=False, method="first"
+#         ).astype(int)
+#
+#     ranked = df.groupby(group_dim, group_keys=False).apply(
+#         f
+#     )
+#     logger.info(ranked)
+#     df["rank"] = ranked
+#     logger.info(df)
+#     df.loc[df["data1"].isna(), "rank"] = np.nan
+#     logger.info(df)
+#
+#     logger.info(df.pivot_table(
+#         index="a", columns="b", values="rank", dropna=False
+#     ))
+#
+#     expected = df.pivot_table(
+#         index="a", columns="b", values="rank", dropna=False
+#     ) <= top_size
+#
+#     result = Algorithms.bitmask_topk(
+#         arr,
+#         dim=dim,
+#         tie_breaker_dim="c",
+#         top_size=top_size
+#     ).isel(c=0)
+#     logger.info(result.compute())
+#     logger.info(expected)
+#
+#     assert result.equals(
+#         xr.DataArray(
+#             expected.values,
+#             dims=["a", "b"],
+#             coords={"a": arr.coords["a"], "b": arr.coords["b"]}
+#         )
+#     )
+
+
 @pytest.mark.parametrize(
     'dim',
     ["b", "a"]

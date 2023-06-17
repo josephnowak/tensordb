@@ -2,6 +2,7 @@ from functools import reduce
 from typing import List
 
 import more_itertools as mit
+
 from tensordb.tensor_definition import TensorDefinition
 
 

@@ -1,10 +1,9 @@
 from typing import Union, List, Dict, Literal, Any, Callable
 
+import bottleneck as bn
 import dask
 import dask.array as da
-import bottleneck as bn
 import numpy as np
-import pandas as pd
 import xarray as xr
 from dask.distributed import Client
 from scipy.stats import rankdata
@@ -164,11 +163,13 @@ class Algorithms:
             dim: str,
             method: Literal['average', 'min', 'max', 'dense', 'ordinal'] = 'ordinal',
             ascending=True,
-            nan_policy: Literal["omit", "propagate", "error"] = "omit"
+            nan_policy: Literal["omit", "propagate", "error"] = "omit",
+            use_bottleneck: bool = False
     ) -> Union[xr.DataArray, xr.Dataset]:
         """
         This is an implementation of scipy rankdata on xarray, with the possibility to avoid the rank of the nans.
 
+        If the bottleneck option is enable then the method and nan policy parameters are ignored
         """
         if isinstance(new_data, xr.Dataset):
             return xr.Dataset(
@@ -183,7 +184,7 @@ class Algorithms:
         if not ascending:
             new_data = -new_data
 
-        def _rank(x, axis, method, nan_policy):
+        def _rank(x, axis):
             ranked = rankdata(
                 x, method=method, axis=axis, nan_policy=nan_policy
             ).astype(np.float64)
@@ -192,11 +193,9 @@ class Algorithms:
 
         return cls.map_blocks_along_axis(
             new_data,
-            func=_rank,
+            func=bn.nanrankdata if use_bottleneck else _rank,
             dtype=np.float64,
             axis=new_data.dims.index(dim),
-            method=method,
-            nan_policy=nan_policy,
             dim=dim
         )
 
@@ -638,3 +637,39 @@ class Algorithms:
             keep_nan=keep_nan,
             ascending=ascending,
         )
+
+    @classmethod
+    def bitmask_topk(
+            cls,
+            new_data: Union[xr.DataArray, xr.Dataset],
+            dim: str,
+            top_size,
+    ):
+        """
+        Create a bitmask where the True values means that the cell is on the top N on the dim.
+
+        This is equivalent to:
+        arr >= np.take(arr.topk(top_size, axis=axis), -1, axis=axis)
+
+        The algorithm is implemented using the topk algorithm of Dask, and it automatically fills NaNs
+        using -INF before calling the method, which avoid issues related to having the nan in the first
+        positions or having nan in the last position because there was no sufficient data.
+        """
+
+        if top_size >= new_data.sizes[dim]:
+            return new_data.notnull()
+
+        if top_size == 0:
+            return xr.zeros_like(new_data, dtype=bool)
+
+        axis = new_data.dims.index(dim)
+
+        filled_data = new_data.fillna(-np.inf).data
+
+        topk = np.take(filled_data.topk(top_size, axis=axis), -1, axis=axis)
+        topk = xr.DataArray(
+            topk,
+            dims=[d for d in new_data.dims if d != dim],
+            coords={d: v for d, v in new_data.coords.items() if d != dim}
+        )
+        return new_data >= topk
