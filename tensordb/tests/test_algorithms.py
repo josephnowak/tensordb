@@ -113,17 +113,17 @@ def test_bitmask_topk(top_size, dim):
     )
 
 
-@pytest.mark.parametrize("top_size", [0, 1, 3, 4, 5])
+@pytest.mark.parametrize("top_size", [0, 1, 2, 3, 4, 5])
 @pytest.mark.parametrize("dim", ["a", "b"])
 def test_bitmask_topk_tie_breaker(top_size, dim):
     arr = xr.DataArray(
         [
             [
-                [2, 2, 3],
+                [2, 3, 3],
                 [4, 4, 1],
-                [5, 2, 3],
+                [5, 3, 3],
                 [np.nan, 3, 0],
-                [5, 2, 9],
+                [5, 3, 9],
                 [np.nan, np.nan, np.nan]
             ],
             [
@@ -150,7 +150,7 @@ def test_bitmask_topk_tie_breaker(top_size, dim):
         lambda x: x[["data1", "data2"]].fillna(-np.inf).apply(
             tuple, axis=1
         ).rank(
-            ascending=False, method="first"
+            ascending=False, method="min"
         ).astype(int)
     )
     df["rank"] = ranked
