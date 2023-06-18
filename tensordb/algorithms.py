@@ -121,19 +121,29 @@ class Algorithms:
             func,
             dim: str,
             dtype,
+            drop_dim: bool = False,
             **kwargs
     ) -> xr.DataArray:
+        template = new_data.chunk({dim: -1})
+        data = template.data
 
-        data = new_data.chunk({dim: -1}).data
+        drop_axis = None
+        if drop_dim:
+            drop_axis = new_data.dims.index(dim)
+            template = template.isel({dim: 0}, drop=True)
+
+        chunks = template.chunks
+
         return xr.DataArray(
             data.map_blocks(
                 dtype=dtype,
-                chunks=data.chunks,
+                drop_axis=drop_axis,
                 func=func,
+                chunks=chunks,
                 **kwargs
             ),
-            coords=new_data.coords,
-            dims=new_data.dims,
+            coords=template.coords,
+            dims=template.dims,
             attrs=new_data.attrs
         )
 
@@ -644,6 +654,7 @@ class Algorithms:
             new_data: Union[xr.DataArray, xr.Dataset],
             dim: str,
             top_size,
+            tie_breaker_dim: str = None
     ):
         """
         Create a bitmask where the True values means that the cell is on the top N on the dim.
@@ -654,7 +665,33 @@ class Algorithms:
         The algorithm is implemented using the topk algorithm of Dask, and it automatically fills NaNs
         using -INF before calling the method, which avoid issues related to having the nan in the first
         positions or having nan in the last position because there was no sufficient data.
+
+        The tie_breaker_dim creates by default a structured array that is latter use
+        on the topk algorithm of Dask, the only issue right now is that the structure indexes
+        do not support inequality operators which is really strange due that they support sort, so
+        I have to implement a manual inequality using map blocks which can add some overhead
         """
+
+        top_data = new_data.fillna(-np.inf)
+        first_level = new_data
+        if tie_breaker_dim is not None:
+            from numpy.lib import recfunctions as rfn
+
+            first_level = new_data.isel({tie_breaker_dim: 0}, drop=True)
+            top_data = Algorithms.map_blocks_along_axis(
+                top_data,
+                func=lambda x, axis: rfn.unstructured_to_structured(
+                    np.moveaxis(x, axis, -1),
+                    [(f"f{i}", x.dtype) for i in range(x.shape[axis])]
+                ),
+                dim=tie_breaker_dim,
+                dtype=[
+                    (f"f{i}", new_data.dtype)
+                    for i in range(new_data.sizes[tie_breaker_dim])
+                ],
+                axis=new_data.dims.index(tie_breaker_dim),
+                drop_dim=True
+            )
 
         if top_size >= new_data.sizes[dim]:
             return new_data.notnull()
@@ -662,14 +699,47 @@ class Algorithms:
         if top_size == 0:
             return xr.zeros_like(new_data, dtype=bool)
 
-        axis = new_data.dims.index(dim)
+        axis = top_data.dims.index(dim)
 
-        filled_data = new_data.fillna(-np.inf).data
-
-        topk = np.take(filled_data.topk(top_size, axis=axis), -1, axis=axis)
+        topk = np.take(top_data.data.topk(top_size, axis=axis), -1, axis=axis)
         topk = xr.DataArray(
             topk,
-            dims=[d for d in new_data.dims if d != dim],
-            coords={d: v for d, v in new_data.coords.items() if d != dim}
+            dims=[d for d in top_data.dims if d != dim],
+            coords={d: v for d, v in top_data.coords.items() if d != dim}
         )
-        return new_data >= topk
+
+        if tie_breaker_dim is None:
+            return first_level >= topk
+
+        def split_structured(x):
+            raw = x.values.view(new_data.dtype).reshape(x.shape + (-1,))
+            return [
+                xr.DataArray(
+                    np.take(raw, i, axis=-1),
+                    coords=x.coords,
+                    dims=x.dims
+                )
+                for i in range(raw.shape[-1])
+            ]
+
+        def structured_inequality(x, top):
+            x = split_structured(x)
+            top = split_structured(top)
+
+            bitmask = x[0] > top[0]
+            ties = x[0] == top[0]
+            for i in range(1, len(x)):
+                bitmask |= ties & (x[i] > top[i])
+                ties &= x[i] == top[i]
+
+            return bitmask | ties
+
+        bitmask = top_data.map_blocks(
+            structured_inequality,
+            args=(topk,),
+            template=first_level.notnull()
+        ) & first_level.notnull()
+
+        return bitmask.expand_dims({
+            tie_breaker_dim: new_data.coords[tie_breaker_dim]
+        })
