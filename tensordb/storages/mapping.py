@@ -45,11 +45,7 @@ class Mapping(MutableMapping):
         if self.enable_sub_map:
             if root is not None:
                 root = f'{root}/{sub_path}'
-
-            if isinstance(mapper, FSStore):
-                mapper = FSStore(root, fs=mapper.fs)
-            else:
-                mapper = mapper.fs.get_mapper(root)
+            mapper = FSStore(root, fs=mapper.fs)
 
         sub_path = self.add_sub_path(sub_path)
         return Mapping(
@@ -143,9 +139,6 @@ class Mapping(MutableMapping):
 
     def rmdir(self, path=None):
         path = self.add_sub_path(path)
-        total_keys = list(self.keys())
-        if len(total_keys) == 0:
-            return
 
         if hasattr(self.mapper, 'rmdir'):
             return self.mapper.rmdir(path)
@@ -154,6 +147,10 @@ class Mapping(MutableMapping):
             path = self.add_root(path)
             path = path if path is not None else ''
             return self.mapper.fs.delete(path, recursive=True)
+
+        total_keys = list(self.keys())
+        if len(total_keys) == 0:
+            return
 
         path = path if path is not None else ''
         self.delitems([key.startswith(path) for key in total_keys])
