@@ -140,13 +140,13 @@ class Mapping(MutableMapping):
     def rmdir(self, path=None):
         path = self.add_sub_path(path)
 
-        if hasattr(self.mapper, 'rmdir'):
-            return self.mapper.rmdir(path)
-
         if hasattr(self.mapper, 'fs') and hasattr(self.mapper.fs, 'delete'):
             path = self.add_root(path)
             path = path if path is not None else ''
             return self.mapper.fs.delete(path, recursive=True)
+
+        if hasattr(self.mapper, 'rmdir'):
+            return self.mapper.rmdir(path)
 
         total_keys = list(self.keys())
         if len(total_keys) == 0:
