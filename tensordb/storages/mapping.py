@@ -138,22 +138,15 @@ class Mapping(MutableMapping):
         return sorted(children)
 
     def rmdir(self, path=None):
-        path = self.add_sub_path(path)
+        submap = self.mapper
+        if path is not None:
+            submap = self.sub_map(path)
 
-        if hasattr(self.mapper, 'fs') and hasattr(self.mapper.fs, 'delete'):
-            path = self.add_root(path)
-            path = path if path is not None else ''
-            return self.mapper.fs.delete(path, recursive=True)
-
-        if hasattr(self.mapper, 'rmdir'):
-            return self.mapper.rmdir(path)
-
-        total_keys = list(self.keys())
+        total_keys = list(submap.keys())
         if len(total_keys) == 0:
             return
 
-        path = path if path is not None else ''
-        self.delitems([key.startswith(path) for key in total_keys])
+        return submap.delitems(total_keys)
 
     def checksum(self, key):
         return self.mapper.fs.checksum(self.full_path(key))
