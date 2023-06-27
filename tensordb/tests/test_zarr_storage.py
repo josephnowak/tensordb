@@ -1,8 +1,8 @@
+import dask
 import fsspec
 import numpy as np
 import pytest
 import xarray as xr
-
 from tensordb.storages import ZarrStorage
 
 
@@ -19,7 +19,7 @@ class TestZarrStorage:
             tmp_map=fsspec.get_mapper(sub_path + '/tmp/zarr_storage'),
             data_names='data_test',
             chunks={'index': 3, 'columns': 2},
-            synchronizer='process',
+            # synchronizer='process',
             synchronize_only_write=True
         )
         self.storage_dataset = ZarrStorage(
@@ -27,7 +27,7 @@ class TestZarrStorage:
             tmp_map=fsspec.get_mapper(sub_path + '/tmp/zarr_dataset'),
             data_names=['a', 'b', 'c'],
             chunks={'index': 3, 'columns': 2},
-            synchronizer='thread',
+            synchronizer='process',
             synchronize_only_write=True
         )
         self.storage_sorted_unique = ZarrStorage(
@@ -37,7 +37,7 @@ class TestZarrStorage:
             chunks={'index': 3, 'columns': 2},
             unique_coords=True,
             sorted_coords={'index': False, 'columns': False},
-            synchronizer='thread',
+            # synchronizer='thread',
             synchronize_only_write=True
         )
         self.storage_dataset_sorted_unique = ZarrStorage(
@@ -47,7 +47,7 @@ class TestZarrStorage:
             chunks={'index': 3, 'columns': 2},
             unique_coords=True,
             sorted_coords={'index': False, 'columns': False},
-            synchronizer='process',
+            # synchronizer='process',
             synchronize_only_write=True
         )
         self.arr = xr.DataArray(
@@ -133,14 +133,79 @@ class TestZarrStorage:
 
         storage.delete_tensor()
 
-    def test_update_data(self):
+    @pytest.mark.parametrize('keep_order', [True, False])
+    @pytest.mark.parametrize('as_dask', [True, False])
+    @pytest.mark.parametrize('only_diagonal_data', [True, False])
+    @pytest.mark.parametrize('compute', [True, False])
+    def test_append_diagonal(self, keep_order: bool, as_dask: bool, only_diagonal_data, compute):
+        storage = self.storage_sorted_unique if keep_order else self.storage
+        arr = self.arr
+        if as_dask:
+            arr = arr.chunk((2, 3))
+
+        storage.store(arr)
+
+        data = xr.DataArray(
+            np.arange(16).reshape((4, 4)),
+            dims=["index", "columns"],
+            coords={
+                "index": [5, 6, 7, 8], "columns": [5, 6, 7, 8]
+            }
+        )
+
+        delayed = []
+        if only_diagonal_data:
+            for i in range(4):
+                delayed.append(
+                    storage.append(
+                        data.isel(
+                            index=[i],
+                            columns=[i]
+                        ),
+                        compute=compute
+                    )
+                )
+            diagonal = data.where(data.isin([0, 5, 10, 15]))
+            expected = xr.concat([self.arr, diagonal], dim="index")
+        else:
+            delayed.append(storage.append(data, compute=compute))
+            expected = xr.concat([self.arr, data], dim="index")
+
+        if keep_order:
+            expected = expected.sel(
+                index=np.sort(expected.coords["index"])[::-1],
+                columns=np.sort(expected.coords["columns"])[::-1]
+            )
+
+        if not compute:
+            dask.compute(delayed)
+
+        assert expected.equals(storage.read())
+        storage.delete_tensor()
+
+    @pytest.mark.parametrize('as_dask', [True, False])
+    @pytest.mark.parametrize('index', [
+        [0, 2, 4],
+        [2, 4],
+        [1, 4]
+    ])
+    @pytest.mark.parametrize('columns', [
+        [1, 3, 4],
+        [1, 4],
+        [0, 3]
+    ])
+    def test_update_data(self, as_dask, index, columns):
         self.storage.store(self.arr)
 
-        expected = xr.concat([
-            self.arr.sel(index=slice(0, 1)),
-            self.arr.sel(index=slice(2, None)) + 5
-        ], dim='index')
-        self.storage.update(expected.sel(index=slice(2, None)))
+        expected = self.arr.copy()
+
+        for i, v in enumerate(index):
+            expected.loc[v, columns] = i
+
+        if as_dask:
+            expected = expected.chunk((2, 1))
+
+        self.storage.update(expected.sel(index=index, columns=columns))
 
         assert self.storage.read().equals(expected)
 

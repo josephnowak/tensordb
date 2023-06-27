@@ -6,7 +6,6 @@ import numpy as np
 import pytest
 import xarray as xr
 import zarr
-
 from tensordb import FileCacheTensorClient
 from tensordb import TensorClient
 from tensordb.tensor_definition import TensorDefinition
@@ -43,14 +42,14 @@ class TestTensorClient:
         self.local_tensor_client = TensorClient(
             base_map=fsspec.get_mapper(path + '/local'),
             tmp_map=fsspec.get_mapper(f'{path}/tmp'),
-            synchronizer='thread',
+            # synchronizer='thread',
         )
         self.tensor_client = FileCacheTensorClient(
             local_client=self.local_tensor_client,
             remote_client=TensorClient(
                 base_map=fsspec.get_mapper(path + '/remote'),
                 tmp_map=fsspec.get_mapper(f'{path}/tmp'),
-                synchronizer='thread',
+                # synchronizer='thread',
             ),
             checksum_path='checksum',
             tensor_lock=zarr.ProcessSynchronizer(path + '/lock')

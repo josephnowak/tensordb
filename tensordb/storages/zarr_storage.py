@@ -3,10 +3,9 @@ from typing import Dict, List, Union, Any, Literal
 import numpy as np
 import xarray as xr
 import zarr
-
 from tensordb.algorithms import Algorithms
 from tensordb.storages.base_storage import BaseStorage
-from tensordb.storages.lock import PrefixLock, DistributedLock
+from tensordb.storages.lock import PrefixLock
 from tensordb.storages.mapping import Mapping
 
 
@@ -38,7 +37,7 @@ class ZarrStorage(BaseStorage):
                  tmp_map: Mapping,
                  chunks: Dict[str, int] = None,
                  synchronizer: Union[
-                     Literal['process', 'thread', 'distributed'],
+                     Literal['process', 'thread'],
                      PrefixLock
                  ] = None,
                  unique_coords: bool = False,
@@ -57,8 +56,6 @@ class ZarrStorage(BaseStorage):
             synchronizer = zarr.ProcessSynchronizer(lock_path)
         elif synchronizer == 'thread':
             synchronizer = zarr.ThreadSynchronizer()
-        elif synchronizer == 'distributed':
-            synchronizer = DistributedLock(lock_path)
         elif synchronizer is not None:
             synchronizer = synchronizer(path=lock_path)
 
@@ -235,9 +232,11 @@ class ZarrStorage(BaseStorage):
 
         rewrite = False
         act_coords = {k: coord for k, coord in act_data.indexes.items()}
-        concat_data = {}
+        slices_to_append = {}
+        complete_data = act_data
 
-        for dim, new_coord in new_data.indexes.items():
+        for dim in new_data.dims:
+            new_coord = new_data.indexes[dim]
             coord_to_append = new_coord[~new_coord.isin(act_coords[dim])]
             if len(coord_to_append) == 0:
                 continue
@@ -247,33 +246,48 @@ class ZarrStorage(BaseStorage):
 
             reindex_coords = {
                 k: coord_to_append if k == dim else act_coord
-                for k, act_coord in act_coords.items()
+                for k, act_coord in complete_data.coords.items()
             }
-            act_coords[dim] = np.concatenate([act_coords[dim], coord_to_append])
-            concat_data[dim] = new_data.reindex(reindex_coords, fill_value=fill_value)
+            slices_to_append[dim] = {
+                k: slice(size, None) if k == dim else slice(0, size)
+                for k, size in complete_data.sizes.items()
+            }
+            complete_data = xr.concat([
+                complete_data,
+                new_data.reindex(reindex_coords, fill_value=fill_value)
+            ], dim=dim, fill_value=fill_value)
+
+        complete_data = xr.Dataset({
+            k: v.chunk(act_data[k].encoding["preferred_chunks"])
+            for k, v in complete_data.items()
+        })
+        if rewrite:
+            return [self.store(new_data=complete_data, compute=compute, rewrite=True)]
+
+        # TODO: For some reason there is an error if more than one dim is tried to be append
+        #   without a synchronizer even if they are executed one after the other, or apparently
+        #   I'm not using properly the bind function of Dask, so for now set to compute as True
+        #   if there is two or more dims to append
+        if len(slices_to_append) > 1 and self.synchronizer is None:
+            compute = True
 
         delayed_appends = []
-
         for dim in new_data.dims:
-            if dim not in concat_data:
+            if dim not in slices_to_append:
                 continue
 
-            if rewrite:
-                act_data = xr.concat([act_data, concat_data[dim]], dim=dim, fill_value=fill_value)
-            else:
-                delayed_appends.append(
-                    concat_data[dim].to_zarr(
-                        self.base_map,
-                        append_dim=dim,
-                        compute=compute,
-                        synchronizer=self.synchronizer,
-                        consolidated=True,
-                        group=self.group,
-                    )
-                )
+            data_to_append = complete_data.isel(**slices_to_append[dim])
 
-        if rewrite:
-            return [self.store(new_data=act_data, compute=compute, rewrite=True)]
+            delayed_appends.append(
+                data_to_append.to_zarr(
+                    self.base_map,
+                    append_dim=dim,
+                    compute=compute,
+                    synchronizer=self.synchronizer,
+                    consolidated=True,
+                    group=self.group,
+                )
+            )
 
         return delayed_appends
 
@@ -313,7 +327,7 @@ class ZarrStorage(BaseStorage):
         """
 
         act_data = self._transform_to_dataset(self.read(), chunk_data=False)
-        new_data = self._transform_to_dataset(new_data)
+        new_data = self._transform_to_dataset(new_data, chunk_data=False)
 
         self.clear_encoding(new_data)
 
@@ -338,8 +352,12 @@ class ZarrStorage(BaseStorage):
             valid_positions = np.nonzero(act_bitmask.values)[0]
             regions[coord_name] = slice(np.min(valid_positions), np.max(valid_positions) + 1)
 
+        act_data_region = act_data.isel(**regions)
         if complete_update_dims is None:
-            new_data = new_data.combine_first(act_data.isel(**regions))
+            new_data = new_data.combine_first(act_data_region)
+
+        # The chunks must match with the chunks of the actual data after applying the region slice
+        new_data = new_data.chunk(act_data_region.chunks)
 
         delayed_write = new_data.to_zarr(
             self.base_map,
