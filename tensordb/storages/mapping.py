@@ -1,10 +1,10 @@
 import os
 from collections.abc import MutableMapping
 from concurrent.futures import ThreadPoolExecutor
-
-from zarr.storage import FSStore
+from typing import Literal
 
 from tensordb.storages.lock import PrefixLock
+from zarr.storage import FSStore
 
 
 class Mapping(MutableMapping):
@@ -49,12 +49,12 @@ class Mapping(MutableMapping):
 
         sub_path = self.add_sub_path(sub_path)
         return Mapping(
-            mapper,
-            sub_path,
-            self.read_lock,
-            self.write_lock,
-            root,
-            self.enable_sub_map
+            mapper=mapper,
+            sub_path=sub_path,
+            read_lock=self.read_lock,
+            write_lock=self.write_lock,
+            root=root,
+            enable_sub_map=self.enable_sub_map
         )
 
     def add_root(self, key):
@@ -95,8 +95,10 @@ class Mapping(MutableMapping):
 
     def __iter__(self):
         for key in self.mapper:
-            if self.enable_sub_map or key.startswith(self.sub_path):
+            if self.enable_sub_map:
                 yield key
+            elif key.startswith(self.sub_path):
+                yield key[len(self.sub_path) + 1:]
 
     def __len__(self):
         return sum(1 for _ in self)
@@ -117,39 +119,37 @@ class Mapping(MutableMapping):
         self.mapper.delitems(keys, **kwargs)
 
     def listdir(self, path=None):
-        path = self.add_sub_path(path)
-
         if hasattr(self.mapper, 'listdir'):
-            return self.mapper.listdir(path)
+            return self.mapper.listdir(self.add_sub_path(path))
 
-        if hasattr(self.mapper, 'fs') and hasattr(self.mapper.fs, 'listdir'):
-            try:
-                return self.mapper.fs.listdir(self.add_root(path), detail=False)
-            except (FileNotFoundError, KeyError) as e:
-                return []
-
-        path = '' if path is None else path
-        children = set()
-        for key in self:
-            if key.startswith(path) and len(key) > len(path):
-                suffix = key[len(path):]
-                child = suffix.split('/')[0]
-                children.add(child)
-        return sorted(children)
+        sub_map = self.mapper if path is None else self.sub_map(path)
+        return list(sub_map)
 
     def rmdir(self, path=None):
-        submap = self.mapper
-        if path is not None:
-            submap = self.sub_map(path)
+        sub_map = self.mapper if path is None else self.sub_map(path)
 
-        total_keys = list(submap.keys())
+        total_keys = list(sub_map.keys())
         if len(total_keys) == 0:
             return
 
-        return submap.delitems(total_keys)
+        return sub_map.delitems(total_keys)
+
+    def info(self, path):
+        return self.mapper.fs.info(self.full_path(path))
 
     def checksum(self, key):
         return self.mapper.fs.checksum(self.full_path(key))
+
+    def equal_content(self, other, path, method: Literal["checksum", "content"] = "checksum"):
+        if method == "checksum":
+            return other.checksum(path) == self.checksum(path)
+
+        info = self.info(path)
+        other_info = other.info(path)
+        if info["size"] == other_info["size"]:
+            return self[path] == other[path]
+
+        return False
 
     @staticmethod
     def synchronize(
@@ -194,3 +194,42 @@ class Mapping(MutableMapping):
 
         with ThreadPoolExecutor(os.cpu_count()) as p:
             list(p.map(_move_data, total_paths))
+
+    def folders_synchronize(
+            self,
+            destination,
+            folders,
+            comparing_method: Literal["checksum", "content"],
+            n_threads
+    ):
+        source_paths = [
+            file
+            for folder in folders
+            for file in self.listdir(folder)
+        ]
+        destination_paths = [
+            file
+            for folder in folders
+            for file in destination.listdir(folder)
+        ]
+        delete_paths = sorted(set(destination_paths) - set(source_paths))
+
+        def copy_file(path):
+            if path in destination and self.equal_content(destination, path, comparing_method):
+                return None
+            destination[path] = self[path]
+            return path
+
+        def del_file(path):
+            del destination[path]
+
+        modified_files = list(delete_paths)
+        with ThreadPoolExecutor(n_threads) as p:
+            modified_files.extend([
+                path
+                for path in p.map(copy_file, source_paths)
+                if path is not None
+            ])
+            list(p.map(del_file, delete_paths))
+
+        return modified_files

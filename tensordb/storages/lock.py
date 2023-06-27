@@ -1,9 +1,6 @@
 import abc
 import os.path
-from functools import partial
 from typing import Type
-
-from dask.distributed import Lock
 
 
 class BaseLock(abc.ABC):
@@ -34,6 +31,3 @@ class PrefixLock(BaseLock):
     def __getitem__(self, path):
         path = os.path.join(self.prefix, path)
         return self.lock(path)
-
-
-DistributedLock = partial(PrefixLock, lock=Lock)
