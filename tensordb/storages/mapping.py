@@ -3,8 +3,9 @@ from collections.abc import MutableMapping
 from concurrent.futures import ThreadPoolExecutor
 from typing import Literal
 
-from tensordb.storages.lock import PrefixLock
 from zarr.storage import FSStore
+
+from tensordb.storages.lock import PrefixLock
 
 
 class Mapping(MutableMapping):

@@ -112,6 +112,30 @@ class NumpyAlgorithms:
             x[np.isnan(arg_x)] = np.nan
         return x
 
+    @staticmethod
+    def rank(x, axis, method, nan_policy, ascending=True, use_bottleneck=False):
+        if not ascending:
+            x = -x
+
+        if use_bottleneck:
+            ranked = bn.nanrankdata(x, axis=axis).astype(np.float64)
+        else:
+            ranked = rankdata(
+                x, method=method, axis=axis, nan_policy=nan_policy
+            ).astype(np.float64)
+        ranked[np.isnan(x)] = np.nan
+        return ranked
+
+    @staticmethod
+    def multi_rank(x, axis, tie_axis):
+        shape_tie_axis = x.shape[tie_axis]
+        x = np.split(x, shape_tie_axis, axis=tie_axis)[::-1]
+        r = np.lexsort(x, axis=axis).argsort(axis=axis) + 1
+        r = r.astype(np.float64)
+        r[np.isnan(x[-1])] = np.nan
+        r = np.concatenate([r] * shape_tie_axis, axis=tie_axis)
+        return r
+
 
 class Algorithms:
     @classmethod
@@ -191,22 +215,16 @@ class Algorithms:
                 attrs=new_data.attrs
             )
 
-        if not ascending:
-            new_data = -new_data
-
-        def _rank(x, axis):
-            ranked = rankdata(
-                x, method=method, axis=axis, nan_policy=nan_policy
-            ).astype(np.float64)
-            ranked[np.isnan(x)] = np.nan
-            return ranked
-
         return cls.map_blocks_along_axis(
             new_data,
-            func=bn.nanrankdata if use_bottleneck else _rank,
+            func=NumpyAlgorithms.rank,
             dtype=np.float64,
             axis=new_data.dims.index(dim),
-            dim=dim
+            dim=dim,
+            method=method,
+            ascending=ascending,
+            nan_policy=nan_policy,
+            use_bottleneck=use_bottleneck
         )
 
     @classmethod
@@ -223,21 +241,12 @@ class Algorithms:
         but all of them are going to contain the same ranking
         """
 
-        def _multi_rank(x, axis, tie_axis):
-            shape_tie_axis = x.shape[tie_axis]
-            x = np.split(x, shape_tie_axis, axis=tie_axis)[::-1]
-            r = np.lexsort(x, axis=axis).argsort(axis=axis) + 1
-            r = r.astype(np.float64)
-            r[np.isnan(x[-1])] = np.nan
-            r = np.concatenate([r] * shape_tie_axis, axis=tie_axis)
-            return r
-
         data = new_data.chunk({dim: -1, tie_dim: -1}).data
         return xr.DataArray(
             data.map_blocks(
                 dtype=np.float64,
                 chunks=data.chunks,
-                func=_multi_rank,
+                func=NumpyAlgorithms.multi_rank,
                 axis=new_data.dims.index(dim),
                 tie_axis=new_data.dims.index(tie_dim),
             ),
@@ -480,7 +489,7 @@ class Algorithms:
 
         chunks = new_data.chunks[:axis] + (len(output_coord),) + new_data.chunks[axis + 1:]
 
-        def _reduce(x, g):
+        def _reduce(x, g, func, **kwargs):
             if len(g.dims) == 1:
                 grouped = x.groupby(g)
                 if not isinstance(func, str):
@@ -505,7 +514,7 @@ class Algorithms:
 
             f_dim = next(d for d in x.dims if d != dim)
             arr = xr.concat([
-                _reduce(x.sel({f_dim: v}), g.sel({f_dim: v}))
+                _reduce(x.sel({f_dim: v}), g.sel({f_dim: v}), func, **kwargs)
                 for v in x.coords[f_dim].values
             ], dim=f_dim)
             arr = arr.transpose(*x.dims)
@@ -520,7 +529,8 @@ class Algorithms:
 
         data = data.map_blocks(
             _reduce,
-            [groups],
+            [groups, func],
+            kwargs=kwargs,
             template=xr.DataArray(
                 da.empty(
                     dtype=np.float64,

@@ -164,4 +164,3 @@ def xarray_from_func(
         kwargs=func_parameters,
         template=arr
     )
-
