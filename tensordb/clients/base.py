@@ -105,9 +105,7 @@ class BaseTensorClient(Algorithms):
             method: Callable,
             paths_kwargs: Dict[str, Dict[str, Any]],
             max_parallelization: int = None,
-            compute: bool = False,
             client: Client = None,
-            call_pool: Literal['thread', 'process'] = 'thread',
             compute_kwargs: Dict[str, Any] = None,
     ):
         """
@@ -127,42 +125,28 @@ class BaseTensorClient(Algorithms):
             and avoid overflow the server or any DB.
             None means call all in parallel
 
-        compute: bool, default True
-            Indicate if the computation must be delayed or not, read the use on zarr_storage doc for more info
-
         client: Client, default None
             Dask client, useful for in combination with the compute parameter
-
-        call_pool: Literal['thread', 'process'], default 'thread'
-            Internally this method use a Pool of process/thread to apply the method on all the tensors
-            this indicates the kind of pool
 
         compute_kwargs: Dict[str, Any], default None
             Parameters of the dask.compute or client.compute
         """
         paths = list(paths_kwargs.keys())
 
-        call_pool = ThreadPoolExecutor if call_pool == 'thread' else ProcessPoolExecutor
         max_parallelization = np.inf if max_parallelization is None else max_parallelization
         max_parallelization = min(max_parallelization, len(paths))
         compute_kwargs = compute_kwargs or {}
         client = dask if client is None else client
 
-        with call_pool(max_parallelization) as pool:
-            for sub_paths in mit.chunked(paths, max_parallelization):
-                logger.info(f"Processing the following tensors: {sub_paths}")
-                futures = [
-                    pool.submit(
-                        BaseTensorClient._exec_on_dask,
-                        method,
-                        {"path": path, "compute": compute, **paths_kwargs[path]},
-                    )
-                    for path in sub_paths
-                ]
-                futures = [future.result() for future in futures]
-
-                if not compute:
-                    client.compute(futures, **compute_kwargs)
+        for sub_paths in mit.chunked(paths, max_parallelization):
+            logger.info(f"Processing the following tensors: {sub_paths}")
+            client.compute([
+                dask.delayed(BaseTensorClient._exec_on_dask)(
+                    func=method,
+                    params={"path": path, **paths_kwargs[path]}
+                )
+                for path in sub_paths
+            ], **compute_kwargs)
 
     def exec_on_dag_order(
             self,
@@ -238,6 +222,7 @@ class BaseTensorClient(Algorithms):
             if only_on_groups:
                 # filter the invalid groups
                 level = [tensor for tensor in level if tensor.dag.group in only_on_groups]
+
             if not level:
                 continue
 

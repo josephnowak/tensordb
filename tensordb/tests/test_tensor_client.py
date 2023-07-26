@@ -280,15 +280,10 @@ class TestTensorClient:
         assert {'a': 100} == tensor_client.read(path='different_client', name='different_client')
 
     @pytest.mark.parametrize(
-        'max_parallelization, compute, call_pool',
-        [
-            (1, False, 'thread'),
-            (2, True, 'process'),
-            (4, False, 'thread'),
-            (None, True, 'thread'),
-        ]
+        'max_parallelization',
+        [1, 2, 4]
     )
-    def test_exec_on_dag_order(self, max_parallelization, compute, call_pool):
+    def test_exec_on_dag_order(self, max_parallelization):
         definitions = [
             TensorDefinition(
                 path='0',
@@ -341,7 +336,6 @@ class TestTensorClient:
         self.tensor_client.exec_on_dag_order(
             method=self.tensor_client.store,
             parallelization_kwargs={
-                'compute': compute,
                 'max_parallelization': max_parallelization
             }
         )
@@ -355,7 +349,6 @@ class TestTensorClient:
             tensors_path=['1'],
             autofill_dependencies=True,
             parallelization_kwargs={
-                'compute': compute,
                 'max_parallelization': max_parallelization
             }
         )
