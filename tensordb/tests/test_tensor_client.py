@@ -117,6 +117,23 @@ class TestTensorClient:
         tensor_client.update(new_data=self.arr2, path='data_one')
         assert tensor_client.read(path='data_one').equals(self.arr2)
 
+        assert tensor_client.update(
+            new_data=self.arr2.reindex(index=[100]),
+            path='data_one'
+        ) is None
+
+    @pytest.mark.parametrize('use_local', [True, False])
+    def test_upsert(self, use_local):
+        tensor_client = self.local_tensor_client if use_local else self.tensor_client
+        tensor_client.create_tensor({"path": "data_upsert"})
+        # Test creating from strach the tensor, this should call the store method
+        tensor_client.upsert(new_data=self.arr2, path="data_upsert")
+        assert tensor_client.read(path='data_upsert').equals(self.arr2)
+
+        # This method should call the append and the update method
+        tensor_client.upsert(new_data=self.arr3, path="data_upsert")
+        assert tensor_client.read(path='data_upsert').equals(self.arr3)
+
     @pytest.mark.parametrize('use_local', [True, False])
     def test_drop(self, use_local):
         tensor_client = self.local_tensor_client if use_local else self.tensor_client

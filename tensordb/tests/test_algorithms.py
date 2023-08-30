@@ -139,33 +139,34 @@ def test_bitmask_topk_tie_breaker(top_size, dim):
         coords={'c': list(range(2)), 'a': list(range(6)), 'b': list(range(3))}
     ).chunk((1, 3, 1))
 
-    df = pd.DataFrame({
-        "data1": arr.isel(c=0).to_series(),
-        "data2": arr.isel(c=1).to_series()
-    }).reset_index()
-
-    group_dim = "b" if dim == "a" else "a"
-
-    ranked = df.groupby(group_dim, group_keys=False).apply(
-        lambda x: x[["data1", "data2"]].fillna(-np.inf).apply(
-            tuple, axis=1
-        ).rank(
-            ascending=False, method="min"
-        ).astype(int)
-    )
-    df["rank"] = ranked
-    df.loc[df["data1"].isna(), "rank"] = np.nan
-
-    expected = df.pivot_table(
-        index="a", columns="b", values="rank", dropna=False
-    ) <= top_size
-
     result = Algorithms.bitmask_topk(
         arr,
         dim=dim,
         tie_breaker_dim="c",
         top_size=top_size
     ).isel(c=0, drop=True)
+
+    total_dfs = [
+        arr.sel(c=index, drop=True).to_pandas()
+        for index in arr.c.values
+    ]
+    df = (
+        pd.concat(total_dfs)
+        .fillna(-np.inf)
+        .stack(dropna=False)
+        .groupby(level=[0, 1])
+        .apply(tuple)
+        .unstack()
+    )
+
+    df = df.where(~total_dfs[0].isna())
+
+    expected = df.rank(
+        # Subtract 1 due that the C dim is at the first position
+        arr.dims.index(dim) - 1,
+        method="min",
+        ascending=False
+    ) <= top_size
 
     assert result.equals(
         xr.DataArray(

@@ -297,7 +297,7 @@ class ZarrStorage(BaseStorage):
             new_data: Union[xr.DataArray, xr.Dataset],
             compute: bool = True,
             complete_update_dims: Union[List[str], str] = None,
-    ) -> xr.backends.ZarrStore:
+    ) -> Union[xr.backends.ZarrStore, None]:
         """
         Replace data on an existing Zarr files based on the new_data, internally calls the method
         `to_zarr <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_ using the
@@ -339,6 +339,8 @@ class ZarrStorage(BaseStorage):
             k: new_data.coords[k].isin(v)
             for k, v in act_coords.items()
         })
+        if any(size == 0 for size in new_data.sizes.values()):
+            return None
 
         if complete_update_dims is not None:
             if isinstance(complete_update_dims, str):
@@ -383,12 +385,18 @@ class ZarrStorage(BaseStorage):
         A list of xr.backends.ZarrStore produced by the append and update methods
 
         """
+        if not self.exist():
+            return [
+                self.store(new_data, compute=compute)
+            ]
+
         delayed_writes = [
             self.update(new_data, compute=compute, complete_update_dims=complete_update_dims)
         ]
         delayed_writes.extend(
             self.append(new_data, compute=compute)
         )
+        delayed_writes = [write for write in delayed_writes if write is not None]
         return delayed_writes
 
     def drop(
