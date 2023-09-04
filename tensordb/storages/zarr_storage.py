@@ -376,9 +376,10 @@ class ZarrStorage(BaseStorage):
             new_data: Union[xr.DataArray, xr.Dataset],
             compute: bool = True,
             complete_update_dims: Union[List[str], str] = None,
+            fill_value: Any = np.nan,
     ) -> List[xr.backends.ZarrStore]:
         """
-        Calls the update and then the append method
+        Calls the update and then the append method, if the tensor do not exist then it calls the store method
 
         Returns
         -------
@@ -394,7 +395,7 @@ class ZarrStorage(BaseStorage):
             self.update(new_data, compute=compute, complete_update_dims=complete_update_dims)
         ]
         delayed_writes.extend(
-            self.append(new_data, compute=compute)
+            self.append(new_data, compute=compute, fill_value=fill_value)
         )
         delayed_writes = [write for write in delayed_writes if write is not None]
         return delayed_writes
