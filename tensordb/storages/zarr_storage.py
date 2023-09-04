@@ -388,7 +388,7 @@ class ZarrStorage(BaseStorage):
         """
         if not self.exist():
             return [
-                self.store(new_data, compute=compute, rewrite=rewrite, on_tmp=on_tmp)
+                self.store(new_data, compute=compute)
             ]
 
         delayed_writes = [
