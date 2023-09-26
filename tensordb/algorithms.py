@@ -497,7 +497,11 @@ class Algorithms:
                 elif hasattr(grouped, func):
                     arr = getattr(grouped, func)(dim=dim, **kwargs)
                 else:
-                    arr = grouped.map(getattr(Algorithms, func), dim=dim, **kwargs).compute()
+                    arr = grouped.map(
+                        lambda data: getattr(Algorithms, func)(
+                            data, dim=dim, **kwargs
+                        ).compute(),
+                    )
 
                 if "group" not in arr.dims:
                     # If the function do not reduce the dimension then preserve the same arr
