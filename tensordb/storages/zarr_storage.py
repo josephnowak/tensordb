@@ -83,8 +83,6 @@ class ZarrStorage(BaseStorage):
             for k, v in new_data.indexes.items()
             if k in self.sorted_coords
         }
-        if new_data.chunks and all(v.is_unique for v in sorted_coords.values()):
-            return Algorithms.vindex(new_data, sorted_coords)
 
         return new_data.sel(sorted_coords)
 
@@ -253,10 +251,15 @@ class ZarrStorage(BaseStorage):
                 k: slice(size, None) if k == dim else slice(0, size)
                 for k, size in complete_data.sizes.items()
             }
-            complete_data = xr.concat([
-                complete_data,
-                new_data.reindex(reindex_coords, fill_value=fill_value)
-            ], dim=dim, fill_value=fill_value)
+            append_new_data = new_data.reindex(reindex_coords, fill_value=fill_value)
+            if dim in self.sorted_coords:
+                # Combine first is similar to concat, but it sorts the coords
+                complete_data = complete_data.combine_first(append_new_data)
+            else:
+                complete_data = xr.concat([
+                    complete_data,
+                    append_new_data
+                ], dim=dim, fill_value=fill_value)
 
         complete_data = xr.Dataset({
             k: v.chunk(act_data[k].encoding["preferred_chunks"])

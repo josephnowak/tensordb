@@ -521,10 +521,40 @@ def test_cumulative_on_sort(dim, ascending, func):
     assert result.equals(expected)
 
 
+@pytest.mark.parametrize('dim', ['a', 'b'])
+@pytest.mark.parametrize(
+    'coord',
+    [
+        [3, 5, 1, 3, 5, 6, 2],
+        [5, 5, 5, 1, 2, 2, 2],
+        [],
+        [3, 5, 1],
+        [2]
+    ]
+)
+@pytest.mark.parametrize('fill_value', [np.nan, 100.3])
+def test_reindex_along_axis(dim, coord, fill_value):
+    arr = xr.DataArray(
+        [
+            [5, 2, 3],
+            [4, 4, 1],
+            [5, 2, 3],
+            [np.nan, 3, 0],
+            [8, 7, 9]
+        ],
+        dims=['a', 'b'],
+        coords={'a': list(range(5)), 'b': list(range(3))}
+    ).chunk((5, 3))
+    result = Algorithms.reindex_along_axis(
+        new_data=arr,
+        dim=dim,
+        coord=coord,
+        fill_value=fill_value
+    )
+
+    expected = arr.reindex({dim: coord}, fill_value=fill_value)
+    assert result.equals(expected)
+
+
 if __name__ == "__main__":
-    test = TestAlgorithms()
-    # test.test_ffill()
-    test.test_replace()
-    # test.test_append_data(remote=False)
-    # test.test_update_data()
-    # test.test_backup()
+    pass
