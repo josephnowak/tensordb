@@ -748,38 +748,3 @@ class Algorithms:
         return bitmask.expand_dims({
             tie_breaker_dim: new_data.coords[tie_breaker_dim]
         })
-
-    @classmethod
-    def reindex_along_axis(
-            cls,
-            new_data: Union[xr.DataArray, xr.Dataset],
-            coord: np.array,
-            dim: str,
-            fill_value=np.nan
-    ):
-        if isinstance(new_data, xr.Dataset):
-            return new_data.map(
-                cls.reindex_along_axis,
-                coord=coord,
-                dim=dim,
-                fill_value=fill_value
-            )
-
-        axis = new_data.dims.index(dim)
-        chunks = new_data.chunks[:axis] + (len(coord),) + new_data.chunks[axis + 1:]
-        coords = {k: coord if k == dim else v for k, v in new_data.coords.items()}
-        shape = new_data.shape[:axis] + (len(coord),) + new_data.shape[axis + 1:]
-
-        return new_data.chunk({dim: -1}).map_blocks(
-            lambda x: x.reindex({dim: coord}, fill_value=fill_value),
-            template=xr.DataArray(
-                da.empty(
-                    dtype=new_data.dtype,
-                    chunks=chunks,
-                    shape=shape
-                ),
-                coords=coords,
-                dims=new_data.dims,
-            )
-        )
-
