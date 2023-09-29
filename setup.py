@@ -5,7 +5,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='TensorDB',
-    version='0.26',
+    version='0.27',
     description='Database based in a file system storage combined with Xarray and Zarr',
     author='Joseph Nowak',
     author_email='josephgonowak97@gmail.com',
