@@ -206,13 +206,13 @@ class Algorithms:
         If the bottleneck option is enable then the method and nan policy parameters are ignored
         """
         if isinstance(new_data, xr.Dataset):
-            return xr.Dataset(
-                {
-                    name: cls.rank(data, dim, method, ascending, nan_policy)
-                    for name, data in new_data.items()
-                },
-                coords=new_data.coords,
-                attrs=new_data.attrs
+            return new_data.map(
+                cls.rank,
+                method=method,
+                dim=dim,
+                ascending=ascending,
+                nan_policy=nan_policy,
+                use_bottleneck=use_bottleneck
             )
 
         return cls.map_blocks_along_axis(
@@ -263,13 +263,10 @@ class Algorithms:
             shift: int
     ):
         if isinstance(new_data, xr.Dataset):
-            return xr.Dataset(
-                {
-                    name: cls.shift_on_valid(data, dim, shift)
-                    for name, data in new_data.items()
-                },
-                coords=new_data.coords,
-                attrs=new_data.attrs
+            return new_data.map(
+                cls.shift_on_valid,
+                shift=shift,
+                dim=dim,
             )
 
         return xr.DataArray(
@@ -298,13 +295,14 @@ class Algorithms:
             fill_method: str = None
     ):
         if isinstance(new_data, xr.Dataset):
-            return xr.Dataset(
-                {
-                    name: cls.rolling_along_axis(data, dim, window, operator, min_periods, drop_nan, fill_method)
-                    for name, data in new_data.items()
-                },
-                coords=new_data.coords,
-                attrs=new_data.attrs
+            return new_data.map(
+                cls.rolling_along_axis,
+                window=window,
+                dim=dim,
+                operator=operator,
+                min_periods=min_periods,
+                drop_nan=drop_nan,
+                fill_method=fill_method
             )
 
         return xr.DataArray(
@@ -335,13 +333,11 @@ class Algorithms:
             default_replace=None
     ):
         if isinstance(new_data, xr.Dataset):
-            return xr.Dataset(
-                {
-                    name: cls.replace(data, to_replace, dtype)
-                    for name, data in new_data.items()
-                },
-                coords=new_data.coords,
-                attrs=new_data.attrs
+            return new_data.map(
+                cls.replace,
+                to_replace=to_replace,
+                dtype=dtype,
+                default_replace=default_replace
             )
 
         dtype = dtype if dtype else new_data.dtype
@@ -373,15 +369,9 @@ class Algorithms:
         Implementation of dask vindex using xarray
         """
         if isinstance(new_data, xr.Dataset):
-            return xr.Dataset(
-                {
-                    name: cls.vindex(data, coords)
-                    for name, data in new_data.items()
-                },
-                coords={
-                    dim: coords.get(dim, coord) for dim, coord in new_data.coords.items()
-                },
-                attrs=new_data.attrs
+            return new_data.map(
+                cls.vindex,
+                coords=coords,
             )
 
         arr = new_data.data
@@ -454,12 +444,13 @@ class Algorithms:
 
         """
         if isinstance(new_data, xr.Dataset):
-            return xr.Dataset(
-                {
-                    name: cls.apply_on_groups(data, groups, dim, func, keep_shape)
-                    for name, data in new_data.items()
-                },
-                attrs=new_data.attrs
+            return new_data.map(
+                cls.apply_on_groups,
+                groups=groups,
+                dim=dim,
+                func=func,
+                keep_shape=keep_shape,
+                unique_groups=unique_groups
             )
 
         if isinstance(groups, dict):
@@ -497,7 +488,11 @@ class Algorithms:
                 elif hasattr(grouped, func):
                     arr = getattr(grouped, func)(dim=dim, **kwargs)
                 else:
-                    arr = grouped.map(getattr(Algorithms, func), dim=dim, **kwargs).compute()
+                    arr = grouped.map(
+                        lambda data: getattr(Algorithms, func)(
+                            data, dim=dim, **kwargs
+                        ).compute(),
+                    )
 
                 if "group" not in arr.dims:
                     # If the function do not reduce the dimension then preserve the same arr

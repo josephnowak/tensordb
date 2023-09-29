@@ -41,10 +41,11 @@ class ZarrStorage(BaseStorage):
                      Literal['process', 'thread'],
                      PrefixLock
                  ] = None,
-                 unique_coords: bool = False,
+                 unique_coords: Dict[str, bool] = None,
                  sorted_coords: Dict[str, bool] = None,
                  encoding: Dict[str, Any] = None,
                  synchronize_only_write: bool = False,
+                 default_unique_coord: bool = True,
                  **kwargs):
 
         super().__init__(tmp_map=tmp_map, **kwargs)
@@ -62,16 +63,18 @@ class ZarrStorage(BaseStorage):
 
         self.chunks = chunks
         self.synchronizer = synchronizer
-        self.unique_coords = unique_coords
-        self.sorted_coords = {} if sorted_coords is None else sorted_coords
+        self.unique_coords = unique_coords or {}
+        self.sorted_coords = sorted_coords or {}
         self.encoding = encoding
         self.synchronize_only_write = synchronize_only_write
+        self.default_unique_coord = default_unique_coord
 
     def _keep_unique_coords(self, new_data):
-        if not self.unique_coords:
-            return new_data
-
-        new_data = new_data.sel({k: ~v.duplicated() for k, v in new_data.indexes.items()})
+        new_data = new_data.sel({
+            k: ~v.duplicated()
+            for k, v in new_data.indexes.items()
+            if self.unique_coords.get(k, self.default_unique_coord)
+        })
         return new_data
 
     def _keep_sorted_coords(self, new_data):
@@ -83,10 +86,16 @@ class ZarrStorage(BaseStorage):
             for k, v in new_data.indexes.items()
             if k in self.sorted_coords
         }
-        if new_data.chunks and all(v.is_unique for v in sorted_coords.values()):
-            return Algorithms.vindex(new_data, sorted_coords)
 
         return new_data.sel(sorted_coords)
+
+    def _validate_sorted_append(self, current_coord, append_coord, dim):
+        if dim not in self.sorted_coords:
+            return True
+
+        if self.sorted_coords[dim]:
+            return current_coord[-1] <= append_coord[0]
+        return current_coord[-1] >= append_coord[0]
 
     def _transform_to_dataset(self, new_data, chunk_data: bool = True) -> xr.Dataset:
         if isinstance(new_data, xr.Dataset):
@@ -238,12 +247,16 @@ class ZarrStorage(BaseStorage):
 
         for dim in new_data.dims:
             new_coord = new_data.indexes[dim]
-            coord_to_append = new_coord[~new_coord.isin(act_coords[dim])]
+            act_coord = act_coords[dim]
+            coord_to_append = new_coord[~new_coord.isin(act_coord)]
             if len(coord_to_append) == 0:
                 continue
 
-            if not rewrite and dim in self.sorted_coords and coord_to_append[0] != act_coords[dim][-1]:
-                rewrite = (act_coords[dim][-1] > coord_to_append[0]) == self.sorted_coords[dim]
+            rewrite |= ~self._validate_sorted_append(
+                current_coord=act_coord,
+                append_coord=coord_to_append,
+                dim=dim
+            )
 
             reindex_coords = {
                 k: coord_to_append if k == dim else act_coord
@@ -253,10 +266,15 @@ class ZarrStorage(BaseStorage):
                 k: slice(size, None) if k == dim else slice(0, size)
                 for k, size in complete_data.sizes.items()
             }
-            complete_data = xr.concat([
-                complete_data,
-                new_data.reindex(reindex_coords, fill_value=fill_value)
-            ], dim=dim, fill_value=fill_value)
+            append_new_data = new_data.reindex(reindex_coords, fill_value=fill_value)
+            if dim in self.sorted_coords and self.unique_coords.get(dim, self.default_unique_coord):
+                # Combine first is similar to concat, but it sorts the coords and keep them unique
+                complete_data = complete_data.combine_first(append_new_data)
+            else:
+                complete_data = xr.concat([
+                    complete_data,
+                    append_new_data
+                ], dim=dim, fill_value=fill_value)
 
         complete_data = xr.Dataset({
             k: v.chunk(act_data[k].encoding["preferred_chunks"])
@@ -329,6 +347,8 @@ class ZarrStorage(BaseStorage):
 
         act_data = self._transform_to_dataset(self.read(), chunk_data=False)
         new_data = self._transform_to_dataset(new_data, chunk_data=False)
+        new_data = self._keep_unique_coords(new_data)
+        new_data = self._keep_sorted_coords(new_data)
 
         self.clear_encoding(new_data)
 

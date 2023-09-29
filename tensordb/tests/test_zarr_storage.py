@@ -36,7 +36,7 @@ class TestZarrStorage:
             tmp_map=fsspec.get_mapper(sub_path + '/tmp/zarr_sorted_unique'),
             data_names='data_test',
             chunks={'index': 3, 'columns': 2},
-            unique_coords=True,
+            unique_coords={"index": True, "columns": True},
             sorted_coords={'index': False, 'columns': False},
             # synchronizer='thread',
             synchronize_only_write=True
@@ -46,7 +46,7 @@ class TestZarrStorage:
             tmp_map=fsspec.get_mapper(sub_path + '/tmp/zarr_dataset_sorted_unique'),
             data_names=['a', 'b', 'c'],
             chunks={'index': 3, 'columns': 2},
-            unique_coords=True,
+            unique_coords={"index": True, "columns": True},
             sorted_coords={'index': False, 'columns': False},
             # synchronizer='process',
             synchronize_only_write=True

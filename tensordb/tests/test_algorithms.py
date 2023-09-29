@@ -522,9 +522,4 @@ def test_cumulative_on_sort(dim, ascending, func):
 
 
 if __name__ == "__main__":
-    test = TestAlgorithms()
-    # test.test_ffill()
-    test.test_replace()
-    # test.test_append_data(remote=False)
-    # test.test_update_data()
-    # test.test_backup()
+    pass
