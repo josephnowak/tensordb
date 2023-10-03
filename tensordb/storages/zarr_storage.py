@@ -267,14 +267,10 @@ class ZarrStorage(BaseStorage):
                 for k, size in complete_data.sizes.items()
             }
             append_new_data = new_data.reindex(reindex_coords, fill_value=fill_value)
-            if dim in self.sorted_coords and self.unique_coords.get(dim, self.default_unique_coord):
-                # Combine first is similar to concat, but it sorts the coords and keep them unique
-                complete_data = complete_data.combine_first(append_new_data)
-            else:
-                complete_data = xr.concat([
-                    complete_data,
-                    append_new_data
-                ], dim=dim, fill_value=fill_value)
+            complete_data = xr.concat([
+                complete_data,
+                append_new_data
+            ], dim=dim, fill_value=fill_value)
 
         complete_data = xr.Dataset({
             k: v.chunk(act_data[k].encoding["preferred_chunks"])
