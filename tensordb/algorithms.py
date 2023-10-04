@@ -489,9 +489,9 @@ class Algorithms:
                     arr = getattr(grouped, func)(dim=dim, **kwargs)
                 else:
                     arr = grouped.map(
-                        lambda data: getattr(Algorithms, func)(
-                            data, dim=dim, **kwargs
-                        ).compute(),
+                        lambda v: getattr(Algorithms, func)(
+                            v, dim=dim, **kwargs
+                        ).compute(scheduler='single-threaded')
                     )
 
                 if "group" not in arr.dims:
