@@ -267,6 +267,16 @@ class TestZarrStorage:
             self.arr.drop_sel(coords)
         )
 
+    def test_keep_sorted(self):
+        arr = self.arr.chunk((3, 2))
+        new_data = arr.sel(index=[3, 2, 0, 4, 1], columns=[3, 4, 2, 0, 1])
+        result = self.storage_sorted_unique._keep_sorted_coords(new_data=new_data)
+        assert result.chunks == ((1, 1, 1, 1, 1), (1, 1, 1, 2))
+
+        new_data = arr.sel(columns=[3, 4, 2, 0, 1], index=[4, 3, 2, 1, 0])
+        result = self.storage_sorted_unique._keep_sorted_coords(new_data=new_data)
+        assert result.chunks == ((2, 3), (5,))
+
 
 if __name__ == "__main__":
     test = TestZarrStorage()

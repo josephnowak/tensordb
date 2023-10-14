@@ -28,6 +28,9 @@ class ZarrStorage(BaseStorage):
         and the Xarray method `to_zarr <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
         in the parameter 'synchronizer'.
 
+    max_unsort_dims_to_rechunk: int, default 1
+        If less or equal dimensions than this number needs to be sorted then create a unique
+        chunk along the dimension to avoid generating many small chunks that can generate memory issues
 
     TODO:
         1. Add more examples to the documentation
@@ -46,6 +49,7 @@ class ZarrStorage(BaseStorage):
                  encoding: Dict[str, Any] = None,
                  synchronize_only_write: bool = False,
                  default_unique_coord: bool = True,
+                 max_unsort_dims_to_rechunk: int = 1,
                  **kwargs):
 
         super().__init__(tmp_map=tmp_map, **kwargs)
@@ -68,6 +72,7 @@ class ZarrStorage(BaseStorage):
         self.encoding = encoding
         self.synchronize_only_write = synchronize_only_write
         self.default_unique_coord = default_unique_coord
+        self.max_unsort_dims_to_rechunk = max_unsort_dims_to_rechunk
 
     def _keep_unique_coords(self, new_data):
         new_data = new_data.sel({
@@ -86,6 +91,14 @@ class ZarrStorage(BaseStorage):
             for k, v in new_data.indexes.items()
             if k in self.sorted_coords
         }
+        if self.max_unsort_dims_to_rechunk:
+            dims_to_change = {
+                k: -1
+                for k, v in sorted_coords.items()
+                if not new_data.indexes[k].equals(v)
+            }
+            if len(dims_to_change) <= self.max_unsort_dims_to_rechunk:
+                new_data = new_data.chunk(**dims_to_change)
 
         return new_data.sel(sorted_coords)
 
