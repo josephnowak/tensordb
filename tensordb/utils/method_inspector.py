@@ -7,11 +7,9 @@ def get_parameters(func: Callable, *args: Dict[str, Any]):
     signature = inspect.signature(func)
     func_parameters = list(signature.parameters.keys())
 
-    if 'kwargs' in func_parameters:
+    if "kwargs" in func_parameters:
         return {
-            k: v
-            for user_parameters in args[::-1]
-            for k, v in user_parameters.items()
+            k: v for user_parameters in args[::-1] for k, v in user_parameters.items()
         }
 
     # instance the parameters with the default parameters
@@ -22,10 +20,12 @@ def get_parameters(func: Callable, *args: Dict[str, Any]):
     }
 
     # update the parameters based on the ones sent by the user, take into consideration the order
-    parameters.update({
-        parameter: user_parameters[parameter]
-        for parameter in func_parameters
-        for user_parameters in args[::-1]
-        if parameter in user_parameters
-    })
+    parameters.update(
+        {
+            parameter: user_parameters[parameter]
+            for parameter in func_parameters
+            for user_parameters in args[::-1]
+            if parameter in user_parameters
+        }
+    )
     return parameters

@@ -4,7 +4,6 @@ from typing import Type
 
 
 class BaseLock(abc.ABC):
-
     def __enter__(self):
         raise NotImplementedError
 

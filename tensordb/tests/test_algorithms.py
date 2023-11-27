@@ -19,7 +19,7 @@ def test_ffill():
         dims=['a', 'b'],
         coords={'a': list(range(3)), 'b': list(range(6))}
     ).chunk(
-        (1, 2)
+        a=1, b=2
     )
     assert Algorithms.ffill(arr, limit=2, dim='b').equals(arr.compute().ffill('b', limit=2))
     assert Algorithms.ffill(arr, limit=2, dim='b', until_last_valid=True).equals(
@@ -56,7 +56,7 @@ def test_rank(method, ascending):
         ],
         dims=['a', 'b'],
         coords={'a': list(range(5)), 'b': list(range(3))}
-    ).chunk((3, 1))
+    ).chunk(a=3, b=1)
     df = pd.DataFrame(arr.values, index=arr.a.values, columns=arr.b.values)
     result = Algorithms.rank(
         arr,
@@ -89,7 +89,7 @@ def test_bitmask_topk(top_size, dim):
         ],
         dims=['a', 'b'],
         coords={'a': list(range(6)), 'b': list(range(3))}
-    ).chunk((3, 1))
+    ).chunk(a=3, b=1)
 
     df = pd.DataFrame(arr.values, index=arr.a.values, columns=arr.b.values)
     expected = df.rank(
@@ -137,7 +137,7 @@ def test_bitmask_topk_tie_breaker(top_size, dim):
         ],
         dims=['c', 'a', 'b'],
         coords={'c': list(range(2)), 'a': list(range(6)), 'b': list(range(3))}
-    ).chunk((1, 3, 1))
+    ).chunk(c=1, a=3, b=1)
 
     result = Algorithms.bitmask_topk(
         arr,
@@ -202,7 +202,7 @@ def test_multi_rank(dim):
         ],
         dims=['c', 'a', 'b'],
         coords=coords
-    ).chunk((3, 1))
+    ).chunk(c=3, a=1)
     result = Algorithms.multi_rank(
         new_data=arr,
         dim=dim,
@@ -246,7 +246,7 @@ def test_rolling_along_axis(window, drop_nan, fill_method):
         ],
         dims=['a', 'b'],
         coords={'a': list(range(5)), 'b': list(range(3))}
-    ).chunk((3, 1))
+    ).chunk(a=3, b=1)
     df = pd.DataFrame(arr.values.T, arr.b.values, arr.a.values).stack(dropna=False)
     for min_periods in [None] + list(range(1, window)):
         rolling_arr = Algorithms.rolling_along_axis(
@@ -289,7 +289,7 @@ def test_replace(default_replace):
         ],
         dims=['a', 'b'],
         coords={'a': list(range(5)), 'b': list(range(3))}
-    ).chunk((3, 1))
+    ).chunk(a=3, b=1)
 
     df = pd.DataFrame(arr.values, index=arr.a.values, columns=arr.b.values)
 
@@ -334,7 +334,7 @@ def test_vindex():
         ],
         dims=['a', 'b', 'c'],
         coords={'a': list(range(5)), 'b': list(range(3)), 'c': list(range(2))}
-    ).chunk((3, 2, 1))
+    ).chunk(a=3, b=2, c=1)
 
     for i_coord in [None, [0, 3, 1, 4], [3, 4, 2, 1], [1, 1, 1]]:
         for j_coord in [None, [1, 0, 2], [2, 1, 0], [0, 0, 0], [1, 0]]:
@@ -368,7 +368,7 @@ def test_apply_on_groups(dim, keep_shape, func):
         ],
         dims=['a', 'b'],
         coords={'a': [1, 2, 3, 4, 5], 'b': [0, 1, 2, 3, 4]}
-    ).chunk((3, 2))
+    ).chunk(a=3, b=2)
     grouper = {
         'a': [1, 5, 5, 0, 1],
         'b': [0, 1, 1, 0, -1]
@@ -382,10 +382,16 @@ def test_apply_on_groups(dim, keep_shape, func):
     expected = arr.to_pandas()
     axis = 0 if dim == "a" else 1
 
+    if axis == 1:
+        expected = expected.T
+
     if keep_shape:
-        expected = expected.groupby(groups, axis=axis).transform(func)
+        expected = expected.groupby(groups).transform(func)
     else:
-        expected = getattr(expected.groupby(groups, axis=axis), func)()
+        expected = getattr(expected.groupby(groups), func)()
+
+    if axis == 1:
+        expected = expected.T
 
     expected = xr.DataArray(
         expected.values,
@@ -416,7 +422,7 @@ def test_apply_on_groups_array(dim, keep_shape, func):
         ],
         dims=['a', 'b'],
         coords={'a': [1, 2, 3, 4, 5], 'b': [0, 1, 2, 3, 4]}
-    ).chunk((3, 2))
+    ).chunk(a=3, b=2)
     groups = xr.DataArray(
         [
             [0, 0, 2, 1, 0],
@@ -427,7 +433,7 @@ def test_apply_on_groups_array(dim, keep_shape, func):
         ],
         dims=['a', 'b'],
         coords={'a': [1, 2, 3, 4, 5], 'b': [0, 1, 2, 3, 4]}
-    ).chunk((3, 2))
+    ).chunk(a=3, b=2)
     unique_groups = np.unique(groups.values)
     axis = arr.dims.index(dim)
 
@@ -440,9 +446,15 @@ def test_apply_on_groups_array(dim, keep_shape, func):
         x = arr.sel({iterate_dim: coord}, drop=True)
         grouper = groups.sel({iterate_dim: coord}, drop=True).compute()
         r = result.sel({iterate_dim: coord}, drop=True)
-        kwargs = {"method": "first", "axis": axis} if func == "rank" else {}
+        kwargs = {"method": "first"} if func == "rank" else {}
         s = x.to_pandas()
+
+        if axis == 1:
+            s = s.T
         expected = getattr(s.groupby(grouper.to_pandas()), func)(**kwargs).to_xarray()
+        if axis == 1:
+            expected = expected.T
+
         if dim not in expected.dims:
             expected = expected.rename({expected.dims[0]: dim})
         if keep_shape:
@@ -468,7 +480,7 @@ def test_merge_duplicates_coord(dim):
         ],
         dims=['a', 'b'],
         coords={'a': [1, 5, 5, 0, 1], 'b': [0, 1, 1, 0, -1]}
-    ).chunk((3, 2))
+    ).chunk(a=3, b=2)
 
     g = arr.groupby(dim).max(dim)
     arr = Algorithms.merge_duplicates_coord(arr, dim, 'max')
@@ -496,7 +508,7 @@ def test_cumulative_on_sort(dim, ascending, func):
         ],
         dims=['a', 'b'],
         coords={'a': list(range(5)), 'b': list(range(3))}
-    ).chunk((5, 3))
+    ).chunk(a=5, b=3)
     result = Algorithms.cumulative_on_sort(
         arr,
         dim=dim,

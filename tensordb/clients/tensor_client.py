@@ -3,17 +3,12 @@ from typing import Dict, List, Any, Union, Literal
 
 import orjson
 import xarray as xr
-from pydantic import validate_arguments
+from pydantic import validate_call
 from xarray.backends.common import AbstractWritableDataStore
 
 from tensordb.algorithms import Algorithms
 from tensordb.clients.base import BaseTensorClient
-from tensordb.storages import (
-    BaseStorage,
-    JsonStorage,
-    MAPPING_STORAGES,
-    PrefixLock
-)
+from tensordb.storages import BaseStorage, JsonStorage, MAPPING_STORAGES, PrefixLock
 from tensordb.storages.mapping import Mapping
 from tensordb.tensor_definition import TensorDefinition
 
@@ -171,21 +166,21 @@ class TensorClient(BaseTensorClient, Algorithms):
 
     # TODO: Add more examples to the documentation
 
-    internal_actions = ['store', 'update', 'append', 'upsert', 'drop']
+    internal_actions = ["store", "update", "append", "upsert", "drop"]
 
     def __init__(
-            self,
-            base_map: MutableMapping,
-            tmp_map: MutableMapping = None,
-            synchronizer: Union[Literal['process', 'thread'], None, PrefixLock] = None,
-            synchronize_only_write: bool = False,
-            **kwargs
+        self,
+        base_map: MutableMapping,
+        tmp_map: MutableMapping = None,
+        synchronizer: Union[Literal["process", "thread"], None, PrefixLock] = None,
+        synchronize_only_write: bool = False,
+        **kwargs,
     ):
         self.base_map = base_map
         if not isinstance(base_map, Mapping):
             self.base_map: Mapping = Mapping(base_map)
 
-        self.tmp_map = self.base_map.sub_map('tmp') if tmp_map is None else tmp_map
+        self.tmp_map = self.base_map.sub_map("tmp") if tmp_map is None else tmp_map
         if not isinstance(self.tmp_map, Mapping):
             self.tmp_map: Mapping = Mapping(tmp_map)
 
@@ -193,8 +188,8 @@ class TensorClient(BaseTensorClient, Algorithms):
         # TODO: Drop this parameter once this is fix https://github.com/zarr-developers/zarr-python/issues/1414
         self.synchronize_only_write = synchronize_only_write
         self._tensors_definition = JsonStorage(
-            base_map=self.base_map.sub_map('_tensors_definition'),
-            tmp_map=self.tmp_map.sub_map('_tensors_definition'),
+            base_map=self.base_map.sub_map("_tensors_definition"),
+            tmp_map=self.tmp_map.sub_map("_tensors_definition"),
         )
 
     def add_custom_data(self, path, new_data: Dict):
@@ -206,7 +201,7 @@ class TensorClient(BaseTensorClient, Algorithms):
         except KeyError:
             return default
 
-    @validate_arguments
+    @validate_call
     def create_tensor(self, definition: TensorDefinition):
         """
         Store the definition of tensor, which is equivalent to the creation of the tensor but without data
@@ -217,9 +212,11 @@ class TensorClient(BaseTensorClient, Algorithms):
             Read the docs of the `TensorDefinition` class for more info of the definition.
 
         """
-        self._tensors_definition.store(path=definition.path, new_data=definition.dict(exclude_unset=True))
+        self._tensors_definition.store(
+            path=definition.path, new_data=definition.model_dump(exclude_unset=True)
+        )
 
-    @validate_arguments
+    @validate_call
     def upsert_tensor(self, definition: TensorDefinition):
         """
         Upsert the definition of tensor, which is equivalent to the creation of the tensor but without data,
@@ -231,9 +228,11 @@ class TensorClient(BaseTensorClient, Algorithms):
             Read the docs of the `TensorDefinition` class for more info of the definition.
 
         """
-        self._tensors_definition.upsert(path=definition.path, new_data=definition.dict())
+        self._tensors_definition.upsert(
+            path=definition.path, new_data=definition.model_dump()
+        )
 
-    @validate_arguments
+    @validate_call
     def get_tensor_definition(self, path: str) -> TensorDefinition:
         """
         Retrieve a tensor definition.
@@ -251,9 +250,11 @@ class TensorClient(BaseTensorClient, Algorithms):
         try:
             return TensorDefinition(**self._tensors_definition.read(path))
         except KeyError:
-            raise KeyError(f'The tensor {path} has not been created using the create_tensor method')
+            raise KeyError(
+                f"The tensor {path} has not been created using the create_tensor method"
+            )
 
-    @validate_arguments
+    @validate_call
     def update_tensor_metadata(self, path: str, new_metadata: Dict[str, Any]):
         tensor_definition = self.get_tensor_definition(path)
         tensor_definition.metadata.update(new_metadata)
@@ -261,14 +262,17 @@ class TensorClient(BaseTensorClient, Algorithms):
 
     def get_all_tensors_definition(self) -> List[TensorDefinition]:
         from concurrent.futures import ThreadPoolExecutor
+
         with ThreadPoolExecutor() as executor:
-            results = list(executor.map(
-                self.get_tensor_definition,
-                list(self._tensors_definition.base_map.keys())
-            ))
+            results = list(
+                executor.map(
+                    self.get_tensor_definition,
+                    list(self._tensors_definition.base_map.keys()),
+                )
+            )
         return results
 
-    @validate_arguments
+    @validate_call
     def delete_tensor(self, path: str, only_data: bool = False) -> Any:
         """
         Delete the tensor
@@ -288,7 +292,7 @@ class TensorClient(BaseTensorClient, Algorithms):
         if not only_data:
             self._tensors_definition.delete_file(path)
 
-    @validate_arguments
+    @validate_call
     def get_storage(self, path: Union[str, TensorDefinition]) -> BaseStorage:
         """
         Get the storage of the tensor, by default it try to read the stored definition of the tensor.
@@ -304,7 +308,7 @@ class TensorClient(BaseTensorClient, Algorithms):
         """
         definition = self.get_tensor_definition(path) if isinstance(path, str) else path
 
-        storage = MAPPING_STORAGES['zarr_storage']
+        storage = MAPPING_STORAGES["zarr_storage"]
 
         storage = MAPPING_STORAGES[definition.storage.storage_name]
         storage = storage(
@@ -312,14 +316,12 @@ class TensorClient(BaseTensorClient, Algorithms):
             tmp_map=self.tmp_map.sub_map(definition.path),
             synchronizer=self.synchronizer,
             synchronize_only_write=self.synchronize_only_write,
-            **definition.storage.dict(exclude_unset=True)
+            **definition.storage.model_dump(exclude_unset=True),
         )
         return storage
 
     def read(
-            self,
-            path: Union[str, TensorDefinition, xr.DataArray, xr.Dataset],
-            **kwargs
+        self, path: Union[str, TensorDefinition, xr.DataArray, xr.Dataset], **kwargs
     ) -> Union[xr.DataArray, xr.Dataset]:
         """
         Calls :meth:`TensorClient.storage_method_caller` with read as method_name (has the same parameters).
@@ -332,9 +334,13 @@ class TensorClient(BaseTensorClient, Algorithms):
         if isinstance(path, (xr.DataArray, xr.Dataset)):
             return path
 
-        return self.storage_method_caller(path=path, method_name='read', parameters=kwargs)
+        return self.storage_method_caller(
+            path=path, method_name="read", parameters=kwargs
+        )
 
-    def append(self, path: Union[str, TensorDefinition], **kwargs) -> List[AbstractWritableDataStore]:
+    def append(
+        self, path: Union[str, TensorDefinition], **kwargs
+    ) -> List[AbstractWritableDataStore]:
         """
         Calls :meth:`TensorClient.storage_method_caller` with append as method_name (has the same parameters).
 
@@ -344,9 +350,13 @@ class TensorClient(BaseTensorClient, Algorithms):
         which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
-        return self.storage_method_caller(path=path, method_name='append', parameters=kwargs)
+        return self.storage_method_caller(
+            path=path, method_name="append", parameters=kwargs
+        )
 
-    def update(self, path: Union[str, TensorDefinition], **kwargs) -> AbstractWritableDataStore:
+    def update(
+        self, path: Union[str, TensorDefinition], **kwargs
+    ) -> AbstractWritableDataStore:
         """
         Calls :meth:`TensorClient.storage_method_caller` with update as method_name (has the same parameters).
 
@@ -356,9 +366,13 @@ class TensorClient(BaseTensorClient, Algorithms):
         which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
-        return self.storage_method_caller(path=path, method_name='update', parameters=kwargs)
+        return self.storage_method_caller(
+            path=path, method_name="update", parameters=kwargs
+        )
 
-    def store(self, path: Union[str, TensorDefinition], **kwargs) -> AbstractWritableDataStore:
+    def store(
+        self, path: Union[str, TensorDefinition], **kwargs
+    ) -> AbstractWritableDataStore:
         """
         Calls :meth:`TensorClient.storage_method_caller` with store as method_name (has the same parameters).
 
@@ -368,9 +382,13 @@ class TensorClient(BaseTensorClient, Algorithms):
         which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
-        return self.storage_method_caller(path=path, method_name='store', parameters=kwargs)
+        return self.storage_method_caller(
+            path=path, method_name="store", parameters=kwargs
+        )
 
-    def upsert(self, path: Union[str, TensorDefinition], **kwargs) -> List[AbstractWritableDataStore]:
+    def upsert(
+        self, path: Union[str, TensorDefinition], **kwargs
+    ) -> List[AbstractWritableDataStore]:
         """
         Calls :meth:`TensorClient.storage_method_caller` with upsert as method_name (has the same parameters).
 
@@ -380,9 +398,13 @@ class TensorClient(BaseTensorClient, Algorithms):
         which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
-        return self.storage_method_caller(path=path, method_name='upsert', parameters=kwargs)
+        return self.storage_method_caller(
+            path=path, method_name="upsert", parameters=kwargs
+        )
 
-    def drop(self, path: Union[str, TensorDefinition], **kwargs) -> List[AbstractWritableDataStore]:
+    def drop(
+        self, path: Union[str, TensorDefinition], **kwargs
+    ) -> List[AbstractWritableDataStore]:
         """
         Calls :meth:`TensorClient.storage_method_caller` with drop as method_name (has the same parameters).
 
@@ -392,7 +414,9 @@ class TensorClient(BaseTensorClient, Algorithms):
         which is used as an interface for the corresponding backend that you select in xarray (the Storage).
 
         """
-        return self.storage_method_caller(path=path, method_name='drop', parameters=kwargs)
+        return self.storage_method_caller(
+            path=path, method_name="drop", parameters=kwargs
+        )
 
     def exist(self, path: str, only_definition: bool = False, **kwargs) -> bool:
         """
@@ -412,12 +436,12 @@ class TensorClient(BaseTensorClient, Algorithms):
             return False
 
     def read_from_formula(
-            self,
-            formula: str,
-            use_exec: bool = False,
-            original_path: str = None,
-            storage: BaseStorage = None,
-            **kwargs: Dict[str, Any]
+        self,
+        formula: str,
+        use_exec: bool = False,
+        original_path: str = None,
+        storage: BaseStorage = None,
+        **kwargs: Dict[str, Any],
     ) -> Union[xr.DataArray, xr.Dataset]:
         """
         This is one of the most important methods of the `TensorClient` class, basically it allows defining
@@ -510,5 +534,5 @@ class TensorClient(BaseTensorClient, Algorithms):
             use_exec=use_exec,
             original_path=original_path,
             storage=storage,
-            **kwargs
+            **kwargs,
         )

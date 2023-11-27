@@ -1,7 +1,7 @@
 # DEPRECATED
 
 
-# @validate_arguments(config=dict(arbitrary_types_allowed=True))
+# @validate_call(config=dict(arbitrary_types_allowed=True))
 # def defined_translation(
 #         func: Callable,
 #         dims: List[Hashable],
