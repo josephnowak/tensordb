@@ -16,18 +16,20 @@ class JsonStorage(BaseStorage):
 
     @classmethod
     def to_json_file_name(cls, path):
-        return path.replace('\\', '/').replace('/', cls.default_character)
+        return path.replace("\\", "/").replace("/", cls.default_character)
 
     def store(self, new_data: Dict, path: str = None, **kwargs):
         path = self.data_names if path is None else path
         new_name = self.to_json_file_name(path)
-        self.base_map[new_name] = orjson.dumps(new_data, option=orjson.OPT_SERIALIZE_NUMPY)
+        self.base_map[new_name] = orjson.dumps(
+            new_data, option=orjson.OPT_SERIALIZE_NUMPY
+        )
 
     def append(self, new_data: Dict, path: str = None, **kwargs):
-        raise NotImplemented('Use upsert')
+        raise NotImplemented("Use upsert")
 
     def update(self, new_data: Dict, path: str = None, **kwargs):
-        raise NotImplemented('Use upsert')
+        raise NotImplemented("Use upsert")
 
     def upsert(self, new_data: Dict, path: str = None, **kwargs):
         path = self.data_names if path is None else path
@@ -53,11 +55,7 @@ class JsonStorage(BaseStorage):
         new_name = self.to_json_file_name(path)
         return new_name in self.base_map
 
-    def drop(
-            self,
-            coords,
-            **kwargs
-    ) -> xr.backends.common.AbstractWritableDataStore:
+    def drop(self, coords, **kwargs) -> xr.backends.common.AbstractWritableDataStore:
         raise NotImplementedError
 
     def delete_file(self, path: str = None, **kwargs):
@@ -67,4 +65,4 @@ class JsonStorage(BaseStorage):
 
     @classmethod
     def get_original_path(cls, path):
-        return path.replace(cls.default_character, '/')
+        return path.replace(cls.default_character, "/")

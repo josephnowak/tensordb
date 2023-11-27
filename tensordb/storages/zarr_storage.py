@@ -36,30 +36,28 @@ class ZarrStorage(BaseStorage):
 
     """
 
-    def __init__(self,
-                 tmp_map: Mapping,
-                 chunks: Dict[str, int] = None,
-                 synchronizer: Union[
-                     Literal['process', 'thread'],
-                     PrefixLock
-                 ] = None,
-                 unique_coords: Dict[str, bool] = None,
-                 sorted_coords: Dict[str, bool] = None,
-                 encoding: Dict[str, Any] = None,
-                 synchronize_only_write: bool = False,
-                 default_unique_coord: bool = True,
-                 max_unsort_dims_to_rechunk: int = 1,
-                 **kwargs):
-
+    def __init__(
+        self,
+        tmp_map: Mapping,
+        chunks: Dict[str, int] = None,
+        synchronizer: Union[Literal["process", "thread"], PrefixLock] = None,
+        unique_coords: Dict[str, bool] = None,
+        sorted_coords: Dict[str, bool] = None,
+        encoding: Dict[str, Any] = None,
+        synchronize_only_write: bool = False,
+        default_unique_coord: bool = True,
+        max_unsort_dims_to_rechunk: int = 1,
+        **kwargs,
+    ):
         super().__init__(tmp_map=tmp_map, **kwargs)
 
-        lock_path = f'{tmp_map.root}/zarr_process_lock'
+        lock_path = f"{tmp_map.root}/zarr_process_lock"
         if self.base_map.sub_path is not None:
             lock_path = f"{lock_path}/{self.base_map.sub_path}"
 
-        if synchronizer == 'process':
+        if synchronizer == "process":
             synchronizer = zarr.ProcessSynchronizer(lock_path)
-        elif synchronizer == 'thread':
+        elif synchronizer == "thread":
             synchronizer = zarr.ThreadSynchronizer()
         elif synchronizer is not None:
             synchronizer = synchronizer(path=lock_path)
@@ -74,11 +72,13 @@ class ZarrStorage(BaseStorage):
         self.max_unsort_dims_to_rechunk = max_unsort_dims_to_rechunk
 
     def _keep_unique_coords(self, new_data):
-        new_data = new_data.sel({
-            k: ~v.duplicated()
-            for k, v in new_data.indexes.items()
-            if self.unique_coords.get(k, self.default_unique_coord)
-        })
+        new_data = new_data.sel(
+            {
+                k: ~v.duplicated()
+                for k, v in new_data.indexes.items()
+                if self.unique_coords.get(k, self.default_unique_coord)
+            }
+        )
         return new_data
 
     def _keep_sorted_coords(self, new_data):
@@ -111,12 +111,16 @@ class ZarrStorage(BaseStorage):
 
     def _transform_to_dataset(self, new_data, chunk_data: bool = True) -> xr.Dataset:
         if isinstance(new_data, xr.Dataset):
-            new_data = new_data[self.data_names if isinstance(self.data_names, list) else [self.data_names]]
+            new_data = new_data[
+                self.data_names
+                if isinstance(self.data_names, list)
+                else [self.data_names]
+            ]
         else:
             if isinstance(new_data, xr.DataArray) and isinstance(self.data_names, list):
                 raise ValueError(
-                    f'The number of data vars is {len(self.data_names)} which indicate '
-                    f'that the tensor is a dataset and the new_data received is a xr.DataArray'
+                    f"The number of data vars is {len(self.data_names)} which indicate "
+                    f"that the tensor is a dataset and the new_data received is a xr.DataArray"
                 )
             new_data = new_data.to_dataset(name=self.data_names)
 
@@ -133,13 +137,12 @@ class ZarrStorage(BaseStorage):
                 arr.coords[dim].encoding.clear()
 
     def store(
-            self,
-            new_data: Union[xr.DataArray, xr.Dataset],
-            compute: bool = True,
-            rewrite: bool = False,
-            on_tmp: bool = False,
+        self,
+        new_data: Union[xr.DataArray, xr.Dataset],
+        compute: bool = True,
+        rewrite: bool = False,
+        on_tmp: bool = False,
     ) -> Union[xr.backends.ZarrStore, xr.Dataset, xr.DataArray]:
-
         """
         Store the data, the dtype and all the details will depend on what you pass in the new_data
         parameter, internally this method calls the method
@@ -182,10 +185,10 @@ class ZarrStorage(BaseStorage):
             compute = True
             new_data.to_zarr(
                 self.tmp_map,
-                mode='w',
+                mode="w",
                 compute=compute,
                 consolidated=True,
-                encoding=self.encoding
+                encoding=self.encoding,
             )
             new_data = xr.open_zarr(
                 self.tmp_map,
@@ -198,11 +201,11 @@ class ZarrStorage(BaseStorage):
 
         delayed_write = new_data.to_zarr(
             self.base_map,
-            mode='w',
+            mode="w",
             compute=compute,
             consolidated=True,
             group=self.group,
-            encoding=self.encoding
+            encoding=self.encoding,
         )
 
         if rewrite:
@@ -211,12 +214,11 @@ class ZarrStorage(BaseStorage):
         return delayed_write
 
     def append(
-            self,
-            new_data: Union[xr.DataArray, xr.Dataset],
-            compute: bool = True,
-            fill_value: Any = np.nan
+        self,
+        new_data: Union[xr.DataArray, xr.Dataset],
+        compute: bool = True,
+        fill_value: Any = np.nan,
     ) -> List[xr.backends.ZarrStore]:
-
         """
         Append data at the end of a Zarr file (in case that the file does not exist it will call the store method),
         internally it calls the method
@@ -265,9 +267,7 @@ class ZarrStorage(BaseStorage):
                 continue
 
             rewrite |= ~self._validate_sorted_append(
-                current_coord=act_coord,
-                append_coord=coord_to_append,
-                dim=dim
+                current_coord=act_coord, append_coord=coord_to_append, dim=dim
             )
 
             reindex_coords = {
@@ -279,15 +279,16 @@ class ZarrStorage(BaseStorage):
                 for k, size in complete_data.sizes.items()
             }
             append_new_data = new_data.reindex(reindex_coords, fill_value=fill_value)
-            complete_data = xr.concat([
-                complete_data,
-                append_new_data
-            ], dim=dim, fill_value=fill_value)
+            complete_data = xr.concat(
+                [complete_data, append_new_data], dim=dim, fill_value=fill_value
+            )
 
-        complete_data = xr.Dataset({
-            k: v.chunk(act_data[k].encoding["preferred_chunks"])
-            for k, v in complete_data.items()
-        })
+        complete_data = xr.Dataset(
+            {
+                k: v.chunk(act_data[k].encoding["preferred_chunks"])
+                for k, v in complete_data.items()
+            }
+        )
         if rewrite:
             return [self.store(new_data=complete_data, compute=compute, rewrite=True)]
 
@@ -319,10 +320,10 @@ class ZarrStorage(BaseStorage):
         return delayed_appends
 
     def update(
-            self,
-            new_data: Union[xr.DataArray, xr.Dataset],
-            compute: bool = True,
-            complete_update_dims: Union[List[str], str] = None,
+        self,
+        new_data: Union[xr.DataArray, xr.Dataset],
+        compute: bool = True,
+        complete_update_dims: Union[List[str], str] = None,
     ) -> Union[xr.backends.ZarrStore, None]:
         """
         Replace data on an existing Zarr files based on the new_data, internally calls the method
@@ -363,25 +364,32 @@ class ZarrStorage(BaseStorage):
         act_coords = {k: coord for k, coord in act_data.coords.items()}
 
         # The new data must contain only coordinates that are on the act_coords
-        new_data = new_data.sel({
-            k: new_data.coords[k].isin(v)
-            for k, v in act_coords.items()
-        })
+        new_data = new_data.sel(
+            {k: new_data.coords[k].isin(v) for k, v in act_coords.items()}
+        )
         if any(size == 0 for size in new_data.sizes.values()):
             return None
 
         if complete_update_dims is not None:
             if isinstance(complete_update_dims, str):
                 complete_update_dims = [complete_update_dims]
-            new_data = new_data.reindex(**{
-                dim: coord for dim, coord in act_coords.items() if dim in complete_update_dims
-            })
+            new_data = new_data.reindex(
+                **{
+                    dim: coord
+                    for dim, coord in act_coords.items()
+                    if dim in complete_update_dims
+                }
+            )
 
         regions = {}
         for coord_name in act_data.dims:
-            act_bitmask = act_coords[coord_name].isin(new_data.coords[coord_name].values)
+            act_bitmask = act_coords[coord_name].isin(
+                new_data.coords[coord_name].values
+            )
             valid_positions = np.nonzero(act_bitmask.values)[0]
-            regions[coord_name] = slice(np.min(valid_positions), np.max(valid_positions) + 1)
+            regions[coord_name] = slice(
+                np.min(valid_positions), np.max(valid_positions) + 1
+            )
 
         act_data_region = act_data.isel(**regions)
         if complete_update_dims is None:
@@ -395,16 +403,16 @@ class ZarrStorage(BaseStorage):
             group=self.group,
             compute=compute,
             synchronizer=self.synchronizer,
-            region=regions
+            region=regions,
         )
         return delayed_write
 
     def upsert(
-            self,
-            new_data: Union[xr.DataArray, xr.Dataset],
-            compute: bool = True,
-            complete_update_dims: Union[List[str], str] = None,
-            fill_value: Any = np.nan,
+        self,
+        new_data: Union[xr.DataArray, xr.Dataset],
+        compute: bool = True,
+        complete_update_dims: Union[List[str], str] = None,
+        fill_value: Any = np.nan,
     ) -> List[xr.backends.ZarrStore]:
         """
         Calls the update and then the append method, if the tensor do not exist then it calls the store method
@@ -415,12 +423,12 @@ class ZarrStorage(BaseStorage):
 
         """
         if not self.exist():
-            return [
-                self.store(new_data, compute=compute)
-            ]
+            return [self.store(new_data, compute=compute)]
 
         delayed_writes = [
-            self.update(new_data, compute=compute, complete_update_dims=complete_update_dims)
+            self.update(
+                new_data, compute=compute, complete_update_dims=complete_update_dims
+            )
         ]
         delayed_writes.extend(
             self.append(new_data, compute=compute, fill_value=fill_value)
@@ -428,11 +436,7 @@ class ZarrStorage(BaseStorage):
         delayed_writes = [write for write in delayed_writes if write is not None]
         return delayed_writes
 
-    def drop(
-            self,
-            coords: Dict,
-            compute: bool = True
-    ) -> xr.backends.ZarrStore:
+    def drop(self, coords: Dict, compute: bool = True) -> xr.backends.ZarrStore:
         """
         Drop coords of the tensor, this will rewrite the hole tensor using the rewrite option of store
 
@@ -473,7 +477,7 @@ class ZarrStorage(BaseStorage):
                 self.base_map,
                 consolidated=True,
                 synchronizer=None if self.synchronize_only_write else self.synchronizer,
-                group=self.group
+                group=self.group,
             )
             return arr[self.data_names]
         except KeyError as e:
