@@ -7,7 +7,7 @@ from dask.distributed import LocalCluster, Client
 @pytest.fixture(scope="session")
 def dask_cluster() -> Generator[LocalCluster, Any, None]:
     with LocalCluster(
-            processes=False,
+        processes=False,
     ) as cluster:
         yield cluster
 

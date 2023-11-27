@@ -4,7 +4,6 @@ import numpy as np
 import xarray as xr
 import zarr
 
-from tensordb.algorithms import Algorithms
 from tensordb.storages.base_storage import BaseStorage
 from tensordb.storages.lock import PrefixLock
 from tensordb.storages.mapping import Mapping
@@ -389,7 +388,7 @@ class ZarrStorage(BaseStorage):
             new_data = new_data.combine_first(act_data_region)
 
         # The chunks must match with the chunks of the actual data after applying the region slice
-        new_data = new_data.chunk(act_data_region.chunks)
+        new_data = new_data.chunk(act_data_region.chunksizes)
 
         delayed_write = new_data.to_zarr(
             self.base_map,

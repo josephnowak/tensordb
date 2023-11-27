@@ -1,5 +1,4 @@
 import abc
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from typing import Dict, List, Any, Union, Literal, Callable
 
 import dask
@@ -11,25 +10,19 @@ import xarray as xr
 from dask.distributed import Client
 from dask.highlevelgraph import HighLevelGraph
 from loguru import logger
-from pydantic import validate_arguments
+from pydantic import validate_call
 from xarray.backends.common import AbstractWritableDataStore
 
 from tensordb.algorithms import Algorithms
-from tensordb.storages import (
-    BaseStorage,
-    CachedStorage
-)
+from tensordb.storages import BaseStorage, CachedStorage
 from tensordb.tensor_definition import TensorDefinition, MethodDescriptor, Definition
 from tensordb.utils import dag
 from tensordb.utils.method_inspector import get_parameters
-from tensordb.utils.tools import (
-    groupby_chunks,
-    extract_paths_from_formula
-)
+from tensordb.utils.tools import groupby_chunks, extract_paths_from_formula
 
 
 class BaseTensorClient(Algorithms):
-    internal_actions = ['store', 'update', 'append', 'upsert', 'drop']
+    internal_actions = ["store", "update", "append", "upsert", "drop"]
 
     def add_custom_data(self, path, new_data: Dict):
         pass
@@ -49,7 +42,7 @@ class BaseTensorClient(Algorithms):
     def get_tensor_definition(self, path: str) -> TensorDefinition:
         pass
 
-    @validate_arguments
+    @validate_call
     def update_tensor_metadata(self, path: str, new_metadata: Dict[str, Any]):
         tensor_definition = self.get_tensor_definition(path)
         tensor_definition.metadata.update(new_metadata)
@@ -63,7 +56,7 @@ class BaseTensorClient(Algorithms):
     def delete_tensor(self, path: str, only_data: bool = False) -> Any:
         pass
 
-    @validate_arguments
+    @validate_call
     def delete_tensors(self, paths: List[str], only_data: bool = False):
         """
         Delete multiple tensors, in case that some of them does not exist it is not going to raise an error.
@@ -90,9 +83,9 @@ class BaseTensorClient(Algorithms):
 
     @staticmethod
     def _exec_on_dask(
-            func: Callable,
-            params,
-            *prev_tasks,
+        func: Callable,
+        params,
+        *prev_tasks,
     ):
         try:
             return func(**params)
@@ -102,11 +95,11 @@ class BaseTensorClient(Algorithms):
 
     @staticmethod
     def exec_on_parallel(
-            method: Callable,
-            paths_kwargs: Dict[str, Dict[str, Any]],
-            max_parallelization: int = None,
-            client: Client = None,
-            compute_kwargs: Dict[str, Any] = None,
+        method: Callable,
+        paths_kwargs: Dict[str, Dict[str, Any]],
+        max_parallelization: int = None,
+        client: Client = None,
+        compute_kwargs: Dict[str, Any] = None,
     ):
         """
         This method was designed to execute multiple methods of the client on parallel
@@ -133,32 +126,36 @@ class BaseTensorClient(Algorithms):
         """
         paths = list(paths_kwargs.keys())
 
-        max_parallelization = np.inf if max_parallelization is None else max_parallelization
+        max_parallelization = (
+            np.inf if max_parallelization is None else max_parallelization
+        )
         max_parallelization = min(max_parallelization, len(paths))
         compute_kwargs = compute_kwargs or {}
         client = dask if client is None else client
 
         for sub_paths in mit.chunked(paths, max_parallelization):
             logger.info(f"Processing the following tensors: {sub_paths}")
-            client.compute([
-                dask.delayed(BaseTensorClient._exec_on_dask)(
-                    func=method,
-                    params={"path": path, **paths_kwargs[path]}
-                )
-                for path in sub_paths
-            ], **compute_kwargs)
+            client.compute(
+                [
+                    dask.delayed(BaseTensorClient._exec_on_dask)(
+                        func=method, params={"path": path, **paths_kwargs[path]}
+                    )
+                    for path in sub_paths
+                ],
+                **compute_kwargs,
+            )
 
     def exec_on_dag_order(
-            self,
-            method: Union[str, Callable],
-            kwargs_groups: Dict[str, Dict[str, Any]] = None,
-            tensors_path: List[str] = None,
-            parallelization_kwargs: Dict[str, Any] = None,
-            max_parallelization_per_group: Dict[str, int] = None,
-            autofill_dependencies: bool = False,
-            only_on_groups: set = None,
-            check_dependencies: bool = True,
-            omit_first_n_levels: int = 0,
+        self,
+        method: Union[str, Callable],
+        kwargs_groups: Dict[str, Dict[str, Any]] = None,
+        tensors_path: List[str] = None,
+        parallelization_kwargs: Dict[str, Any] = None,
+        max_parallelization_per_group: Dict[str, int] = None,
+        autofill_dependencies: bool = False,
+        only_on_groups: set = None,
+        check_dependencies: bool = True,
+        omit_first_n_levels: int = 0,
     ):
         """
         This method was designed to execute multiple methods of the client on parallel and following the dag
@@ -206,42 +203,57 @@ class BaseTensorClient(Algorithms):
         method = getattr(self, method) if isinstance(method, str) else method
 
         if tensors_path is None:
-            tensors = [tensor for tensor in self.get_all_tensors_definition() if tensor.dag is not None]
+            tensors = [
+                tensor
+                for tensor in self.get_all_tensors_definition()
+                if tensor.dag is not None
+            ]
         else:
             tensors = [self.get_tensor_definition(path) for path in tensors_path]
             if autofill_dependencies:
-                tensors = dag.add_dependencies(tensors, self.get_all_tensors_definition())
+                tensors = dag.add_dependencies(
+                    tensors, self.get_all_tensors_definition()
+                )
 
         for i, level in enumerate(dag.get_tensor_dag(tensors, check_dependencies)):
             if i < omit_first_n_levels:
                 continue
 
-            logger.info(f'Executing the {i} level of the DAG')
+            logger.info(f"Executing the {i} level of the DAG")
             # Filter the tensors base on the omit parameter
-            level = [tensor for tensor in level if method.__name__ not in tensor.dag.omit_on]
+            level = [
+                tensor for tensor in level if method.__name__ not in tensor.dag.omit_on
+            ]
             if only_on_groups:
                 # filter the invalid groups
-                level = [tensor for tensor in level if tensor.dag.group in only_on_groups]
+                level = [
+                    tensor for tensor in level if tensor.dag.group in only_on_groups
+                ]
 
             if not level:
                 continue
 
-            for tensors in groupby_chunks(level, max_parallelization_per_group, lambda tensor: tensor.dag.group):
+            for tensors in groupby_chunks(
+                level, max_parallelization_per_group, lambda tensor: tensor.dag.group
+            ):
                 self.exec_on_parallel(
                     method=method,
-                    paths_kwargs={tensor.path: kwargs_groups.get(tensor.dag.group, {}) for tensor in tensors},
-                    **parallelization_kwargs
+                    paths_kwargs={
+                        tensor.path: kwargs_groups.get(tensor.dag.group, {})
+                        for tensor in tensors
+                    },
+                    **parallelization_kwargs,
                 )
 
     def get_dag_for_dask(
-            self,
-            method: Union[str, Callable],
-            kwargs_groups: Dict[str, Dict[str, Any]] = None,
-            tensors: List[TensorDefinition] = None,
-            max_parallelization_per_group: Dict[str, int] = None,
-            map_paths: Dict[str, str] = None,
-            task_prefix: str = 'task-',
-            final_task_name: str = 'WAIT',
+        self,
+        method: Union[str, Callable],
+        kwargs_groups: Dict[str, Dict[str, Any]] = None,
+        tensors: List[TensorDefinition] = None,
+        max_parallelization_per_group: Dict[str, int] = None,
+        map_paths: Dict[str, str] = None,
+        task_prefix: str = "task-",
+        final_task_name: str = "WAIT",
     ) -> HighLevelGraph:
         """
         This method was designed to create a Dask DAG for the given method, this is useful for parallelization
@@ -270,29 +282,35 @@ class BaseTensorClient(Algorithms):
             depends = set(tensor.dag.depends) | new_dependencies.get(path, set())
             params = kwargs_groups.get(groups[path], {})
             params["path"] = path
-            func = none_func if method.__name__ in tensor.dag.omit_on else self._exec_on_dask
+            func = (
+                none_func
+                if method.__name__ in tensor.dag.omit_on
+                else self._exec_on_dask
+            )
             graph[map_paths.get(path, task_prefix + path)] = (
                 func,
                 method,
                 params,
-                *tuple(map_paths.get(p, task_prefix + p) for p in depends)
+                *tuple(map_paths.get(p, task_prefix + p) for p in depends),
             )
 
         final_tasks = dag.get_leaf_tasks(tensors, new_dependencies)
-        final_tasks = tuple(map_paths.get(path, task_prefix + path) for path in final_tasks)
+        final_tasks = tuple(
+            map_paths.get(path, task_prefix + path) for path in final_tasks
+        )
 
         graph[final_task_name] = (none_func, *tuple(final_tasks))
         return HighLevelGraph.from_collections(final_task_name, graph)
 
     def apply_data_transformation(
-            self,
-            data_transformation: List[MethodDescriptor],
-            storage: BaseStorage,
-            definition: Dict[str, Definition],
-            parameters: Dict[str, Any],
-            debug: bool = False
+        self,
+        data_transformation: List[MethodDescriptor],
+        storage: BaseStorage,
+        definition: Dict[str, Definition],
+        parameters: Dict[str, Any],
+        debug: bool = False,
     ):
-        parameters = {**{'new_data': None}, **parameters}
+        parameters = {**{"new_data": None}, **parameters}
         for descriptor in data_transformation:
             func = getattr(storage, descriptor.method_name, None)
             if func is None:
@@ -301,24 +319,26 @@ class BaseTensorClient(Algorithms):
             method_parameters = descriptor.parameters
             if descriptor.method_name in definition:
                 method_parameters = {
-                    **definition[descriptor.method_name].dict(exclude_unset=True),
-                    **method_parameters
+                    **definition[descriptor.method_name].model_dump(exclude_unset=True),
+                    **method_parameters,
                 }
             result = func(**get_parameters(func, parameters, method_parameters))
 
             if descriptor.result_name is not None:
                 parameters.update({descriptor.result_name: result})
             else:
-                parameters.update(result if isinstance(result, dict) else {'new_data': result})
+                parameters.update(
+                    result if isinstance(result, dict) else {"new_data": result}
+                )
 
-        return parameters['new_data']
+        return parameters["new_data"]
 
-    @validate_arguments
+    @validate_call
     def storage_method_caller(
-            self,
-            path: Union[str, TensorDefinition],
-            method_name: str,
-            parameters: Dict[str, Any]
+        self,
+        path: Union[str, TensorDefinition],
+        method_name: str,
+        parameters: Dict[str, Any],
     ) -> Any:
         """
         Calls a specific method of a Storage, this includes send the parameters specified in the tensor_definition
@@ -351,11 +371,13 @@ class BaseTensorClient(Algorithms):
         definition = tensor_definition.definition
 
         storage = self.get_storage(path=tensor_definition)
-        parameters.update({
-            'definition': definition,
-            'original_path': path if isinstance(path, str) else path.path,
-            'storage': storage
-        })
+        parameters.update(
+            {
+                "definition": definition,
+                "original_path": path if isinstance(path, str) else path.path,
+                "storage": storage,
+            }
+        )
 
         if method_name in definition:
             method_settings = definition[method_name]
@@ -364,51 +386,63 @@ class BaseTensorClient(Algorithms):
                 func = getattr(self, method_settings.substitute_method)
                 if func.__name__ in self.internal_actions:
                     return func(path=path, **parameters)
-                return func(**get_parameters(
-                    func,
-                    parameters,
-                    definition[func.__name__].dict(exclude_unset=True) if func.__name__ in definition else {}
-                ))
+                return func(
+                    **get_parameters(
+                        func,
+                        parameters,
+                        definition[func.__name__].model_dump(exclude_unset=True)
+                        if func.__name__ in definition
+                        else {},
+                    )
+                )
 
             if method_settings.data_transformation is not None:
-                parameters['new_data'] = self.apply_data_transformation(
+                parameters["new_data"] = self.apply_data_transformation(
                     data_transformation=method_settings.data_transformation,
                     storage=storage,
                     definition=definition,
-                    parameters=parameters
+                    parameters=parameters,
                 )
-                if method_name == 'read':
-                    return parameters['new_data']
+                if method_name == "read":
+                    return parameters["new_data"]
 
         func = getattr(storage, method_name)
         return func(**get_parameters(func, parameters))
 
     @abc.abstractmethod
     def read(
-            self,
-            path: Union[str, TensorDefinition, xr.DataArray, xr.Dataset],
-            **kwargs
+        self, path: Union[str, TensorDefinition, xr.DataArray, xr.Dataset], **kwargs
     ) -> Union[xr.DataArray, xr.Dataset]:
         raise ValueError
 
     @abc.abstractmethod
-    def append(self, path: Union[str, TensorDefinition], **kwargs) -> List[AbstractWritableDataStore]:
+    def append(
+        self, path: Union[str, TensorDefinition], **kwargs
+    ) -> List[AbstractWritableDataStore]:
         pass
 
     @abc.abstractmethod
-    def update(self, path: Union[str, TensorDefinition], **kwargs) -> AbstractWritableDataStore:
+    def update(
+        self, path: Union[str, TensorDefinition], **kwargs
+    ) -> AbstractWritableDataStore:
         pass
 
     @abc.abstractmethod
-    def store(self, path: Union[str, TensorDefinition], **kwargs) -> AbstractWritableDataStore:
+    def store(
+        self, path: Union[str, TensorDefinition], **kwargs
+    ) -> AbstractWritableDataStore:
         pass
 
     @abc.abstractmethod
-    def upsert(self, path: Union[str, TensorDefinition], **kwargs) -> List[AbstractWritableDataStore]:
+    def upsert(
+        self, path: Union[str, TensorDefinition], **kwargs
+    ) -> List[AbstractWritableDataStore]:
         pass
 
     @abc.abstractmethod
-    def drop(self, path: Union[str, TensorDefinition], **kwargs) -> List[AbstractWritableDataStore]:
+    def drop(
+        self, path: Union[str, TensorDefinition], **kwargs
+    ) -> List[AbstractWritableDataStore]:
         pass
 
     @abc.abstractmethod
@@ -416,14 +450,14 @@ class BaseTensorClient(Algorithms):
         pass
 
     def get_cached_storage(
-            self,
-            path,
-            max_cached_in_dim: int,
-            dim: str,
-            sort_dims: List[str],
-            merge_cache: bool = False,
-            update_logic: Literal["keep_last", "combine_first"] = "combine_first",
-            **kwargs
+        self,
+        path,
+        max_cached_in_dim: int,
+        dim: str,
+        sort_dims: List[str],
+        merge_cache: bool = False,
+        update_logic: Literal["keep_last", "combine_first"] = "combine_first",
+        **kwargs,
     ):
         """
         Create a `CachedStorage` object which is used for multiples writes of the same file.
@@ -459,22 +493,24 @@ class BaseTensorClient(Algorithms):
             dim=dim,
             sort_dims=sort_dims,
             merge_cache=merge_cache,
-            update_logic=update_logic
+            update_logic=update_logic,
         )
 
     def read_from_formula(
-            self,
-            formula: str,
-            use_exec: bool = False,
-            original_path: str = None,
-            storage: BaseStorage = None,
-            **kwargs: Dict[str, Any]
+        self,
+        formula: str,
+        use_exec: bool = False,
+        original_path: str = None,
+        storage: BaseStorage = None,
+        **kwargs: Dict[str, Any],
     ) -> Union[xr.DataArray, xr.Dataset]:
         data_fields = {}
         for path in extract_paths_from_formula(formula):
             if original_path is not None and original_path == path:
                 if storage is None:
-                    raise ValueError(f'You can not make a self read without sending the storage parameter')
+                    raise ValueError(
+                        f"You can not make a self read without sending the storage parameter"
+                    )
                 data_fields[path] = storage.read()
             else:
                 data_fields[path] = self.read(path)
@@ -483,13 +519,18 @@ class BaseTensorClient(Algorithms):
             formula = formula.replace(f"`{path}`", f"data_fields['{path}']")
 
         formula_globals = {
-            'xr': xr, 'np': np, 'pd': pd, 'da': da, 'dask': dask, 'self': self
+            "xr": xr,
+            "np": np,
+            "pd": pd,
+            "da": da,
+            "dask": dask,
+            "self": self,
         }
-        kwargs.update({'data_fields': data_fields})
+        kwargs.update({"data_fields": data_fields})
 
         if use_exec:
             exec(formula, formula_globals, kwargs)
-            return kwargs['new_data']
+            return kwargs["new_data"]
 
         formula = formula.replace("\n", "")
         return eval(formula, formula_globals, kwargs)

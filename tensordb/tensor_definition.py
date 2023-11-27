@@ -1,6 +1,6 @@
 from typing import Dict, List, Any, Optional, Literal
 
-from pydantic import BaseModel, Extra, Field
+from pydantic import ConfigDict, BaseModel, Field
 
 
 class DAGOrder(BaseModel):
@@ -46,9 +46,7 @@ class StorageDefinition(BaseModel):
         Indicate which data storage want to be used.
         """
     )
-
-    class Config:
-        extra = Extra.allow
+    model_config = ConfigDict(extra="allow")
 
 
 class MethodDescriptor(BaseModel):
@@ -70,7 +68,7 @@ class MethodDescriptor(BaseModel):
         """
     )
     result_name: Optional[str] = Field(
-        title="Result Name",
+        None, title="Result Name",
         description="""
         Indicate the name of the output that the method produce.
         """
@@ -98,9 +96,7 @@ class Definition(BaseModel):
         it will call the append method.
         """
     )
-
-    class Config:
-        extra = Extra.allow
+    model_config = ConfigDict(extra="allow")
 
 
 class TensorDefinition(BaseModel):

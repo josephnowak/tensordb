@@ -2,7 +2,7 @@ from typing import Dict
 
 import orjson
 import xarray as xr
-from pydantic.utils import deep_update
+from pydantic.v1.utils import deep_update
 
 from tensordb.storages.base_storage import BaseStorage
 
@@ -42,7 +42,11 @@ class JsonStorage(BaseStorage):
     def read(self, path: str = None) -> Dict:
         path = self.data_names if path is None else path
         new_name = self.to_json_file_name(path)
-        return orjson.loads(self.base_map[new_name])
+        try:
+            return orjson.loads(self.base_map[new_name])
+        except orjson.JSONDecodeError:
+            # This error can be raised if there are multiple writes and reads in parallel
+            return {}
 
     def exist(self, path: str = None, **kwargs):
         path = self.data_names if path is None else path

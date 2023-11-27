@@ -6,7 +6,7 @@ import more_itertools as mit
 import numpy as np
 import xarray as xr
 from dask import array as da
-from pydantic import validate_arguments
+from pydantic import validate_call
 
 
 def groupby_chunks(
@@ -90,7 +90,7 @@ def empty_xarray(dims, coords, chunks, dtype):
     )
 
 
-@validate_arguments(config=dict(arbitrary_types_allowed=True))
+@validate_call(config=dict(arbitrary_types_allowed=True))
 def xarray_from_func(
         func: Callable,
         dims: List[Hashable],
