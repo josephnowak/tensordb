@@ -6,14 +6,13 @@ import more_itertools as mit
 import numpy as np
 import xarray as xr
 from dask import array as da
-from pydantic import validate_call
 
 
 def groupby_chunks(
-        iterable: Iterable,
-        group_chunk_size: Dict,
-        group_func: Callable,
-        sort_func: Callable = None
+    iterable: Iterable,
+    group_chunk_size: Dict,
+    group_func: Callable,
+    sort_func: Callable = None,
 ) -> Generator:
     """
     This function apply a groupby over the iterable, and then it chunks the groups to iterate over them in order
@@ -45,34 +44,33 @@ def groupby_chunks(
         list(it.chain(*filter(None, tensors)))
         # Iterate in order over the chunked groups, this will generate a combinations like
         # [chunk0_group0, chunk0_group1, chunk0_group2] and [chunk1_group0, chunk1_group1, chunk1_group2].
-        for tensors in it.zip_longest(*(
-        # chunk the group based on the group_chunk_size size
-        list(mit.chunked(group, group_chunk_size.get(name, None)))
-        # group the data
-        for name, group in it.groupby(
-        sorted(iterable, key=sort_func),
-        group_func
-    )))
+        for tensors in it.zip_longest(
+            *(
+                # chunk the group based on the group_chunk_size size
+                list(mit.chunked(group, group_chunk_size.get(name, None)))
+                # group the data
+                for name, group in it.groupby(
+                    sorted(iterable, key=sort_func), group_func
+                )
+            )
+        )
     )
 
 
 def iter_by_group_chunks(
-        iterable: Iterable,
-        group_chunk_size: Dict,
-        group_func: Callable,
+    iterable: Iterable,
+    group_chunk_size: Dict,
+    group_func: Callable,
 ) -> Generator:
-    for name, group in it.groupby(
-            sorted(iterable, key=group_func),
-            group_func
-    ):
+    for name, group in it.groupby(sorted(iterable, key=group_func), group_func):
         for chunk in mit.chunked(group, group_chunk_size.get(name, None)):
             yield name, chunk
 
 
 def extract_paths_from_formula(formula) -> set:
-    paths_intervals = np.array([i for i, c in enumerate(formula) if c == '`'])
+    paths_intervals = np.array([i for i, c in enumerate(formula) if c == "`"])
     paths = {
-        formula[paths_intervals[i] + 1: paths_intervals[i + 1]]
+        formula[paths_intervals[i] + 1 : paths_intervals[i + 1]]
         for i in range(0, len(paths_intervals), 2)
     }
     return paths
@@ -81,24 +79,21 @@ def extract_paths_from_formula(formula) -> set:
 def empty_xarray(dims, coords, chunks, dtype):
     return xr.DataArray(
         da.empty(
-            shape=tuple(len(coords[dim]) for dim in dims),
-            dtype=dtype,
-            chunks=chunks
+            shape=tuple(len(coords[dim]) for dim in dims), dtype=dtype, chunks=chunks
         ),
         dims=dims,
-        coords=coords
+        coords=coords,
     )
 
 
-@validate_call(config=dict(arbitrary_types_allowed=True))
 def xarray_from_func(
-        func: Callable,
-        dims: List[Hashable],
-        coords: Dict[Hashable, Union[List, np.ndarray]],
-        chunks: Union[List[Union[int, None]], Dict[Hashable, int]],
-        dtypes: Union[List[Any], Any],
-        data_names: Union[List[Hashable], str] = None,
-        func_parameters: Dict[str, Any] = None,
+    func: Callable,
+    dims: List[Hashable],
+    coords: Dict[Hashable, Union[List, np.ndarray]],
+    chunks: Union[List[Union[int, None]], Dict[Hashable, int]],
+    dtypes: Union[List[Any], Any],
+    data_names: Union[List[Hashable], str] = None,
+    func_parameters: Dict[str, Any] = None,
 ) -> Union[xr.DataArray, xr.Dataset]:
     """
     Equivalent of dask fromfunction but it sends the xarray coords of every chunk instead of the positions
@@ -143,7 +138,9 @@ def xarray_from_func(
     """
     if isinstance(chunks, dict):
         chunks = [chunks[dim] for dim in dims]
-    chunks = [len(coords[dim]) if chunk is None else chunk for chunk, dim in zip(chunks, dims)]
+    chunks = [
+        len(coords[dim]) if chunk is None else chunk for chunk, dim in zip(chunks, dims)
+    ]
     func_parameters = {} if func_parameters is None else func_parameters
 
     if data_names is None or isinstance(data_names, str):
@@ -151,16 +148,15 @@ def xarray_from_func(
     else:
         if len(dtypes) != len(data_names):
             raise ValueError(
-                f'The number of dtypes ({len(dtypes)}) does not match the number of dataset names '
-                f'({len(data_names)}), you need to specify a dtype for every data array in your dataset'
+                f"The number of dtypes ({len(dtypes)}) does not match the number of dataset names "
+                f"({len(data_names)}), you need to specify a dtype for every data array in your dataset"
             )
-        arr = xr.Dataset({
-            name: empty_xarray(dims, coords, chunks, dtype)
-            for name, dtype in zip(data_names, dtypes)
-        }, coords=coords)
+        arr = xr.Dataset(
+            {
+                name: empty_xarray(dims, coords, chunks, dtype)
+                for name, dtype in zip(data_names, dtypes)
+            },
+            coords=coords,
+        )
 
-    return arr.map_blocks(
-        func,
-        kwargs=func_parameters,
-        template=arr
-    )
+    return arr.map_blocks(func, kwargs=func_parameters, template=arr)
