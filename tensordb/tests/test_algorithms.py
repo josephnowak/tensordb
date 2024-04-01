@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+import numbagg as nba
 
 from tensordb.algorithms import Algorithms
 
@@ -443,6 +444,46 @@ def test_cumulative_on_sort(dim, ascending, func):
     expected = xr.DataArray(expected.values, dims=result.dims, coords=result.coords)
 
     assert result.equals(expected)
+
+
+@pytest.mark.parametrize("window", list(range(1, 4)))
+def test_rolling_overlap(window):
+    arr = xr.DataArray(
+        [
+            [1, np.nan, 3],
+            [np.nan, 4, 6],
+            [np.nan, 5, np.nan],
+            [3, np.nan, 7],
+            [7, 6, np.nan],
+        ],
+        dims=["a", "b"],
+        coords={"a": list(range(5)), "b": list(range(3))},
+    ).chunk(a=3, b=1)
+    df = pd.DataFrame(arr.values.T, arr.b.values, arr.a.values).stack(dropna=False)
+    for window_margin in range(window, 6):
+        rolling_arr = Algorithms.rolling_overlap(
+            arr,
+            func=nba.move_mean,
+            window=window,
+            dim="a",
+            window_margin=window_margin,
+            min_periods=1,
+        )
+
+        expected = df.dropna()
+        expected = (
+            expected.groupby(level=0)
+            .rolling(window=window, min_periods=1)
+            .mean()
+        )
+        expected = expected.droplevel(0).unstack(0)
+
+        expected = xr.DataArray(expected.values, coords=arr.coords, dims=arr.dims)
+
+        if window_margin == 2 and window == 2:
+            assert ~expected.equals(rolling_arr)
+        else:
+            assert expected.equals(rolling_arr)
 
 
 if __name__ == "__main__":

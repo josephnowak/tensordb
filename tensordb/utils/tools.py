@@ -93,7 +93,8 @@ def xarray_from_func(
     chunks: Union[List[Union[int, None]], Dict[Hashable, int]],
     dtypes: Union[List[Any], Any],
     data_names: Union[List[Hashable], str] = None,
-    func_parameters: Dict[str, Any] = None,
+    args: List[Any] = None,
+    kwargs: Dict[str, Any] = None,
 ) -> Union[xr.DataArray, xr.Dataset]:
     """
     Equivalent of dask fromfunction but it sends the xarray coords of every chunk instead of the positions
@@ -132,7 +133,10 @@ def xarray_from_func(
         Indicate the names of the different DataArray inside your Dataset.
         The data_names must be aligned with dtypes, in other case it will raise an Error.
 
-    func_parameters: Dict[str, Any], default None
+    args: List[Any] = None
+        Extra parameters for the function
+
+    kwargs: Dict[str, Any], default None
         Extra parameters for the function
 
     """
@@ -141,7 +145,8 @@ def xarray_from_func(
     chunks = [
         len(coords[dim]) if chunk is None else chunk for chunk, dim in zip(chunks, dims)
     ]
-    func_parameters = {} if func_parameters is None else func_parameters
+    kwargs = {} if kwargs is None else kwargs
+    args = [] if args is None else args
 
     if data_names is None or isinstance(data_names, str):
         arr = empty_xarray(dims, coords, chunks, dtypes)
@@ -159,4 +164,4 @@ def xarray_from_func(
             coords=coords,
         )
 
-    return arr.map_blocks(func, kwargs=func_parameters, template=arr)
+    return arr.map_blocks(func, args=args, kwargs=kwargs, template=arr)

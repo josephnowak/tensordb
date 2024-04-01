@@ -731,3 +731,52 @@ class Algorithms:
         )
 
         return bitmask.expand_dims({tie_breaker_dim: new_data.coords[tie_breaker_dim]})
+
+    @classmethod
+    def rolling_overlap(
+        cls,
+        new_data: Union[xr.DataArray, xr.Dataset],
+        func: Callable,
+        dim: str,
+        window: int,
+        window_margin: int,
+        min_periods: int = None,
+    ):
+        print(window, window_margin)
+        assert window_margin >= window
+
+        if isinstance(new_data, xr.Dataset):
+            return new_data.map(
+                cls.rolling_overlap,
+                func=func,
+                window=window,
+                dim=dim,
+                window_margin=window_margin,
+                min_periods=min_periods,
+            )
+
+        min_periods = window if min_periods is None else min_periods
+        axis = new_data.dims.index(dim)
+        data = new_data.data
+
+        def _apply_on_valid(x):
+            x = x.copy()
+            bitmask = ~np.isnan(x)
+            filter_x = x[bitmask]
+            func(filter_x, window=window, min_count=min_periods, out=filter_x)
+            x[bitmask] = filter_x
+            return x
+
+        def apply_on_valid(x):
+            return np.apply_along_axis(func1d=_apply_on_valid, axis=axis, arr=x)
+
+        data = data.map_overlap(
+            apply_on_valid,
+            depth={axis: window_margin},
+            boundary=None,
+            meta=data,
+            trim=True,
+        )
+
+        data = xr.DataArray(data, dims=new_data.dims, coords=new_data.coords)
+        return data
