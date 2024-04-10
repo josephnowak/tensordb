@@ -447,7 +447,8 @@ def test_cumulative_on_sort(dim, ascending, func):
 
 
 @pytest.mark.parametrize("window", list(range(1, 4)))
-def test_rolling_overlap(window):
+@pytest.mark.parametrize("apply_ffill", [True, False])
+def test_rolling_overlap(window, apply_ffill):
     arr = xr.DataArray(
         [
             [1, np.nan, 3],
@@ -468,6 +469,7 @@ def test_rolling_overlap(window):
             dim="a",
             window_margin=window_margin,
             min_periods=1,
+            apply_ffill=apply_ffill
         )
 
         expected = df.dropna()
@@ -479,6 +481,8 @@ def test_rolling_overlap(window):
         expected = expected.droplevel(0).unstack(0)
 
         expected = xr.DataArray(expected.values, coords=arr.coords, dims=arr.dims)
+        if apply_ffill:
+            expected = expected.ffill("a")
 
         if window_margin == 2 and window == 2:
             assert ~expected.equals(rolling_arr)

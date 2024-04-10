@@ -5,6 +5,7 @@ import dask
 import dask.array as da
 import numpy as np
 import xarray as xr
+import numbagg as nba
 from dask.distributed import Client
 from scipy.stats import rankdata
 
@@ -741,9 +742,15 @@ class Algorithms:
         window: int,
         window_margin: int,
         min_periods: int = None,
+        apply_ffill: bool = True,
+        validate_window_size: bool = True
     ):
-        print(window, window_margin)
         assert window_margin >= window
+
+        if validate_window_size:
+            window_margin = min(window_margin, new_data.sizes[dim])
+
+        assert window > 0
 
         if isinstance(new_data, xr.Dataset):
             return new_data.map(
@@ -763,8 +770,18 @@ class Algorithms:
             x = x.copy()
             bitmask = ~np.isnan(x)
             filter_x = x[bitmask]
-            func(filter_x, window=window, min_count=min_periods, out=filter_x)
+
+            min_window = window
+            if validate_window_size:
+                min_window = min(window, len(filter_x))
+                if min_window == 0:
+                    return x
+
+            func(filter_x, window=min_window, min_count=min_periods, out=filter_x)
+
             x[bitmask] = filter_x
+            if apply_ffill:
+                nba.ffill(arr=x, limit=len(x), out=x)
             return x
 
         def apply_on_valid(x):
