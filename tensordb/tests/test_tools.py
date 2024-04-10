@@ -35,7 +35,7 @@ class TestTools:
             coords={"a": list(range(6)), "b": list(range(8))},
             chunks=[2, 3],
             dtypes=np.float64,
-            func_parameters={},
+            kwargs={},
         )
         assert data.equals(self.data_array.sel(**data.coords))
 
@@ -47,7 +47,7 @@ class TestTools:
             chunks=[2, 3],
             dtypes=[np.float64, np.float64],
             data_names=["first", "second"],
-            func_parameters={},
+            kwargs={},
         )
         assert data.equals(self.dataset.sel(data.coords))
 

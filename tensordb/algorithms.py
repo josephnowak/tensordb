@@ -5,6 +5,7 @@ import dask
 import dask.array as da
 import numpy as np
 import xarray as xr
+import numbagg as nba
 from dask.distributed import Client
 from scipy.stats import rankdata
 
@@ -731,3 +732,68 @@ class Algorithms:
         )
 
         return bitmask.expand_dims({tie_breaker_dim: new_data.coords[tie_breaker_dim]})
+
+    @classmethod
+    def rolling_overlap(
+        cls,
+        new_data: Union[xr.DataArray, xr.Dataset],
+        func: Callable,
+        dim: str,
+        window: int,
+        window_margin: int,
+        min_periods: int = None,
+        apply_ffill: bool = True,
+        validate_window_size: bool = True
+    ):
+        assert window_margin >= window
+
+        if validate_window_size:
+            window_margin = min(window_margin, new_data.sizes[dim])
+
+        assert window > 0
+
+        if isinstance(new_data, xr.Dataset):
+            return new_data.map(
+                cls.rolling_overlap,
+                func=func,
+                window=window,
+                dim=dim,
+                window_margin=window_margin,
+                min_periods=min_periods,
+            )
+
+        min_periods = window if min_periods is None else min_periods
+        axis = new_data.dims.index(dim)
+        data = new_data.data
+
+        def _apply_on_valid(x):
+            x = x.copy()
+            bitmask = ~np.isnan(x)
+            filter_x = x[bitmask]
+
+            min_window = window
+            if validate_window_size:
+                min_window = min(window, len(filter_x))
+                if min_window == 0:
+                    return x
+
+            func(filter_x, window=min_window, min_count=min_periods, out=filter_x)
+
+            x[bitmask] = filter_x
+            if apply_ffill:
+                nba.ffill(arr=x, limit=len(x), out=x)
+            return x
+
+        def apply_on_valid(x):
+            return np.apply_along_axis(func1d=_apply_on_valid, axis=axis, arr=x)
+
+        data = data.map_overlap(
+            apply_on_valid,
+            depth={axis: window_margin},
+            boundary=None,
+            meta=data,
+            trim=True,
+        )
+
+        data = xr.DataArray(data, dims=new_data.dims, coords=new_data.coords)
+        return data
