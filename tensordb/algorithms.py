@@ -767,7 +767,6 @@ class Algorithms:
         data = new_data.data
 
         def _apply_on_valid(x):
-            x = x.copy()
             bitmask = ~np.isnan(x)
             filter_x = x[bitmask]
 

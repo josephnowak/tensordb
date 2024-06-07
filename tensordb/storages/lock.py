@@ -2,6 +2,8 @@ import abc
 import os.path
 from typing import Type
 
+import dask.distributed
+
 
 class BaseLock(abc.ABC):
     def __enter__(self):
@@ -30,3 +32,9 @@ class PrefixLock(BaseLock):
     def __getitem__(self, path):
         path = os.path.join(self.prefix, path)
         return self.lock(path)
+
+
+class DaskLock(PrefixLock):
+    def __getitem__(self, path):
+        path = os.path.join(self.prefix, path)
+        return dask.distributed.Lock(path)
