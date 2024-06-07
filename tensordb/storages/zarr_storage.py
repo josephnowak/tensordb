@@ -404,6 +404,8 @@ class ZarrStorage(BaseStorage):
             compute=compute,
             synchronizer=self.synchronizer,
             region=regions,
+            # This option is save based on this https://github.com/pydata/xarray/issues/9072
+            safe_chunks=False
         )
         return delayed_write
 
@@ -473,13 +475,14 @@ class ZarrStorage(BaseStorage):
         with some names or a name
         """
         try:
-            arr = xr.open_zarr(
+            dataset = xr.open_zarr(
                 self.base_map,
                 consolidated=True,
                 synchronizer=None if self.synchronize_only_write else self.synchronizer,
                 group=self.group,
             )
-            return arr[self.data_names]
+            dataset = dataset[self.data_names]
+            return dataset
         except KeyError as e:
             raise KeyError(
                 f"The data_names {self.data_names} does not exist on the tensor "
