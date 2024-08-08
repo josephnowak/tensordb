@@ -33,16 +33,33 @@ from fsspec.asyn import AsyncFileSystem
 class BaseBranchStorage(Store, MutableMapping, abc.ABC):
     pass
 
+
+class GarbageCollector(BaseModel):
+    remove_after_days: int = 252
+    merge_transactions: bool = True
+
+
 class Repository(BaseModel):
-    repository: str
-    default_branch: str
-    description: dict
+    name: str
+    path: str
+    default_branch: str = "main"
+    description: str
+    details: dict
+    isolation: Literal["uncommited", "commited", "snapshot"] = "snapshot"
+    consistency: Literal["ignore", "detect"] = "ignore"
+    garbage_collector: GarbageCollector = None
 
 
 class Branch(BaseModel):
     branch: str
-    parent_branch: str | None
+    dependencies: set | None
     creation_date: datetime.datetime = datetime.datetime.utcnow()
+
+
+class Transaction(BaseModel):
+    id: str
+    open_date: datetime.datetime = datetime.datetime.utcnow()
+    close_date: datetime.datetime = None
 
 
 class TransactionFile(BaseModel):
@@ -79,9 +96,9 @@ class BranchFS(AsyncFileSystem):
         self._data_path = Path(settings.TRANSACTION_DATA_PATH)
         self._branch_path = Path(settings.BRANCH_PATH)
 
-    def create_repository(self, repo: str, description: dict, default_branch: str = "main"):
-        self._pipe_file()
-
+    @staticmethod
+    def create_repository(fs: AsyncFileSystem, repo: str, description: dict, default_branch: str = "main"):
+        fs.pipe_file()
 
     def create_branch(self, repo: str, branch: str, parent_branch: str):
         branch_details = self.get_branch(branch)
