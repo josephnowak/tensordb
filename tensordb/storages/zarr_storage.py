@@ -405,7 +405,7 @@ class ZarrStorage(BaseStorage):
             synchronizer=self.synchronizer,
             region=regions,
             # This option is save based on this https://github.com/pydata/xarray/issues/9072
-            safe_chunks=False
+            safe_chunks=False,
         )
         return delayed_write
 

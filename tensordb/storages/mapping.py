@@ -10,31 +10,31 @@ from tensordb.storages.lock import PrefixLock
 
 class Mapping(MutableMapping):
     def __init__(
-            self,
-            mapper: MutableMapping,
-            sub_path: str = None,
-            read_lock: PrefixLock = None,
-            write_lock: PrefixLock = None,
-            root: str = None,
-            enable_sub_map: bool = True,
+        self,
+        mapper: MutableMapping,
+        sub_path: str = None,
+        read_lock: PrefixLock = None,
+        write_lock: PrefixLock = None,
+        root: str = None,
+        enable_sub_map: bool = True,
     ):
         self.mapper = mapper
         self.sub_path = sub_path
         self.read_lock = PrefixLock("") if read_lock is None else read_lock
         self.write_lock = self.read_lock if write_lock is None else write_lock
         self._root = root
-        self.enable_sub_map = enable_sub_map and hasattr(mapper, 'fs')
+        self.enable_sub_map = enable_sub_map and hasattr(mapper, "fs")
 
     @property
     def root(self):
         if self._root is not None:
             return self._root
         root = None
-        if hasattr(self.mapper, 'root'):
+        if hasattr(self.mapper, "root"):
             root = self.mapper.root
-        elif hasattr(self.mapper, 'path'):
+        elif hasattr(self.mapper, "path"):
             root = self.mapper.path
-        elif hasattr(self.mapper, 'url'):
+        elif hasattr(self.mapper, "url"):
             root = self.mapper.url
 
         self._root = root
@@ -45,7 +45,7 @@ class Mapping(MutableMapping):
         root = self.root
         if self.enable_sub_map:
             if root is not None:
-                root = f'{root}/{sub_path}'
+                root = f"{root}/{sub_path}"
             mapper = FSStore(root, fs=mapper.fs)
 
         sub_path = self.add_sub_path(sub_path)
@@ -55,7 +55,7 @@ class Mapping(MutableMapping):
             read_lock=self.read_lock,
             write_lock=self.write_lock,
             root=root,
-            enable_sub_map=self.enable_sub_map
+            enable_sub_map=self.enable_sub_map,
         )
 
     def add_root(self, key):
@@ -63,7 +63,7 @@ class Mapping(MutableMapping):
             return self.root
         if self.root is None:
             return key
-        return f'{self.root}/{key}'
+        return f"{self.root}/{key}"
 
     def add_sub_path(self, key):
         if self.enable_sub_map or self.sub_path is None:
@@ -72,7 +72,7 @@ class Mapping(MutableMapping):
         if key is None:
             return self.sub_path
 
-        return f'{self.sub_path}/{key}'
+        return f"{self.sub_path}/{key}"
 
     def full_path(self, key):
         return self.add_root(self.add_sub_path(key))
@@ -80,7 +80,7 @@ class Mapping(MutableMapping):
     def add_lock_path(self, key):
         if self.sub_path is None:
             return key
-        return f'{self.sub_path}/{key}'
+        return f"{self.sub_path}/{key}"
 
     def __getitem__(self, key):
         with self.read_lock[self.add_lock_path(key)]:
@@ -99,7 +99,7 @@ class Mapping(MutableMapping):
             if self.enable_sub_map:
                 yield key
             elif key.startswith(self.sub_path):
-                yield key[len(self.sub_path) + 1:]
+                yield key[len(self.sub_path) + 1 :]
 
     def __len__(self):
         return sum(1 for _ in self)
@@ -120,7 +120,7 @@ class Mapping(MutableMapping):
         self.mapper.delitems(keys, **kwargs)
 
     def listdir(self, path=None):
-        if hasattr(self.mapper, 'listdir'):
+        if hasattr(self.mapper, "listdir"):
             return self.mapper.listdir(self.add_sub_path(path))
 
         sub_map = self.mapper if path is None else self.sub_map(path)
@@ -141,7 +141,9 @@ class Mapping(MutableMapping):
     def checksum(self, key):
         return self.mapper.fs.checksum(self.full_path(key))
 
-    def equal_content(self, other, path, method: Literal["checksum", "content"] = "checksum"):
+    def equal_content(
+        self, other, path, method: Literal["checksum", "content"] = "checksum"
+    ):
         if method == "checksum":
             return other.checksum(path) == self.checksum(path)
 
@@ -154,11 +156,11 @@ class Mapping(MutableMapping):
 
     @staticmethod
     def synchronize(
-            remote_map: "Mapping",
-            local_map: "Mapping",
-            checksum_map: "Mapping",
-            to_local: bool,
-            force: bool = False,
+        remote_map: "Mapping",
+        local_map: "Mapping",
+        checksum_map: "Mapping",
+        to_local: bool,
+        force: bool = False,
     ):
         remote_paths = set(list(remote_map.keys()))
         local_paths = set(list(local_map.keys()))
@@ -197,26 +199,22 @@ class Mapping(MutableMapping):
             list(p.map(_move_data, total_paths))
 
     def folders_synchronize(
-            self,
-            destination,
-            folders,
-            comparing_method: Literal["checksum", "content"],
-            n_threads
+        self,
+        destination,
+        folders,
+        comparing_method: Literal["checksum", "content"],
+        n_threads,
     ):
-        source_paths = [
-            file
-            for folder in folders
-            for file in self.listdir(folder)
-        ]
+        source_paths = [file for folder in folders for file in self.listdir(folder)]
         destination_paths = [
-            file
-            for folder in folders
-            for file in destination.listdir(folder)
+            file for folder in folders for file in destination.listdir(folder)
         ]
         delete_paths = sorted(set(destination_paths) - set(source_paths))
 
         def copy_file(path):
-            if path in destination and self.equal_content(destination, path, comparing_method):
+            if path in destination and self.equal_content(
+                destination, path, comparing_method
+            ):
                 return None
             destination[path] = self[path]
             return path
@@ -226,11 +224,9 @@ class Mapping(MutableMapping):
 
         modified_files = list(delete_paths)
         with ThreadPoolExecutor(n_threads) as p:
-            modified_files.extend([
-                path
-                for path in p.map(copy_file, source_paths)
-                if path is not None
-            ])
+            modified_files.extend(
+                [path for path in p.map(copy_file, source_paths) if path is not None]
+            )
             list(p.map(del_file, delete_paths))
 
         return modified_files

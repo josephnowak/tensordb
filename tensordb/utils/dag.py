@@ -10,8 +10,7 @@ from tensordb.tensor_definition import TensorDefinition
 
 
 def get_tensor_dag(
-        tensors: List[TensorDefinition],
-        check_dependencies: bool
+    tensors: List[TensorDefinition], check_dependencies: bool
 ) -> List[List[TensorDefinition]]:
     tensor_search = {tensor.path: tensor for tensor in tensors}
     # Create the dag based on the dependencies, so the node used as Key depends on the Nodes in the values
@@ -27,28 +26,30 @@ def get_tensor_dag(
         if not ordered:
             break
 
-        ordered_tensors.append([
-            tensor_search[path]
-            for path in ordered
-            if check_dependencies or path in tensor_search
-        ])
+        ordered_tensors.append(
+            [
+                tensor_search[path]
+                for path in ordered
+                if check_dependencies or path in tensor_search
+            ]
+        )
 
         dag = {
-            item: dependencies - ordered for item, dependencies in dag.items()
+            item: dependencies - ordered
+            for item, dependencies in dag.items()
             if item not in ordered
         }
     if dag:
         raise ValueError(
-            f'There is a cyclic dependency between the tensors, '
-            f'the key is the node and the values are the dependencies: {dag}'
+            f"There is a cyclic dependency between the tensors, "
+            f"the key is the node and the values are the dependencies: {dag}"
         )
 
     return ordered_tensors
 
 
 def add_dependencies(
-        tensors: List[TensorDefinition],
-        total_tensors: List[TensorDefinition]
+    tensors: List[TensorDefinition], total_tensors: List[TensorDefinition]
 ) -> List[TensorDefinition]:
     total_tensors_search = {tensor.path: tensor for tensor in total_tensors}
     total_paths = set(tensor.path for tensor in tensors)
@@ -62,10 +63,12 @@ def add_dependencies(
 def get_leaf_tasks(tensors, new_dependencies=None):
     # Add the non blocking tasks to a final task
     final_tasks = set(tensor.path for tensor in tensors)
-    final_tasks -= set().union(*[
-        set(tensor.dag.depends) | new_dependencies.get(tensor.path, set())
-        for tensor in tensors
-    ])
+    final_tasks -= set().union(
+        *[
+            set(tensor.dag.depends) | new_dependencies.get(tensor.path, set())
+            for tensor in tensors
+        ]
+    )
     return final_tasks
 
 
@@ -88,6 +91,8 @@ def get_limit_dependencies(total_tensors, max_parallelization_per_group):
             level = list(mit.sliced(level, limit))
             prev_dependencies = set(level[0])
             for act_tensors in level[1:]:
-                new_dependencies.update({tensor: prev_dependencies for tensor in act_tensors})
+                new_dependencies.update(
+                    {tensor: prev_dependencies for tensor in act_tensors}
+                )
                 prev_dependencies = set(act_tensors)
     return new_dependencies

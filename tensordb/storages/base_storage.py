@@ -31,11 +31,11 @@ class BaseStorage:
     """
 
     def __init__(
-            self,
-            base_map: Union[Mapping, MutableMapping],
-            tmp_map: Union[Mapping, MutableMapping],
-            data_names: Union[str, List[str]] = "data",
-            **kwargs
+        self,
+        base_map: Union[Mapping, MutableMapping],
+        tmp_map: Union[Mapping, MutableMapping],
+        data_names: Union[str, List[str]] = "data",
+        **kwargs
     ):
         if not isinstance(base_map, Mapping):
             base_map = Mapping(base_map)
@@ -47,7 +47,9 @@ class BaseStorage:
         self.group = None
 
     def get_data_names_list(self) -> List[str]:
-        return self.data_names if isinstance(self.data_names, list) else [self.data_names]
+        return (
+            self.data_names if isinstance(self.data_names, list) else [self.data_names]
+        )
 
     def delete_tensor(self):
         """
@@ -64,9 +66,7 @@ class BaseStorage:
 
     @abstractmethod
     def append(
-            self,
-            new_data: Union[xr.DataArray, xr.Dataset],
-            **kwargs
+        self, new_data: Union[xr.DataArray, xr.Dataset], **kwargs
     ) -> List[xr.backends.common.AbstractWritableDataStore]:
         """
         This abstractmethod must be overwritten to append new_data to an existing file, the way that it append the data
@@ -90,9 +90,7 @@ class BaseStorage:
 
     @abstractmethod
     def update(
-            self,
-            new_data: Union[xr.DataArray, xr.Dataset],
-            **kwargs
+        self, new_data: Union[xr.DataArray, xr.Dataset], **kwargs
     ) -> xr.backends.common.AbstractWritableDataStore:
         """
         This abstractmethod must be overwritten to update new_data to an existing file, so it must not insert any new
@@ -116,9 +114,7 @@ class BaseStorage:
 
     @abstractmethod
     def store(
-            self,
-            new_data: Union[xr.DataArray, xr.Dataset],
-            **kwargs
+        self, new_data: Union[xr.DataArray, xr.Dataset], **kwargs
     ) -> xr.backends.common.AbstractWritableDataStore:
         """
         This abstractmethod must be overwritten to store new_data to an existing file, so it must create
@@ -140,9 +136,7 @@ class BaseStorage:
 
     @abstractmethod
     def upsert(
-            self,
-            new_data: Union[xr.DataArray, xr.Dataset],
-            **kwargs
+        self, new_data: Union[xr.DataArray, xr.Dataset], **kwargs
     ) -> List[xr.backends.common.AbstractWritableDataStore]:
         """
         This abstractmethod must be overwritten to update and append new_data to an existing file,
@@ -163,11 +157,7 @@ class BaseStorage:
         pass
 
     @abstractmethod
-    def drop(
-            self,
-            coords,
-            **kwargs
-    ) -> xr.backends.common.AbstractWritableDataStore:
+    def drop(self, coords, **kwargs) -> xr.backends.common.AbstractWritableDataStore:
         """
         Drop coords of the tensor, this can rewrite the hole file depending on the storage
 
