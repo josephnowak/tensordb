@@ -3,9 +3,9 @@ from typing import Union, List, Dict, Literal, Any, Callable
 import bottleneck as bn
 import dask
 import dask.array as da
+import numbagg as nba
 import numpy as np
 import xarray as xr
-import numbagg as nba
 from dask.distributed import Client
 from scipy.stats import rankdata
 
@@ -143,8 +143,9 @@ class Algorithms:
         dim: str,
         dtype,
         drop_dim: bool = False,
-        **kwargs,
+        kwargs: Dict = None,
     ) -> xr.DataArray:
+        kwargs = kwargs or {}
         template = new_data.chunk({dim: -1})
         data = template.data
 
@@ -211,12 +212,14 @@ class Algorithms:
             new_data,
             func=NumpyAlgorithms.rank,
             dtype=np.float64,
-            axis=new_data.dims.index(dim),
             dim=dim,
-            method=method,
-            ascending=ascending,
-            nan_policy=nan_policy,
-            use_bottleneck=use_bottleneck,
+            kwargs=dict(
+                axis=new_data.dims.index(dim),
+                method=method,
+                ascending=ascending,
+                nan_policy=nan_policy,
+                use_bottleneck=use_bottleneck,
+            ),
         )
 
     @classmethod
@@ -397,7 +400,8 @@ class Algorithms:
         func: Union[str, Callable],
         keep_shape: bool = False,
         unique_groups: np.ndarray = None,
-        **kwargs,
+        kwargs: Dict[str, Any] = None,
+        template: Union[xr.DataArray, xr.Dataset, str] = None,
     ):
         """
         This method was created as a replacement of the groupby of Xarray when the group is only
@@ -432,19 +436,17 @@ class Algorithms:
             Useful when the group array has the same shape as the data and more than one dim, for this case
             is necessary extract the unique elements, so you can provide them here (optional).
 
-        **kwargs
+        template: Union[xr.DataArray, xr.Dataset]: str = None
+            If the template is not set then is going to be generated internally based on the keep_shape
+            parameter and the data vars inside the template (if a Dataset).
+            If a string is set then the template is going to be generated internally but based
+            on the var name specified
+
+        kwargs: Dict[str, Any] = None,
             Any extra parameter to send to the function
 
         """
-        if isinstance(new_data, xr.Dataset):
-            return new_data.map(
-                cls.apply_on_groups,
-                groups=groups,
-                dim=dim,
-                func=func,
-                keep_shape=keep_shape,
-                unique_groups=unique_groups,
-            )
+        kwargs = kwargs or dict()
 
         if isinstance(groups, dict):
             groups = xr.DataArray(
@@ -458,20 +460,44 @@ class Algorithms:
                 f"but got {groups.dims} and {new_data.dims}"
             )
 
-        axis = new_data.dims.index(dim)
         groups.name = "group"
+
+        if len(groups.dims) != len(new_data.dims):
+            groups = groups.compute()
 
         if unique_groups is None:
             unique_groups = da.unique(groups.data).compute()
 
-        output_coord = new_data.coords[dim].values
+        output_coord = new_data.coords[dim].to_numpy()
         if not keep_shape:
             # In case of grouping by an array of more than 1 dimension and the keep_shape is False.
             output_coord = unique_groups
 
-        chunks = (
-            new_data.chunks[:axis] + (len(output_coord),) + new_data.chunks[axis + 1 :]
-        )
+        def generate_template(x):
+            axis = x.dims.index(dim)
+
+            chunks = x.chunks[:axis] + (len(output_coord),) + x.chunks[axis + 1 :]
+            new_coords = {
+                k: output_coord if k == dim else v for k, v in x.coords.items()
+            }
+            return xr.DataArray(
+                da.empty(
+                    dtype=np.float64,
+                    chunks=chunks,
+                    shape=[len(new_coords[v]) for v in x.dims],
+                ),
+                coords=new_coords,
+                dims=x.dims,
+            )
+
+        if template is None or isinstance(template, str):
+            if isinstance(new_data, xr.Dataset):
+                var_name = template
+                template = new_data.map(generate_template)
+                if isinstance(var_name, str):
+                    template = template[var_name]
+            else:
+                template = generate_template(new_data)
 
         def _reduce(x, g, func, **kwargs):
             if len(g.dims) == 1:
@@ -497,6 +523,7 @@ class Algorithms:
                         arr.coords[dim] = g.coords[dim]
                     else:
                         arr = arr.reindex({dim: unique_groups})
+                arr = arr.transpose(*x.dims)
 
                 return arr
 
@@ -514,25 +541,12 @@ class Algorithms:
         data = new_data.chunk({dim: -1})
         if len(groups.dims) == len(data.dims):
             groups = groups.chunk(data.chunksizes)
-        else:
-            groups = groups.compute()
-        new_coords = {
-            k: output_coord if k == dim else v for k, v in new_data.coords.items()
-        }
 
         data = data.map_blocks(
             _reduce,
             [groups, func],
             kwargs=kwargs,
-            template=xr.DataArray(
-                da.empty(
-                    dtype=np.float64,
-                    chunks=chunks,
-                    shape=[len(new_coords[v]) for v in new_data.dims],
-                ),
-                coords=new_coords,
-                dims=new_data.dims,
-            ),
+            template=template,
         )
         return data
 
@@ -636,10 +650,12 @@ class Algorithms:
             dtype=new_data.dtype,
             dim=dim,
             func=NumpyAlgorithms.cumulative_on_sort,
-            axis=new_data.dims.index(dim),
-            cum_func=func,
-            keep_nan=keep_nan,
-            ascending=ascending,
+            kwargs=dict(
+                axis=new_data.dims.index(dim),
+                cum_func=func,
+                keep_nan=keep_nan,
+                ascending=ascending,
+            ),
         )
 
     @classmethod
@@ -683,7 +699,7 @@ class Algorithms:
                     (f"f{i}", new_data.dtype)
                     for i in range(new_data.sizes[tie_breaker_dim])
                 ],
-                axis=new_data.dims.index(tie_breaker_dim),
+                kwargs=dict(axis=new_data.dims.index(tie_breaker_dim)),
                 drop_dim=True,
             )
 
@@ -743,7 +759,7 @@ class Algorithms:
         window_margin: int,
         min_periods: int = None,
         apply_ffill: bool = True,
-        validate_window_size: bool = True
+        validate_window_size: bool = True,
     ):
         assert window_margin >= window
 

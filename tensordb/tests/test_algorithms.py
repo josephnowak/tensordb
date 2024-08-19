@@ -1,8 +1,8 @@
+import numbagg as nba
 import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-import numbagg as nba
 
 from tensordb.algorithms import Algorithms
 
@@ -291,6 +291,8 @@ def test_vindex():
         ("b", False, "max"),
         ("a", True, "max"),
         ("b", True, "max"),
+        ("a", True, "custom"),
+        ("b", False, "custom"),
     ],
 )
 def test_apply_on_groups(dim, keep_shape, func):
@@ -308,23 +310,48 @@ def test_apply_on_groups(dim, keep_shape, func):
     grouper = {"a": [1, 5, 5, 0, 1], "b": [0, 1, 1, 0, -1]}
     groups = {k: v for k, v in zip(arr.coords[dim].values, grouper[dim])}
 
-    result = Algorithms.apply_on_groups(
-        arr, groups=groups, dim=dim, func=func, keep_shape=keep_shape
-    )
-
     expected = arr.to_pandas()
     axis = 0 if dim == "a" else 1
 
     if axis == 1:
         expected = expected.T
 
-    if keep_shape:
-        expected = expected.groupby(groups).transform(func)
+    if func == "custom":
+        arr = xr.Dataset(
+            {
+                "x": arr,
+                "v": arr,
+            }
+        )
+
+        def custom_func(dataset):
+            x = dataset["x"]
+            v = dataset["v"]
+            a = x - v * 0.1 + 1
+
+            a = a.sum(dim=dim)
+            return a
+
+        func = custom_func
+
+        expected = (expected - expected * 0.1).groupby(groups)
+        if keep_shape:
+            expected = expected.transform(lambda x: (x + 1).sum())
+        else:
+            expected = expected.apply(lambda x: (x + 1).sum())
+
     else:
-        expected = getattr(expected.groupby(groups), func)()
+        if keep_shape:
+            expected = expected.groupby(groups).transform(func)
+        else:
+            expected = getattr(expected.groupby(groups), func)()
 
     if axis == 1:
         expected = expected.T
+
+    result = Algorithms.apply_on_groups(
+        arr, groups=groups, dim=dim, func=func, keep_shape=keep_shape, template="x"
+    )
 
     expected = xr.DataArray(expected.values, coords=result.coords, dims=result.dims)
     assert expected.equals(result)
@@ -469,14 +496,12 @@ def test_rolling_overlap(window, apply_ffill):
             dim="a",
             window_margin=window_margin,
             min_periods=1,
-            apply_ffill=apply_ffill
+            apply_ffill=apply_ffill,
         )
 
         expected = df.dropna()
         expected = (
-            expected.groupby(level=0)
-            .rolling(window=window, min_periods=1)
-            .mean()
+            expected.groupby(level=0).rolling(window=window, min_periods=1).mean()
         )
         expected = expected.droplevel(0).unstack(0)
 
