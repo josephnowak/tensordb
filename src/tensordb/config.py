@@ -11,17 +11,25 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str = "TensorDB"
     PROJECT_DESCRIPTION: str = (
-        "TensorDB is a serverless database that use Zarr, Xarray and fsspec, it provides ACID transactions "
-        "without using an additional database, even when using Dask on a distributed environment."
+        "TensorDB is an storage engine that use Zarr, Xarray and fsspec to store the data, "
+        "it provides ACID transactions using a filesystem, which make it extremely easy to use"
     )
 
     # Paths
-    TENSOR_DEFINITION_PATH: str = os.getenv("TENSOR_DEFINITION_PATH", "tensor_definition")
-    TRANSACTION_PATH: str = os.getenv("TRANSACTION_PATH", "transaction")
-    TRANSACTION_METADATA_PATH: str = os.getenv("TRANSACTION_METADATA_PATH", "metadata")
-    TRANSACTION_DATA_PATH: str = os.getenv("TRANSACTION_DATA_PATH", "data")
-    TRANSACTION_STATUS_PATH: str = os.getenv("TRANSACTION_STATUS_PATH", "status")
-    BRANCH_PATH: str = os.getenv("BRANCH_PATH", "branch")
+    BRANCH_FS_FOLDER: str = os.getenv("BRANCH_FS_FOLDER", "branchfs")
+    TENSOR_DEFINITION_PATH: str = os.getenv(
+        "TENSOR_DEFINITION_PATH", "tensordb/tensor_definition"
+    )
+    TRANSACTION_PATH: str = os.getenv("TRANSACTION_PATH", "tensordb/transaction")
+    TRANSACTION_METADATA_PATH: str = os.getenv(
+        "TRANSACTION_METADATA_PATH", "tensordb/metadata"
+    )
+    TRANSACTION_DATA_PATH: str = os.getenv("TRANSACTION_DATA_PATH", "tensordb/data")
+    TRANSACTION_STATUS_PATH: str = os.getenv(
+        "TRANSACTION_STATUS_PATH", "tensordb/status"
+    )
+    BRANCH_FOLDER: str = os.getenv("BRANCH_FOLDER", "branch")
+    REPOSITORY_PATH: str = os.getenv("REPOSITORY_PATH", "tensordb/repository")
 
 
 settings = Settings()
