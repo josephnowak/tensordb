@@ -257,6 +257,7 @@ class ZarrStorage(BaseStorage):
 
         rewrite = False
         act_coords = {k: coord for k, coord in act_data.indexes.items()}
+        data_to_append = {}
         slices_to_append = {}
         complete_data = act_data
 
@@ -279,9 +280,11 @@ class ZarrStorage(BaseStorage):
                 k: slice(size, None) if k == dim else slice(0, size)
                 for k, size in complete_data.sizes.items()
             }
-            append_new_data = new_data.reindex(reindex_coords, fill_value=fill_value)
+            data_to_append[dim] = new_data.reindex(
+                reindex_coords, fill_value=fill_value
+            )
             complete_data = xr.concat(
-                [complete_data, append_new_data], dim=dim, fill_value=fill_value
+                [complete_data, data_to_append[dim]], dim=dim, fill_value=fill_value
             )
 
         complete_data = xr.Dataset(
@@ -305,17 +308,18 @@ class ZarrStorage(BaseStorage):
             if dim not in slices_to_append:
                 continue
 
-            data_to_append = complete_data.isel(**slices_to_append[dim])
-            data_to_append = data_to_append.chunk(self.chunks)
-
+            data = data_to_append[dim].chunk(
+                complete_data.isel(**slices_to_append[dim]).chunks
+            )
             delayed_appends.append(
-                data_to_append.to_zarr(
+                data.to_zarr(
                     self.base_map,
                     append_dim=dim,
                     compute=compute,
                     synchronizer=self.synchronizer,
                     consolidated=True,
                     group=self.group,
+                    safe_chunks=False,
                 )
             )
 
