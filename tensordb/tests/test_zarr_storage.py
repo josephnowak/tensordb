@@ -1,6 +1,7 @@
 import dask
 import fsspec
 import numpy as np
+import pandas as pd
 import pytest
 import xarray as xr
 
@@ -267,11 +268,33 @@ class TestZarrStorage:
         arr = self.arr.chunk(index=3, columns=2)
         new_data = arr.sel(index=[3, 2, 0, 4, 1], columns=[3, 4, 2, 0, 1])
         result = self.storage_sorted_unique._keep_sorted_coords(new_data=new_data)
-        assert result.chunks == ((1, 1, 1, 1, 1), (1, 1, 1, 2))
+        assert result.chunks == ((2, 3), (2, 2, 1))
 
         new_data = arr.sel(columns=[3, 4, 2, 0, 1], index=[4, 3, 2, 1, 0])
         result = self.storage_sorted_unique._keep_sorted_coords(new_data=new_data)
         assert result.chunks == ((2, 3), (5,))
+
+    def test_insert_in_the_middle(self):
+        storage = self.storage_sorted_unique
+        arr = xr.DataArray(
+            [[1, 5], [4, 2]],
+            dims=["index", "columns"],
+            coords={"index": np.array([1, 5], "datetime64[ns]"), "columns": [1, 6]},
+        )
+        storage.store(arr)
+
+        append_arr = xr.DataArray(
+            [[100]],
+            dims=arr.dims,
+            coords={"index": np.array([3], "datetime64[ns]"), "columns": [3]},
+        )
+        storage.append(append_arr)
+
+        assert storage.read().equals(
+            arr.combine_first(append_arr).sel(
+                index=np.array([5, 3, 1], "datetime64[ns]"), columns=[6, 3, 1]
+            )
+        )
 
 
 if __name__ == "__main__":

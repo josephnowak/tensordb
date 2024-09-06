@@ -244,6 +244,7 @@ class ZarrStorage(BaseStorage):
         A list of xr.backends.ZarrStore produced by the to_zarr method executed in every dimension
 
         """
+
         if not self.exist():
             return [self.store(new_data=new_data, compute=compute)]
 
@@ -266,7 +267,7 @@ class ZarrStorage(BaseStorage):
             if len(coord_to_append) == 0:
                 continue
 
-            rewrite |= ~self._validate_sorted_append(
+            rewrite |= not self._validate_sorted_append(
                 current_coord=act_coord, append_coord=coord_to_append, dim=dim
             )
 
@@ -305,6 +306,7 @@ class ZarrStorage(BaseStorage):
                 continue
 
             data_to_append = complete_data.isel(**slices_to_append[dim])
+            data_to_append = data_to_append.chunk(self.chunks)
 
             delayed_appends.append(
                 data_to_append.to_zarr(
