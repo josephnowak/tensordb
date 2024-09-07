@@ -1,7 +1,6 @@
 import dask
 import fsspec
 import numpy as np
-import pandas as pd
 import pytest
 import xarray as xr
 
@@ -183,12 +182,16 @@ class TestZarrStorage:
         storage.delete_tensor()
 
     @pytest.mark.parametrize("as_dask", [True, False])
-    @pytest.mark.parametrize("index", [[0, 2, 4], [2, 4], [1, 4]])
+    @pytest.mark.parametrize("index", [[0, 2, 4], [2, 4], [1, 4], [4, 0, 2]])
     @pytest.mark.parametrize("columns", [[1, 3, 4], [1, 4], [0, 3]])
-    def test_update_data(self, as_dask, index, columns):
-        self.storage.store(self.arr)
+    @pytest.mark.parametrize("sort", [True, False])
+    def test_update_data(self, as_dask, index, columns, sort):
+        arr = self.arr
+        if not sort:
+            arr = arr.isel(index=[3, 2, 4, 0, 1])
+        self.storage.store(arr)
 
-        expected = self.arr.copy()
+        expected = arr.copy()
 
         for i, v in enumerate(index):
             expected.loc[v, columns] = i
@@ -196,17 +199,43 @@ class TestZarrStorage:
         if as_dask:
             expected = expected.chunk(index=2, columns=1)
 
+        update_arr = expected.sel(index=index, columns=columns)
+        update_data, regions = self.storage.update_preview(
+            new_data=update_arr.to_dataset(name="data_test"),
+            fill_value=np.nan,
+            complete_update_dims=None,
+        )
+
+        index_loc = expected.indexes["index"].get_indexer(index)
+        assert regions["index"] == slice(min(index_loc), max(index_loc) + 1)
+        columns_loc = expected.indexes["columns"].get_indexer(columns)
+        assert regions["columns"] == slice(min(columns_loc), max(columns_loc) + 1)
+
+        assert update_data["data_test"].equals(expected.isel(**regions))
+
         self.storage.update(expected.sel(index=index, columns=columns))
 
         assert self.storage.read().equals(expected)
 
-    def test_update_complete_data(self):
+    @pytest.mark.parametrize("index", [[0, 2, 4], [2, 4], [4, 0, 2], [2, 3, 4], [2, 1]])
+    @pytest.mark.parametrize("columns", [[1, 3, 4], [1, 4], [0, 1, 3]])
+    def test_update_complete_data(self, index, columns):
         self.storage.store(self.arr)
 
-        arr_sliced = self.arr.sel(index=slice(2, None), columns=[0, 1, 3]) + 5
-        self.storage.update(arr_sliced, complete_update_dims=["columns"])
+        arr_sliced = self.arr.sel(index=index, columns=columns) + 5
+        update_data, regions = self.storage.update_preview(
+            new_data=arr_sliced.to_dataset(name="data_test"),
+            complete_update_dims=["columns"],
+            fill_value=np.nan,
+        )
 
-        self.arr.loc[2:] = arr_sliced.reindex(columns=self.arr.columns)
+        self.arr.loc[index] = arr_sliced.reindex(index=index, columns=self.arr.columns)
+        assert regions["index"] == slice(min(index), max(index) + 1)
+        assert regions["columns"] == slice(0, 5)
+
+        assert update_data["data_test"].equals(self.arr.isel(**regions))
+
+        self.storage.update(arr_sliced, complete_update_dims=["columns"])
 
         assert self.storage.read().equals(self.arr)
 
@@ -277,7 +306,7 @@ class TestZarrStorage:
     def test_insert_in_the_middle(self):
         storage = self.storage_sorted_unique
         arr = xr.DataArray(
-            [[1, 5], [4, 2]],
+            [[1.0, 5], [4, 2]],
             dims=["index", "columns"],
             coords={"index": np.array([1, 5], "datetime64[ns]"), "columns": [1, 6]},
         )
@@ -288,6 +317,13 @@ class TestZarrStorage:
             dims=arr.dims,
             coords={"index": np.array([3], "datetime64[ns]"), "columns": [3]},
         )
+        append_representation = storage.append_preview(
+            append_arr.to_dataset(name="data_test"),
+            np.nan,
+        )
+        assert append_representation[2]
+        expected_representation = append_representation[0]["data_test"].persist()
+
         storage.append(append_arr)
 
         assert storage.read().equals(
@@ -295,6 +331,35 @@ class TestZarrStorage:
                 index=np.array([5, 3, 1], "datetime64[ns]"), columns=[6, 3, 1]
             )
         )
+        assert storage.read().equals(expected_representation)
+
+    def test_preview_append(self):
+        storage = self.storage_sorted_unique
+        arr = xr.DataArray(
+            [[1.0, 5], [4, 2]],
+            dims=["index", "columns"],
+            coords={"index": np.array([2, 3], "datetime64[ns]"), "columns": [2, 4]},
+        )
+        storage.store(arr)
+
+        append_arr = xr.DataArray(
+            [[100]],
+            dims=arr.dims,
+            coords={"index": np.array([1], "datetime64[ns]"), "columns": [1]},
+        )
+        append_representation = storage.append_preview(
+            append_arr.to_dataset(name="data_test"),
+            np.nan,
+        )
+        # Check that it is not necessary to rewrite the data
+        assert not append_representation[2]
+
+        data_to_append = append_representation[1]
+
+        expected = arr.combine_first(append_arr)[::-1, ::-1]
+
+        assert data_to_append["index"]["data_test"].equals(expected[2:, :2])
+        assert data_to_append["columns"]["data_test"].equals(expected[:, 2:])
 
 
 if __name__ == "__main__":
