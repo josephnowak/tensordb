@@ -63,6 +63,8 @@ class ZarrStorage(BaseStorage):
             synchronizer = synchronizer(path=lock_path)
 
         self.chunks = chunks
+        if self.chunks is None:
+            self.chunks = {}
         self.synchronizer = synchronizer
         self.unique_coords = unique_coords or {}
         self.sorted_coords = sorted_coords or {}
@@ -125,7 +127,7 @@ class ZarrStorage(BaseStorage):
             new_data = new_data.to_dataset(name=self.data_names)
 
         if chunk_data:
-            new_data = new_data if self.chunks is None else new_data.chunk(self.chunks)
+            new_data = new_data.chunk(self.chunks)
         return new_data
 
     def append_preview(
