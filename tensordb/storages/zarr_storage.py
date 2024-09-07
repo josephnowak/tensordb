@@ -132,7 +132,7 @@ class ZarrStorage(BaseStorage):
         self, new_data: xr.Dataset, fill_value
     ) -> Tuple[xr.Dataset, Dict[str | Hashable, xr.Dataset], bool]:
         """
-        Generates the arrays that must call the to_zarr method with an append_dim.
+        Generates the datasets that must call the to_zarr method with an append_dim.
 
         Returns
         -------
@@ -245,7 +245,7 @@ class ZarrStorage(BaseStorage):
         fill_value: Any,
     ):
         """
-        Generates the arrays that must call the to_zarr method with the regions parameter.
+        Generates the dataset that must call the to_zarr method with the regions parameter.
 
         Returns
         -------
