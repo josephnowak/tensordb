@@ -343,16 +343,34 @@ class TestZarrStorage:
         storage.store(arr)
 
         append_arr = xr.DataArray(
-            [[100]],
+            [[100], [200]],
             dims=arr.dims,
-            coords={"index": np.array([1], "datetime64[ns]"), "columns": [1]},
+            coords={"index": np.array([0, 1], "datetime64[ns]"), "columns": [1]},
         )
         append_representation = storage.append_preview(
             append_arr.to_dataset(name="data_test"),
             np.nan,
         )
+
         # Check that it is not necessary to rewrite the data
         assert not append_representation[2]
+
+        # TODO: Once we migrate to V1 the chunks must always be created based on the chunks
+        #   on the storage and not on the encoding information of the arrays
+        assert append_representation[0].chunksizes == {
+            "index": (2, 2),
+            "columns": (2, 1),
+        }
+
+        # Check that the chunk sizes are the expected
+        assert append_representation[1]["index"].chunksizes == {
+            "index": (2,),
+            "columns": (2,),
+        }
+        assert append_representation[1]["columns"].chunksizes == {
+            "index": (2, 2),
+            "columns": (1,),
+        }
 
         data_to_append = append_representation[1]
 

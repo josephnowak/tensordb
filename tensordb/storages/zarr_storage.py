@@ -7,6 +7,7 @@ import zarr
 from tensordb.storages.base_storage import BaseStorage
 from tensordb.storages.lock import PrefixLock
 from tensordb.storages.mapping import Mapping
+from tensordb.algorithms import Algorithms
 
 
 class ZarrStorage(BaseStorage):
@@ -83,7 +84,7 @@ class ZarrStorage(BaseStorage):
         )
         return new_data
 
-    def _keep_sorted_coords(self, new_data):
+    def _keep_sorted_coords(self, new_data) -> xr.Dataset:
         if not self.sorted_coords:
             return new_data
 
@@ -175,6 +176,10 @@ class ZarrStorage(BaseStorage):
         # to the act_data, and it is also used to calculate the proper chunks for the data_to_append
         complete_data = act_data
 
+        preferred_chunks = act_data[list(act_data.keys())[0]].encoding[
+            "preferred_chunks"
+        ]
+
         for dim in new_data.dims:
             new_coord = new_data.indexes[dim]
             act_coord = act_data.indexes[dim]
@@ -202,8 +207,11 @@ class ZarrStorage(BaseStorage):
             }
 
             # Reindex the new_data to align it with the complete_data
-            data_to_append[dim] = new_data.reindex(
-                reindex_coords, fill_value=fill_value
+            data_to_append[dim] = Algorithms.reindex_with_pad(
+                data=new_data,
+                coords=reindex_coords,
+                preferred_chunks=preferred_chunks,
+                fill_value=fill_value,
             )
 
             # Append the data in a delayed way to simulate the appending of the data
@@ -216,7 +224,7 @@ class ZarrStorage(BaseStorage):
         complete_data = xr.Dataset(
             {
                 # TODO: On V1 this must be removed in favour of using encoding
-                k: v.chunk(act_data[k].encoding["preferred_chunks"])
+                k: v.chunk(preferred_chunks)
                 for k, v in complete_data.items()
             }
         )

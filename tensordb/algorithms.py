@@ -812,3 +812,91 @@ class Algorithms:
 
         data = xr.DataArray(data, dims=new_data.dims, coords=new_data.coords)
         return data
+
+    @classmethod
+    def reindex_with_pad(
+        cls,
+        data: xr.DataArray | xr.Dataset,
+        coords,
+        preferred_chunks: Dict[str, int],
+        fill_value: Any,
+    ) -> xr.Dataset | xr.DataArray:
+        """
+        The reindex with pad was created as an alternative to the standard
+        reindex method of Xarray but with the option of specify the expected chunks.
+
+        This is very useful in scenarios where a small dataset must be aligned
+        with a bigger one. When only reindex is used the number of chunks in the smaller
+        one are preserved and this creates a lot of them, and with this operation
+        some dummy data is added with the pad method to the small data to convert it
+        into a single chunk of a specific size before using reindex and this reduces
+        the size of the graph which can become a big bottleneck.
+
+        :param data:
+            Data that wants to be reindexed
+        :param coords:
+            Coords to reindex
+        :param preferred_chunks:
+            Expected chunk size of the array, if the array is smaller than the chunk
+            then some dummy data is added with the pad method.
+        :param fill_value:
+            Used in the reindex method
+        :return:
+            A chunked reindexed data
+        """
+        data = data.copy()
+        coords = {k: np.array(v) for k, v in coords.items()}
+
+        # Create an autoincrement index per dim using ints to be able to map the coords
+        autoincrement_map = {}
+        for dim, coord in coords.items():
+            autoincrement_map[dim] = {}
+            extra_coord = np.array(data.coords[dim][~data.coords[dim].isin(coord)])
+            for v in np.concatenate((coord, extra_coord)):
+                if v not in autoincrement_map[dim]:
+                    autoincrement_map[dim][v] = len(autoincrement_map[dim])
+
+        inv_autoincrement_map = {
+            dim: {v: k for k, v in map_coord.items()}
+            for dim, map_coord in autoincrement_map.items()
+        }
+
+        # Add artificial data at the end of every dim if necessary to complete
+        # the chunk size.
+        padded_data = data.pad(
+            {
+                dim: (0, max(preferred_chunks.get(dim, size) - size, 0))
+                for dim, size in data.sizes.items()
+            },
+            mode="edge",
+        ).chunk(preferred_chunks)
+
+        # Using the autoincrement index we can assign a unique coord value
+        # to the artificial data created by the pad method
+        for dim in padded_data.dims:
+            mapped_coord = [autoincrement_map[dim][v] for v in data.coords[dim].values]
+            # Unique elements for the artificial data
+            mapped_coord += [
+                len(autoincrement_map[dim]) + i
+                for i, v in enumerate(
+                    padded_data.coords[dim][len(mapped_coord) :].values
+                )
+            ]
+            padded_data.coords[dim] = mapped_coord
+
+        # Reindex the padded data using the mapped version of the coords
+        # this is going to drop all the artificial data automatically
+        padded_reindex = padded_data.reindex(
+            {
+                dim: [autoincrement_map[dim][v] for v in coord]
+                for dim, coord in coords.items()
+            },
+            fill_value=fill_value,
+        ).chunk(preferred_chunks)
+
+        # Revert the mapping
+        for dim in padded_reindex.dims:
+            padded_reindex.coords[dim] = [
+                inv_autoincrement_map[dim][v] for v in padded_reindex.coords[dim].values
+            ]
+        return padded_reindex
