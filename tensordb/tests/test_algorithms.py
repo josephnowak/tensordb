@@ -581,6 +581,10 @@ def test_reindex_with_pad():
     assert result.chunksizes == {"a": (3, 1), "b": (2, 2)}
     assert result.equals(arr.isel(a=[0, 1], b=[0]).reindex(coords, fill_value=1.0))
 
+    # TODO: Find a way to measure if the chunks are created properly with the pad
+    #   right now there is always a chunk being applied after the reindexing method
+    #   so it is not possible to test if the method is doing what it has to do
+
 
 if __name__ == "__main__":
     pass
