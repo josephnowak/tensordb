@@ -556,6 +556,7 @@ class Algorithms:
         new_data: Union[xr.DataArray, xr.Dataset],
         dim: str,
         func: str,
+        kwargs: Dict[str, Any] = None,
     ):
         """
         Group and merge duplicates coord base on a function, this can be a sum or a max. Read numpy-groupies
@@ -570,7 +571,12 @@ class Algorithms:
         new_data.coords[dim] = np.arange(new_data.sizes[dim])
 
         return cls.apply_on_groups(
-            new_data=new_data, groups=groups, dim=dim, func=func, keep_shape=False
+            new_data=new_data,
+            groups=groups,
+            dim=dim,
+            func=func,
+            keep_shape=False,
+            kwargs=kwargs,
         )
 
     @classmethod

@@ -316,7 +316,11 @@ def test_apply_on_groups(dim, keep_shape, func):
     if axis == 1:
         expected = expected.T
 
+    kwargs = {"engine": "numpy"}
+
     if func == "custom":
+        # Avoid the use of the engine on the custom functions
+        kwargs = {}
         arr = xr.Dataset(
             {
                 "x": arr,
@@ -350,7 +354,13 @@ def test_apply_on_groups(dim, keep_shape, func):
         expected = expected.T
 
     result = Algorithms.apply_on_groups(
-        arr, groups=groups, dim=dim, func=func, keep_shape=keep_shape, template="x"
+        arr,
+        groups=groups,
+        dim=dim,
+        func=func,
+        keep_shape=keep_shape,
+        template="x",
+        kwargs=kwargs,
     )
 
     expected = xr.DataArray(expected.values, coords=result.coords, dims=result.dims)
@@ -438,8 +448,8 @@ def test_merge_duplicates_coord(dim):
         coords={"a": [1, 5, 5, 0, 1], "b": [0, 1, 1, 0, -1]},
     ).chunk(a=3, b=2)
 
-    g = arr.groupby(dim).max(dim)
-    arr = Algorithms.merge_duplicates_coord(arr, dim, "max")
+    g = arr.groupby(dim).max(dim, engine="numpy")
+    arr = Algorithms.merge_duplicates_coord(arr, dim, "max", kwargs={"engine": "numpy"})
     assert g.equals(arr)
 
 
