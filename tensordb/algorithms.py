@@ -820,6 +820,7 @@ class Algorithms:
         coords,
         preferred_chunks: Dict[str, int],
         fill_value: Any,
+        apply_chunk: bool = True,
     ) -> xr.Dataset | xr.DataArray:
         """
         The reindex with pad was created as an alternative to the standard
@@ -832,20 +833,47 @@ class Algorithms:
         into a single chunk of a specific size before using reindex and this reduces
         the size of the graph which can become a big bottleneck.
 
+        Note: If it is not necessary to pad data then the algorithm is going to
+        use reindex directly and then chunk the data.
+
         :param data:
             Data that wants to be reindexed
         :param coords:
             Coords to reindex
         :param preferred_chunks:
-            Expected chunk size of the array, if the array is smaller than the chunk
-            then some dummy data is added with the pad method.
+            Ideal chunk size of the array, if the array is smaller than the chunk
+            then some artificial data is added with the pad method to latter be rechunked into a
+            single chunk.
+            It is important to highlight that if the size of the data on a dim is bigger
+            than the preferred chunk size then on that dim the original chunks are going
+            to be preserved unless the apply_chunk is set to True (default)
         :param fill_value:
             Used in the reindex method
+        :param apply_chunk, default True
+            If true then the chunk method is going to be applied after calling the reindex
+            method of Xarray (which is called after padding the data).
+            Disable this option is useful to properly visualize
+            the chunks created by the algorithm and see the reduction in terms of tasks
+            and also some other specific use cases
         :return:
             A chunked reindexed data
         """
         data = data.copy()
         coords = {k: np.array(v) for k, v in coords.items()}
+
+        pad_width = {
+            dim: (0, preferred_chunks[dim] - size)
+            for dim, size in data.sizes.items()
+            # Only add artificial data if the chunk is bigger than the size of the data
+            if preferred_chunks.get(dim, 0) > size
+        }
+        # If it is not necessary to pad additional data then just use
+        # reindex directly
+        if len(pad_width) == 0:
+            data = data.reindex(coords, fill_value=fill_value)
+            if apply_chunk:
+                data = data.chunk(preferred_chunks)
+            return data
 
         # Create an autoincrement index per dim using ints to be able to map the coords
         autoincrement_map = {}
@@ -864,12 +892,11 @@ class Algorithms:
         # Add artificial data at the end of every dim if necessary to complete
         # the chunk size.
         padded_data = data.pad(
-            {
-                dim: (0, max(preferred_chunks.get(dim, size) - size, 0))
-                for dim, size in data.sizes.items()
-            },
+            pad_width,
             mode="edge",
-        ).chunk(preferred_chunks)
+        )
+        # Create a single chunk on the dims that has artificial data
+        padded_data = padded_data.chunk({dim: -1 for dim in pad_width.keys()})
 
         # Using the autoincrement index we can assign a unique coord value
         # to the artificial data created by the pad method
@@ -886,13 +913,17 @@ class Algorithms:
 
         # Reindex the padded data using the mapped version of the coords
         # this is going to drop all the artificial data automatically
+        # and should also generate a better chunking
         padded_reindex = padded_data.reindex(
             {
                 dim: [autoincrement_map[dim][v] for v in coord]
                 for dim, coord in coords.items()
             },
             fill_value=fill_value,
-        ).chunk(preferred_chunks)
+        )
+
+        if apply_chunk:
+            padded_reindex = padded_reindex.chunk(preferred_chunks)
 
         # Revert the mapping
         for dim in padded_reindex.dims:

@@ -515,7 +515,32 @@ def test_rolling_overlap(window, apply_ffill):
             assert expected.equals(rolling_arr)
 
 
-def test_reindex_with_pad():
+@pytest.mark.parametrize(
+    "slices",
+    [{"a": [0, 3, 4], "b": [1, 3]}, {}, {"a": [0, 1], "b": [0]}],
+)
+@pytest.mark.parametrize(
+    "coords",
+    [
+        {
+            "a": np.array([100] + list(range(1, 11, 2)), "datetime64[ns]"),
+            "b": [5, -1, 3],
+        },
+        {
+            "a": np.array([5, 0, 2, 1], "datetime64[ns]"),
+            "b": [5, -1, 3, 4],
+        },
+        {
+            "a": np.array([5, 5, 0, 2, 2, 3], "datetime64[ns]"),
+            "b": [-5, -5, 3, 2, 5],
+        },
+    ],
+)
+@pytest.mark.parametrize(
+    "chunks",
+    [{"a": 3, "b": 2}, {"a": 2, "b": 3}, {"a": 1, "b": 1}, {"a": 2}],
+)
+def test_reindex_with_pad(slices, coords, chunks):
     arr = xr.DataArray(
         np.arange(5 * 7).reshape((5, 7)).astype(float),
         dims=["a", "b"],
@@ -523,67 +548,56 @@ def test_reindex_with_pad():
             "a": np.array(list(range(0, 10, 2)), "datetime64[ns]"),
             "b": list(range(7)),
         },
-    ).chunk(a=3, b=2)
+    ).chunk(chunks)
+    arr = arr.isel(**slices)
+    expected = arr.reindex(coords, fill_value=-1.0)
 
-    # Test all missing
-    coords = {
-        "a": np.array([100] + list(range(1, 11, 2)), "datetime64[ns]"),
-        "b": [5, -1, 3],
-    }
     result = Algorithms.reindex_with_pad(
         data=arr,
         coords=coords,
-        fill_value=0.0,
-        preferred_chunks={"a": 3, "b": 2},
+        fill_value=-1.0,
+        preferred_chunks=chunks,
     )
-    assert result.chunksizes == {"a": (3, 3), "b": (2, 1)}
-    assert result.equals(arr.reindex(coords, fill_value=0.0))
+    assert result.chunksizes == expected.chunk(chunks).chunksizes
+    assert result.equals(expected)
 
-    # Test not sorted coords
+
+@pytest.mark.parametrize("chunks", [{"a": 3, "b": 2}])
+def test_reindex_with_pad_no_chunk(chunks):
+    arr = xr.DataArray(
+        np.arange(5 * 7).reshape((5, 7)).astype(float),
+        dims=["a", "b"],
+        coords={
+            "a": list(range(5)),
+            "b": list(range(7)),
+        },
+    ).chunk(chunks)
+
+    test_arr = arr.isel(a=[0, 1], b=[5])
+
     coords = {
-        "a": np.array([5, 0, 2, 1], "datetime64[ns]"),
-        "b": [5, -1, 3, 4],
+        "a": [3, 5, 1, 0, -1, 0],
+        "b": [
+            5,
+            0,
+            3,
+        ],
     }
-    result = Algorithms.reindex_with_pad(
-        data=arr,
-        coords=coords,
-        fill_value=1.0,
-        preferred_chunks={"a": 3, "b": 2},
-    )
-    assert result.chunksizes == {"a": (3, 1), "b": (2, 2)}
-    assert result.equals(arr.reindex(coords, fill_value=1.0))
+    expected = test_arr.reindex(coords, fill_value=-1.0)
 
-    # Test duplicated coords
-    coords = {
-        "a": np.array([5, 5, 0, 2, 2, 3], "datetime64[ns]"),
-        "b": [-5, -5, 3, 2, 5],
-    }
     result = Algorithms.reindex_with_pad(
-        data=arr,
+        data=test_arr,
         coords=coords,
-        fill_value=0.0,
-        preferred_chunks={"a": 3, "b": 2},
+        fill_value=-1.0,
+        preferred_chunks={"a": 1, "b": 2},
+        apply_chunk=False,
     )
-    assert result.chunksizes == {"a": (3, 3), "b": (2, 2, 1)}
-    assert result.equals(arr.reindex(coords, fill_value=0.0))
 
-    # Test filling with artificial data using pad
-    coords = {
-        "a": np.array([5, 0, 2, 1], "datetime64[ns]"),
-        "b": [5, -1, 3, 4],
-    }
-    result = Algorithms.reindex_with_pad(
-        data=arr.isel(a=[0, 1], b=[0]),
-        coords=coords,
-        fill_value=1.0,
-        preferred_chunks={"a": 3, "b": 2},
-    )
-    assert result.chunksizes == {"a": (3, 1), "b": (2, 2)}
-    assert result.equals(arr.isel(a=[0, 1], b=[0]).reindex(coords, fill_value=1.0))
-
-    # TODO: Find a way to measure if the chunks are created properly with the pad
-    #   right now there is always a chunk being applied after the reindexing method
-    #   so it is not possible to test if the method is doing what it has to do
+    assert result.equals(expected)
+    # These chunks are a proof that the chunk method is not called after the reindex one
+    # and the method tries to preserve the original chunks if it is not necessary
+    # to pad data on certain dims
+    assert result.chunksizes == {"a": (2, 2, 2), "b": (2, 1)}
 
 
 if __name__ == "__main__":

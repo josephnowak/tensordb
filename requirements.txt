@@ -1,7 +1,7 @@
 pandas>=2.0.0
 xarray[accel]>=2023.0.0
 numpy>=1.26.0
-dask[complete]>=2023.0.0
+dask[complete]>=2024.0.0
 zarr>=2.0.0
 orjson>=3.0.0
 pydantic>=2.0.0
