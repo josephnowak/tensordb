@@ -170,13 +170,14 @@ class ZarrStorage(BaseStorage):
         """
         act_data = self.read()
         self._validate_new_data(act_data, new_data)
-
         act_data = self._transform_to_dataset(act_data, chunk_data=False)
         new_data = self._keep_unique_coords(new_data)
         new_data = self._keep_sorted_coords(new_data)
         new_data = self._transform_to_dataset(new_data, chunk_data=False)
-
         self.clear_encoding(new_data)
+
+        # Force to always use the same dimension order
+        dims = act_data[list(act_data.keys())[0]].dims
 
         # Decide if the data needs to be restored due to insertions in the middle
         rewrite = False
@@ -194,8 +195,6 @@ class ZarrStorage(BaseStorage):
             "preferred_chunks"
         ]
 
-        # Force to always use the same dimension order
-        dims = act_data[list(act_data.keys())[0]].dims
         for dim in dims:
             new_coord = new_data.indexes[dim]
             act_coord = act_data.indexes[dim]
@@ -289,10 +288,10 @@ class ZarrStorage(BaseStorage):
         new_data = self._transform_to_dataset(new_data, chunk_data=False)
         new_data = self._keep_unique_coords(new_data)
         new_data = self._keep_sorted_coords(new_data)
+        self.clear_encoding(new_data)
+
         # Force to always use the same dimension order
         dims = act_data[list(act_data.keys())[0]].dims
-
-        self.clear_encoding(new_data)
 
         act_coords = {k: coord for k, coord in act_data.coords.items()}
 
