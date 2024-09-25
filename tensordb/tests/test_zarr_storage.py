@@ -303,6 +303,20 @@ class TestZarrStorage:
         result = self.storage_sorted_unique._keep_sorted_coords(new_data=new_data)
         assert result.chunks == ((2, 3), (5,))
 
+    def test_validate_new_data(self):
+        storage = self.storage_sorted_unique
+        storage.store(self.arr2)
+        with pytest.raises(ValueError):
+            storage.append(self.arr2.isel(index=0))
+
+        with pytest.raises(ValueError):
+            storage.append(self.arr2.isel(column=0))
+
+        with pytest.raises(ValueError):
+            storage.append(self.arr2.expand_dims(dim="c"))
+
+        storage.append(self.arr2.transpose("columns", "index"))
+
     def test_insert_in_the_middle(self):
         storage = self.storage_sorted_unique
         arr = xr.DataArray(

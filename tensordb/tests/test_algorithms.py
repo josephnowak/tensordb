@@ -123,7 +123,7 @@ def test_bitmask_topk_tie_breaker(top_size, dim):
     df = (
         pd.concat(total_dfs)
         .fillna(-np.inf)
-        .stack(dropna=False)
+        .stack(future_stack=True)
         .groupby(level=[0, 1])
         .apply(tuple)
         .unstack()
@@ -199,7 +199,7 @@ def test_rolling_along_axis(window, drop_nan, fill_method):
         dims=["a", "b"],
         coords={"a": list(range(5)), "b": list(range(3))},
     ).chunk(a=3, b=1)
-    df = pd.DataFrame(arr.values.T, arr.b.values, arr.a.values).stack(dropna=False)
+    df = pd.DataFrame(arr.values.T, arr.b.values, arr.a.values).stack(future_stack=True)
     for min_periods in [None] + list(range(1, window)):
         rolling_arr = Algorithms.rolling_along_axis(
             arr,
@@ -497,7 +497,7 @@ def test_rolling_overlap(window, apply_ffill):
         dims=["a", "b"],
         coords={"a": list(range(5)), "b": list(range(3))},
     ).chunk(a=3, b=1)
-    df = pd.DataFrame(arr.values.T, arr.b.values, arr.a.values).stack(dropna=False)
+    df = pd.DataFrame(arr.values.T, arr.b.values, arr.a.values).stack(future_stack=True)
     for window_margin in range(window, 6):
         rolling_arr = Algorithms.rolling_overlap(
             arr,

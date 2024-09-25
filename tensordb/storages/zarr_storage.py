@@ -112,6 +112,17 @@ class ZarrStorage(BaseStorage):
             return current_coord[-1] <= append_coord[0]
         return current_coord[-1] >= append_coord[0]
 
+    @staticmethod
+    def _validate_new_data(act_data, new_data):
+        if set(act_data.dims) != set(new_data.dims):
+            raise ValueError(
+                f"The dimensions of the act_data {act_data.dims}"
+                f" and new data {new_data.dims} are different"
+            )
+
+        if any(size == 0 for size in new_data.sizes):
+            raise ValueError(f"The new data is empty {new_data.sizes}")
+
     def _transform_to_dataset(self, new_data, chunk_data: bool = True) -> xr.Dataset:
         if isinstance(new_data, xr.Dataset):
             new_data = new_data[
@@ -157,7 +168,10 @@ class ZarrStorage(BaseStorage):
             (or at the beginning)
 
         """
-        act_data = self._transform_to_dataset(self.read(), chunk_data=False)
+        act_data = self.read()
+        self._validate_new_data(act_data, new_data)
+
+        act_data = self._transform_to_dataset(act_data, chunk_data=False)
         new_data = self._keep_unique_coords(new_data)
         new_data = self._keep_sorted_coords(new_data)
         new_data = self._transform_to_dataset(new_data, chunk_data=False)
@@ -180,7 +194,9 @@ class ZarrStorage(BaseStorage):
             "preferred_chunks"
         ]
 
-        for dim in new_data.dims:
+        # Force to always use the same dimension order
+        dims = act_data[list(act_data.keys())[0]].dims
+        for dim in dims:
             new_coord = new_data.indexes[dim]
             act_coord = act_data.indexes[dim]
             # new elements on the coord to append
@@ -267,10 +283,14 @@ class ZarrStorage(BaseStorage):
 
         2. regions: Region at which the update_data must be inserted in the Zarr store.
         """
-        act_data = self._transform_to_dataset(self.read(), chunk_data=False)
+        act_data = self.read()
+        self._validate_new_data(act_data, new_data)
+        act_data = self._transform_to_dataset(act_data, chunk_data=False)
         new_data = self._transform_to_dataset(new_data, chunk_data=False)
         new_data = self._keep_unique_coords(new_data)
         new_data = self._keep_sorted_coords(new_data)
+        # Force to always use the same dimension order
+        dims = act_data[list(act_data.keys())[0]].dims
 
         self.clear_encoding(new_data)
 
@@ -297,7 +317,7 @@ class ZarrStorage(BaseStorage):
             )
 
         regions = {}
-        for coord_name in act_data.dims:
+        for coord_name in dims:
             act_bitmask = act_coords[coord_name].isin(
                 new_data.coords[coord_name].values
             )
@@ -311,7 +331,8 @@ class ZarrStorage(BaseStorage):
         # The bitmask_arr identifies which cells of the act_data_region needs to be updated
         # with the new_data, the final shape is equal to the act_data_region
         bitmask_arr = None
-        for dim, coord in act_data_region.coords.items():
+        for dim in dims:
+            coord = act_data_region[dim]
             # Get which coords needs to be updated for this dimension and chunk it properly
             bitmask_coord = coord.isin(new_data.coords[dim]).chunk(
                 {dim: act_data_region.chunksizes[dim]}
@@ -469,8 +490,9 @@ class ZarrStorage(BaseStorage):
         if len(data_to_append) > 1 and self.synchronizer is None:
             compute = True
 
+        dims = complete_data[list(complete_data.keys())[0]].dims
         delayed_appends = []
-        for dim in new_data.dims:
+        for dim in dims:
             if dim not in data_to_append:
                 continue
 
