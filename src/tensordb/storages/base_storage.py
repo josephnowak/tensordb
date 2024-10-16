@@ -35,7 +35,7 @@ class BaseStorage:
         base_map: Union[Mapping, MutableMapping],
         tmp_map: Union[Mapping, MutableMapping],
         data_names: Union[str, list[str]] = "data",
-        **kwargs
+        **kwargs,
     ):
         if not isinstance(base_map, Mapping):
             base_map = Mapping(base_map)

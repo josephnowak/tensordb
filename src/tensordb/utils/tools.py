@@ -143,7 +143,8 @@ def xarray_from_func(
     if isinstance(chunks, dict):
         chunks = [chunks[dim] for dim in dims]
     chunks = [
-        len(coords[dim]) if chunk is None else chunk for chunk, dim in zip(chunks, dims, strict=False)
+        len(coords[dim]) if chunk is None else chunk
+        for chunk, dim in zip(chunks, dims, strict=False)
     ]
     kwargs = {} if kwargs is None else kwargs
     args = [] if args is None else args
