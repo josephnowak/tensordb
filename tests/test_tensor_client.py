@@ -7,10 +7,8 @@ import pytest
 import xarray as xr
 import zarr
 
-from tensordb import FileCacheTensorClient
-from tensordb import TensorClient
+from tensordb import FileCacheTensorClient, TensorClient
 from tensordb.tensor_definition import TensorDefinition
-
 
 # TODO: Add more tests that validate the internal behaviour of the storage settings
 # TODO: Fix the use of fsspec cached protocol when there are multiple threads or process reading the same file
@@ -210,9 +208,6 @@ class TestTensorClient:
         data_two = tensor_client.read(path="data_two")
         assert data_four.equals((data_one * data_two).rolling({"index": 3}).sum())
 
-    @pytest.mark.parametrize("use_local", [True, False])
-    def test_read_from_formula(self, use_local):
-        tensor_client = self.local_tensor_client if use_local else self.tensor_client
         definition = TensorDefinition(
             path="data_four",
             definition={

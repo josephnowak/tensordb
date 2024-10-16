@@ -1,11 +1,9 @@
-import abc
 import os.path
-from typing import Type
 
 import dask.distributed
 
 
-class BaseLock(abc.ABC):
+class BaseLock:
     def __enter__(self):
         raise NotImplementedError
 
@@ -25,7 +23,7 @@ class NoLock(BaseLock):
 
 
 class PrefixLock(BaseLock):
-    def __init__(self, prefix: str, lock: Type[BaseLock] = None):
+    def __init__(self, prefix: str, lock: type[BaseLock] = None):
         self.prefix = prefix
         self.lock = NoLock if lock is None else lock
 

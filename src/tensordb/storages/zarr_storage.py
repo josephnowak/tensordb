@@ -1,13 +1,14 @@
-from typing import Dict, List, Union, Any, Literal, Tuple, Hashable
+from collections.abc import Hashable
+from typing import Any, Literal, Union
 
 import numpy as np
 import xarray as xr
 import zarr
 
+from tensordb.algorithms import Algorithms
 from tensordb.storages.base_storage import BaseStorage
 from tensordb.storages.lock import PrefixLock
 from tensordb.storages.mapping import Mapping
-from tensordb.algorithms import Algorithms
 
 
 class ZarrStorage(BaseStorage):
@@ -40,11 +41,11 @@ class ZarrStorage(BaseStorage):
     def __init__(
         self,
         tmp_map: Mapping,
-        chunks: Dict[str, int] = None,
+        chunks: dict[str, int] = None,
         synchronizer: Union[Literal["process", "thread"], PrefixLock] = None,
-        unique_coords: Dict[str, bool] = None,
-        sorted_coords: Dict[str, bool] = None,
-        encoding: Dict[str, Any] = None,
+        unique_coords: dict[str, bool] = None,
+        sorted_coords: dict[str, bool] = None,
+        encoding: dict[str, Any] = None,
         synchronize_only_write: bool = False,
         default_unique_coord: bool = True,
         max_unsort_dims_to_rechunk: int = 1,
@@ -144,7 +145,7 @@ class ZarrStorage(BaseStorage):
 
     def append_preview(
         self, new_data: xr.Dataset, fill_value
-    ) -> Tuple[xr.Dataset, Dict[str | Hashable, xr.Dataset], bool]:
+    ) -> tuple[xr.Dataset, dict[str | Hashable, xr.Dataset], bool]:
         """
         Generates the datasets that must call the to_zarr method with an append_dim.
 
@@ -266,7 +267,7 @@ class ZarrStorage(BaseStorage):
     def update_preview(
         self,
         new_data: xr.Dataset,
-        complete_update_dims: str | List[str] | None,
+        complete_update_dims: str | list[str] | None,
         fill_value: Any,
     ):
         """
@@ -445,7 +446,7 @@ class ZarrStorage(BaseStorage):
         new_data: Union[xr.DataArray, xr.Dataset],
         compute: bool = True,
         fill_value: Any = np.nan,
-    ) -> List[xr.backends.ZarrStore]:
+    ) -> list[xr.backends.ZarrStore]:
         """
         Append data at the end of a Zarr file (in case that the file does not exist it will call the store method),
         internally it calls the method
@@ -514,7 +515,7 @@ class ZarrStorage(BaseStorage):
         self,
         new_data: Union[xr.DataArray, xr.Dataset],
         compute: bool = True,
-        complete_update_dims: Union[List[str], str] = None,
+        complete_update_dims: Union[list[str], str] = None,
         fill_value: Any = np.nan,
     ) -> Union[xr.backends.ZarrStore, None]:
         """
@@ -571,9 +572,9 @@ class ZarrStorage(BaseStorage):
         self,
         new_data: Union[xr.DataArray, xr.Dataset],
         compute: bool = True,
-        complete_update_dims: Union[List[str], str] = None,
+        complete_update_dims: Union[list[str], str] = None,
         fill_value: Any = np.nan,
-    ) -> List[xr.backends.ZarrStore]:
+    ) -> list[xr.backends.ZarrStore]:
         """
         Calls the update and then the append method, if the tensor do not exist then it calls the store method
 
@@ -596,7 +597,7 @@ class ZarrStorage(BaseStorage):
         delayed_writes = [write for write in delayed_writes if write is not None]
         return delayed_writes
 
-    def drop(self, coords: Dict, compute: bool = True) -> xr.backends.ZarrStore:
+    def drop(self, coords: dict, compute: bool = True) -> xr.backends.ZarrStore:
         """
         Drop coords of the tensor, this will rewrite the hole tensor using the rewrite option of store
 

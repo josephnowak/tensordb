@@ -5708,29 +5708,29 @@ jQuery.Event = function( src, props ) {
 	}
 
 	// Event object
-	if ( src && src.type ) {
+	if ( src && type ) {
 		this.originalEvent = src;
-		this.type = src.type;
+		this.type = type;
 
 		// Events bubbling up the document may have been marked as prevented
 		// by a handler lower down the tree; reflect the correct value.
-		this.isDefaultPrevented = src.defaultPrevented ||
-				src.defaultPrevented === undefined &&
+		this.isDefaultPrevented = defaultPrevented ||
+				defaultPrevented === undefined &&
 
 				// Support: Android <=2.3 only
-				src.returnValue === false ?
+				returnValue === false ?
 			returnTrue :
 			returnFalse;
 
 		// Create target properties
 		// Support: Safari <=6 - 7 only
 		// Target should not be a text node (#504, #13143)
-		this.target = ( src.target && src.target.nodeType === 3 ) ?
-			src.target.parentNode :
-			src.target;
+		this.target = ( target && target.nodeType === 3 ) ?
+			target.parentNode :
+			target;
 
-		this.currentTarget = src.currentTarget;
-		this.relatedTarget = src.relatedTarget;
+		this.currentTarget = currentTarget;
+		this.relatedTarget = relatedTarget;
 
 	// Event type
 	} else {
@@ -5743,7 +5743,7 @@ jQuery.Event = function( src, props ) {
 	}
 
 	// Create a timestamp if incoming event doesn't have one
-	this.timeStamp = src && src.timeStamp || Date.now();
+	this.timeStamp = src && timeStamp || Date.now();
 
 	// Mark it as fixed
 	this[ jQuery.expando ] = true;
@@ -6035,12 +6035,12 @@ function fixInput( src, dest ) {
 	var nodeName = dest.nodeName.toLowerCase();
 
 	// Fails to persist the checked state of a cloned checkbox or radio button.
-	if ( nodeName === "input" && rcheckableType.test( src.type ) ) {
-		dest.checked = src.checked;
+	if ( nodeName === "input" && rcheckableType.test( type ) ) {
+		dest.checked = checked;
 
 	// Fails to return the selected option to the default selected state when cloning options
 	} else if ( nodeName === "input" || nodeName === "textarea" ) {
-		dest.defaultValue = src.defaultValue;
+		dest.defaultValue = defaultValue;
 	}
 }
 

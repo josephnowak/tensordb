@@ -1,5 +1,6 @@
 import abc
-from typing import Dict, List, Any, Union, Literal, Callable
+from collections.abc import Callable
+from typing import Any, Literal, Union
 
 import dask
 import dask.array as da
@@ -15,16 +16,16 @@ from xarray.backends.common import AbstractWritableDataStore
 
 from tensordb.algorithms import Algorithms
 from tensordb.storages import BaseStorage, CachedStorage
-from tensordb.tensor_definition import TensorDefinition, MethodDescriptor, Definition
+from tensordb.tensor_definition import Definition, MethodDescriptor, TensorDefinition
 from tensordb.utils import dag
 from tensordb.utils.method_inspector import get_parameters
-from tensordb.utils.tools import groupby_chunks, extract_paths_from_formula
+from tensordb.utils.tools import extract_paths_from_formula, groupby_chunks
 
 
 class BaseTensorClient(Algorithms):
     internal_actions = ["store", "update", "append", "upsert", "drop"]
 
-    def add_custom_data(self, path, new_data: Dict):
+    def add_custom_data(self, path, new_data: dict):
         pass
 
     def get_custom_data(self, path, default=None):
@@ -43,13 +44,13 @@ class BaseTensorClient(Algorithms):
         pass
 
     @validate_call
-    def update_tensor_metadata(self, path: str, new_metadata: Dict[str, Any]):
+    def update_tensor_metadata(self, path: str, new_metadata: dict[str, Any]):
         tensor_definition = self.get_tensor_definition(path)
         tensor_definition.metadata.update(new_metadata)
         self.upsert_tensor(tensor_definition)
 
     @abc.abstractmethod
-    def get_all_tensors_definition(self) -> List[TensorDefinition]:
+    def get_all_tensors_definition(self) -> list[TensorDefinition]:
         pass
 
     @abc.abstractmethod
@@ -57,7 +58,7 @@ class BaseTensorClient(Algorithms):
         pass
 
     @validate_call
-    def delete_tensors(self, paths: List[str], only_data: bool = False):
+    def delete_tensors(self, paths: list[str], only_data: bool = False):
         """
         Delete multiple tensors, in case that some of them does not exist it is not going to raise an error.
 
@@ -96,10 +97,10 @@ class BaseTensorClient(Algorithms):
     @staticmethod
     def exec_on_parallel(
         method: Callable,
-        paths_kwargs: Dict[str, Dict[str, Any]],
+        paths_kwargs: dict[str, dict[str, Any]],
         max_parallelization: int = None,
         client: Client = None,
-        compute_kwargs: Dict[str, Any] = None,
+        compute_kwargs: dict[str, Any] = None,
     ):
         """
         This method was designed to execute multiple methods of the client on parallel
@@ -148,10 +149,10 @@ class BaseTensorClient(Algorithms):
     def exec_on_dag_order(
         self,
         method: Union[str, Callable],
-        kwargs_groups: Dict[str, Dict[str, Any]] = None,
-        tensors_path: List[str] = None,
-        parallelization_kwargs: Dict[str, Any] = None,
-        max_parallelization_per_group: Dict[str, int] = None,
+        kwargs_groups: dict[str, dict[str, Any]] = None,
+        tensors_path: list[str] = None,
+        parallelization_kwargs: dict[str, Any] = None,
+        max_parallelization_per_group: dict[str, int] = None,
         autofill_dependencies: bool = False,
         only_on_groups: set = None,
         check_dependencies: bool = True,
@@ -248,10 +249,10 @@ class BaseTensorClient(Algorithms):
     def get_dag_for_dask(
         self,
         method: Union[str, Callable],
-        kwargs_groups: Dict[str, Dict[str, Any]] = None,
-        tensors: List[TensorDefinition] = None,
-        max_parallelization_per_group: Dict[str, int] = None,
-        map_paths: Dict[str, str] = None,
+        kwargs_groups: dict[str, dict[str, Any]] = None,
+        tensors: list[TensorDefinition] = None,
+        max_parallelization_per_group: dict[str, int] = None,
+        map_paths: dict[str, str] = None,
         task_prefix: str = "task-",
         final_task_name: str = "WAIT",
     ) -> HighLevelGraph:
@@ -304,10 +305,10 @@ class BaseTensorClient(Algorithms):
 
     def apply_data_transformation(
         self,
-        data_transformation: List[MethodDescriptor],
+        data_transformation: list[MethodDescriptor],
         storage: BaseStorage,
-        definition: Dict[str, Definition],
-        parameters: Dict[str, Any],
+        definition: dict[str, Definition],
+        parameters: dict[str, Any],
         debug: bool = False,
     ):
         parameters = {**{"new_data": None}, **parameters}
@@ -338,7 +339,7 @@ class BaseTensorClient(Algorithms):
         self,
         path: Union[str, TensorDefinition],
         method_name: str,
-        parameters: Dict[str, Any],
+        parameters: dict[str, Any],
     ) -> Any:
         """
         Calls a specific method of a Storage, this includes send the parameters specified in the tensor_definition
@@ -418,7 +419,7 @@ class BaseTensorClient(Algorithms):
     @abc.abstractmethod
     def append(
         self, path: Union[str, TensorDefinition], **kwargs
-    ) -> List[AbstractWritableDataStore]:
+    ) -> list[AbstractWritableDataStore]:
         pass
 
     @abc.abstractmethod
@@ -436,13 +437,13 @@ class BaseTensorClient(Algorithms):
     @abc.abstractmethod
     def upsert(
         self, path: Union[str, TensorDefinition], **kwargs
-    ) -> List[AbstractWritableDataStore]:
+    ) -> list[AbstractWritableDataStore]:
         pass
 
     @abc.abstractmethod
     def drop(
         self, path: Union[str, TensorDefinition], **kwargs
-    ) -> List[AbstractWritableDataStore]:
+    ) -> list[AbstractWritableDataStore]:
         pass
 
     @abc.abstractmethod
@@ -454,7 +455,7 @@ class BaseTensorClient(Algorithms):
         path,
         max_cached_in_dim: int,
         dim: str,
-        sort_dims: List[str],
+        sort_dims: list[str],
         merge_cache: bool = False,
         update_logic: Literal["keep_last", "combine_first"] = "combine_first",
         **kwargs,
@@ -502,20 +503,20 @@ class BaseTensorClient(Algorithms):
         use_exec: bool = False,
         original_path: str = None,
         storage: BaseStorage = None,
-        **kwargs: Dict[str, Any],
+        **kwargs: dict[str, Any],
     ) -> Union[xr.DataArray, xr.Dataset]:
         data_fields = {}
         for path in extract_paths_from_formula(formula):
             if original_path is not None and original_path == path:
                 if storage is None:
                     raise ValueError(
-                        f"You can not make a self read without sending the storage parameter"
+                        "You can not make a self read without sending the storage parameter"
                     )
                 data_fields[path] = storage.read()
             else:
                 data_fields[path] = self.read(path)
 
-        for path, dataset in data_fields.items():
+        for path, _ in data_fields.items():
             formula = formula.replace(f"`{path}`", f"data_fields['{path}']")
 
         formula_globals = {

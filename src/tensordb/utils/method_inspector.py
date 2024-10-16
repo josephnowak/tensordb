@@ -1,9 +1,9 @@
 import inspect
+from collections.abc import Callable
+from typing import Any
 
-from typing import Callable, Dict, Any
 
-
-def get_parameters(func: Callable, *args: Dict[str, Any]):
+def get_parameters(func: Callable, *args: dict[str, Any]):
     signature = inspect.signature(func)
     func_parameters = list(signature.parameters.keys())
 

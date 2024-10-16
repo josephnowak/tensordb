@@ -1,8 +1,8 @@
-from typing import Any
 from collections.abc import Generator
+from typing import Any
 
 import pytest
-from dask.distributed import LocalCluster, Client
+from dask.distributed import Client, LocalCluster
 
 
 @pytest.fixture(scope="session")

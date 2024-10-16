@@ -1,6 +1,6 @@
-from typing import Dict, List, Any, Optional, Literal
+from typing import Any, Literal, Optional
 
-from pydantic import ConfigDict, BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class DAGOrder(BaseModel):
@@ -10,7 +10,7 @@ class DAGOrder(BaseModel):
     tensor execution.
     """
 
-    depends: Optional[List[str]] = Field(
+    depends: Optional[list[str]] = Field(
         default=[],
         title="Depends",
         description="""
@@ -25,7 +25,7 @@ class DAGOrder(BaseModel):
         Useful to send parameters by groups on the exec_on_dag_order method of the tensor client
         """,
     )
-    omit_on: List[Literal["append", "update", "store", "upsert"]] = Field(
+    omit_on: list[Literal["append", "update", "store", "upsert"]] = Field(
         title="Omit on",
         default=[],
         description="""
@@ -62,7 +62,7 @@ class MethodDescriptor(BaseModel):
         Name of the method that want to be used, it must match with the methods of storage or the tensor_client
         """,
     )
-    parameters: Optional[Dict[str, Any]] = Field(
+    parameters: Optional[dict[str, Any]] = Field(
         title="Parameters",
         default={},
         description="""
@@ -85,7 +85,7 @@ class Definition(BaseModel):
     because you can create a pipeline that transform or read your data from other sources.
     """
 
-    data_transformation: Optional[List[MethodDescriptor]] = Field(
+    data_transformation: Optional[list[MethodDescriptor]] = Field(
         title="Data Transformation",
         default=None,
         description="""
@@ -116,7 +116,7 @@ class TensorDefinition(BaseModel):
         """,
     )
 
-    definition: Optional[Dict[str, Definition]] = Field(
+    definition: Optional[dict[str, Definition]] = Field(
         title="Definition",
         default={},
         description="""
@@ -138,7 +138,7 @@ class TensorDefinition(BaseModel):
         Useful to send parameters to the Storage constructor or to change the default data storage
         """,
     )
-    metadata: Optional[Dict] = Field(
+    metadata: Optional[dict] = Field(
         title="Metadata",
         default={},
         description="""

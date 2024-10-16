@@ -52,22 +52,23 @@ dev = [
 # E501: line too long - let black worry about that
 # E731: do not assign a lambda expression, use a def
 extend-safe-fixes = [
-  "TID252", # absolute imports
+    "TID252", # absolute imports
 ]
 ignore = [
-  "E402",
-  "E501",
-  "E731",
-  "UP007",
+    "E402",
+    "E501",
+    "E731",
+    "UP007",
+    "UP038"
 ]
 extend-select = [
-  "B", # flake8-bugbear
-  "F", # Pyflakes
-  "E", # Pycodestyle
-  "W",
-  "TID", # flake8-tidy-imports (absolute imports)
-  "I", # isort
-  "UP", # Pyupgrade
+    "B", # flake8-bugbear
+    "F", # Pyflakes
+    "E", # Pycodestyle
+    "W",
+    "TID", # flake8-tidy-imports (absolute imports)
+    "I", # isort
+    "UP", # Pyupgrade
 ]
 
 [tool.ruff.lint.per-file-ignores]

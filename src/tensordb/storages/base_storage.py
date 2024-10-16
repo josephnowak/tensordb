@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from collections.abc import MutableMapping
-from typing import Dict, List, Union
+from typing import Union
 
 import xarray as xr
 
@@ -34,7 +34,7 @@ class BaseStorage:
         self,
         base_map: Union[Mapping, MutableMapping],
         tmp_map: Union[Mapping, MutableMapping],
-        data_names: Union[str, List[str]] = "data",
+        data_names: Union[str, list[str]] = "data",
         **kwargs
     ):
         if not isinstance(base_map, Mapping):
@@ -46,7 +46,7 @@ class BaseStorage:
         self.data_names = data_names
         self.group = None
 
-    def get_data_names_list(self) -> List[str]:
+    def get_data_names_list(self) -> list[str]:
         return (
             self.data_names if isinstance(self.data_names, list) else [self.data_names]
         )
@@ -67,7 +67,7 @@ class BaseStorage:
     @abstractmethod
     def append(
         self, new_data: Union[xr.DataArray, xr.Dataset], **kwargs
-    ) -> List[xr.backends.common.AbstractWritableDataStore]:
+    ) -> list[xr.backends.common.AbstractWritableDataStore]:
         """
         This abstractmethod must be overwritten to append new_data to an existing file, the way that it append the data
         will depend on the implementation of the Storage. For example :meth:`ZarrStorage.append`
@@ -137,7 +137,7 @@ class BaseStorage:
     @abstractmethod
     def upsert(
         self, new_data: Union[xr.DataArray, xr.Dataset], **kwargs
-    ) -> List[xr.backends.common.AbstractWritableDataStore]:
+    ) -> list[xr.backends.common.AbstractWritableDataStore]:
         """
         This abstractmethod must be overwritten to update and append new_data to an existing file,
         so basically it must be a combination between update and append. Reference :meth:`ZarrStorage.upsert`

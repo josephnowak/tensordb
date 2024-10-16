@@ -1,4 +1,5 @@
-from typing import Union, List, Dict, Literal, Any, Callable
+from collections.abc import Callable
+from typing import Any, Literal, Union
 
 import bottleneck as bn
 import dask
@@ -143,7 +144,7 @@ class Algorithms:
         dim: str,
         dtype,
         drop_dim: bool = False,
-        kwargs: Dict = None,
+        kwargs: dict = None,
     ) -> xr.DataArray:
         kwargs = kwargs or {}
         template = new_data.chunk({dim: -1})
@@ -320,7 +321,7 @@ class Algorithms:
     def replace(
         cls,
         new_data: Union[xr.DataArray, xr.Dataset],
-        to_replace: Dict,
+        to_replace: dict,
         dtype: Any = None,
         default_replace=None,
     ):
@@ -355,7 +356,7 @@ class Algorithms:
     def vindex(
         cls,
         new_data: Union[xr.DataArray, xr.Dataset],
-        coords: Dict,
+        coords: dict,
     ):
         """
         Implementation of dask vindex using xarray
@@ -395,12 +396,12 @@ class Algorithms:
     def apply_on_groups(
         cls,
         new_data: Union[xr.DataArray, xr.Dataset],
-        groups: Union[Dict, xr.DataArray],
+        groups: Union[dict, xr.DataArray],
         dim: str,
         func: Union[str, Callable],
         keep_shape: bool = False,
         unique_groups: np.ndarray = None,
-        kwargs: Dict[str, Any] = None,
+        kwargs: dict[str, Any] = None,
         template: Union[xr.DataArray, xr.Dataset, str] = None,
     ):
         """
@@ -556,7 +557,7 @@ class Algorithms:
         new_data: Union[xr.DataArray, xr.Dataset],
         dim: str,
         func: str,
-        kwargs: Dict[str, Any] = None,
+        kwargs: dict[str, Any] = None,
     ):
         """
         Group and merge duplicates coord base on a function, this can be a sum or a max. Read numpy-groupies
@@ -583,7 +584,7 @@ class Algorithms:
     def dropna(
         cls,
         new_data: Union[xr.DataArray, xr.Dataset],
-        dims: List[str],
+        dims: list[str],
         how: Literal["all"] = "all",
         client: Client = None,
     ):
@@ -598,7 +599,7 @@ class Algorithms:
     def drop_unmarked(
         cls,
         new_data: Union[xr.DataArray, xr.Dataset],
-        dims: List[str],
+        dims: list[str],
         how: Literal["all"] = "all",
         client: Client = None,
     ):
@@ -613,7 +614,7 @@ class Algorithms:
             valid_coords = dask.compute(*valid_coords)
         else:
             valid_coords = [c.result() for c in client.compute(valid_coords)]
-        return new_data.sel(dict(zip(dims, valid_coords)))
+        return new_data.sel(dict(zip(dims, valid_coords, strict=False)))
 
     @classmethod
     def append_previous(
@@ -824,7 +825,7 @@ class Algorithms:
         cls,
         data: xr.DataArray | xr.Dataset,
         coords,
-        preferred_chunks: Dict[str, int],
+        preferred_chunks: dict[str, int],
         fill_value: Any,
         apply_chunk: bool = True,
     ) -> xr.Dataset | xr.DataArray:
