@@ -875,7 +875,11 @@ class Algorithms:
         }
         # If it is not necessary to pad additional data then just use
         # reindex directly
-        if len(pad_width) == 0 or any(len(coord) == 0 for coord in coords):
+        if (
+            len(pad_width) == 0
+            or any(len(coord) == 0 for coord in coords)
+            or any(v == 0 for v in data.sizes.values())
+        ):
             data = data.reindex(coords, fill_value=fill_value)
             if apply_chunk:
                 data = data.chunk(preferred_chunks)

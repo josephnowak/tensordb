@@ -159,7 +159,7 @@ def xarray_from_func(
         arr = xr.Dataset(
             {
                 name: empty_xarray(dims, coords, chunks, dtype)
-                for name, dtype in zip(data_names, dtypes)
+                for name, dtype in zip(data_names, dtypes, strict=True)
             },
             coords=coords,
         )

@@ -308,7 +308,7 @@ def test_apply_on_groups(dim, keep_shape, func):
         coords={"a": [1, 2, 3, 4, 5], "b": [0, 1, 2, 3, 4]},
     ).chunk(a=3, b=2)
     grouper = {"a": [1, 5, 5, 0, 1], "b": [0, 1, 1, 0, -1]}
-    groups = {k: v for k, v in zip(arr.coords[dim].values, grouper[dim])}
+    groups = {k: v for k, v in zip(arr.coords[dim].values, grouper[dim], strict=True)}
 
     expected = arr.to_pandas()
     axis = 0 if dim == "a" else 1

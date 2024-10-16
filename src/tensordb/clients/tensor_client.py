@@ -7,7 +7,7 @@ from pydantic import validate_call
 from xarray.backends.common import AbstractWritableDataStore
 
 from tensordb.algorithms import Algorithms
-from tensordb.clients.base import BaseTensorClient
+from src.tensordb.clients.base import BaseTensorClient
 from tensordb.storages import BaseStorage, JsonStorage, MAPPING_STORAGES, PrefixLock
 from tensordb.storages.mapping import Mapping
 from tensordb.tensor_definition import TensorDefinition
