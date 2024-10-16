@@ -149,7 +149,10 @@ class Repository(BaseModel):
     def path(self):
         return self.join_paths(settings.REPOSITORY_PATH, f"{self.name}.json")
 
-    def save(self, fs: AsyncFileSystem, ):
+    def save(
+        self,
+        fs: AsyncFileSystem,
+    ):
         repository_path = self.path()
         if fs.exists(repository_path):
             raise KeyError(
@@ -171,8 +174,8 @@ class Branch(BaseModel):
     branch_type: Literal["standard", "transaction"] = Field(
         "standard",
         description="The standard branches only allows a read mode, "
-                    "to be able to write on them you need to create a transaction branch from it "
-                    "and merge it, or merge another standard branch with it.",
+        "to be able to write on them you need to create a transaction branch from it "
+        "and merge it, or merge another standard branch with it.",
     )
     group: str = Field(
         default=None,
@@ -208,7 +211,7 @@ class Branch(BaseModel):
             repository.name,
             self.group,
             settings.BRANCH_FOLDER,
-            f"{repository.default_branch_name}.json"
+            f"{repository.default_branch_name}.json",
         )
 
     def merge_path(self, repository: Repository):
@@ -240,7 +243,7 @@ class BranchFS(AsyncFileSystem):
         fs: AsyncFileSystem,
         repository_name: str,
         branch_name: str,
-        lock: BaseLock = None
+        lock: BaseLock = None,
     ):
         super().__init__()
         self.fs: AsyncFileSystem = fs
@@ -249,7 +252,7 @@ class BranchFS(AsyncFileSystem):
             self.lock = NoLock
 
         self._repo = self.get_repository(self.fs, repository_name)
-        self._branch = self.get_branch(branch_name)
+        self._branch = self.get_branch(branch_name, raise_error=True)
         self._transaction_path = Path(settings.TRANSACTION_PATH)
         self._status_path = Path(settings.TRANSACTION_STATUS_PATH)
         self._metadata_path = Path(settings.TRANSACTION_METADATA_PATH)
@@ -261,7 +264,9 @@ class BranchFS(AsyncFileSystem):
         repository.save(fs)
         try:
             branch_path = repository.join_paths(
-                base_path, settings.BRANCH_FOLDER, f"{repository.default_branch_name}.json"
+                base_path,
+                settings.BRANCH_FOLDER,
+                f"{repository.default_branch_name}.json",
             )
             branch = Branch(name=repository.default_branch_name)
             fs.pipe_file(branch_path, json.dumps(branch.model_dump()))
@@ -275,6 +280,7 @@ class BranchFS(AsyncFileSystem):
 
     @staticmethod
     def get_repository(fs: AsyncFileSystem, name: str) -> Repository:
+        # Validate if
         path = "/".join([settings.REPOSITORY_PATH, name, "repository.json"])
         return Repository(**json.loads(fs.cat_file(path)))
 
@@ -326,13 +332,17 @@ class BranchFS(AsyncFileSystem):
         )
         self.list_prefix(prefix, use_transaction=False)
 
-    def get_branch(self, branch_name: str) ->  | None:
+    def get_branch(self, branch_name: str, raise_error: bool = False) -> Branch | None:
         branch_path = self.get_branch_path(branch_name)
         try:
             return StandardBranch(
                 **json.loads(sync(self.get(key=branch_path, use_transaction=False)))
             )
-        except KeyError:
+        except KeyError as e:
+            if raise_error:
+                raise KeyError(
+                    f"The branch {branch_name} already exists on the repository {self._repo.name}"
+                ) from e
             return None
 
     def get_open_transactions(self):
