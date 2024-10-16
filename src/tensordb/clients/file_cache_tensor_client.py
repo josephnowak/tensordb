@@ -1,4 +1,4 @@
-from typing import List, Any, Union, Literal
+from typing import Any, Literal, Union
 
 import pandas as pd
 import xarray as xr
@@ -6,8 +6,7 @@ from pydantic import validate_call
 from xarray.backends.common import AbstractWritableDataStore
 
 from tensordb.clients.tensor_client import BaseTensorClient, TensorClient
-from tensordb.storages import BaseStorage
-from tensordb.storages import Mapping, PrefixLock
+from tensordb.storages import BaseStorage, Mapping, PrefixLock
 from tensordb.tensor_definition import TensorDefinition
 
 
@@ -65,7 +64,7 @@ class FileCacheTensorClient(BaseTensorClient):
 
     def get_all_tensors_definition(
         self, include_local: bool = True
-    ) -> List[TensorDefinition]:
+    ) -> list[TensorDefinition]:
         definitions = self.remote_client.get_all_tensors_definition()
         if include_local:
             local_definitions = self.local_client.get_all_tensors_definition()
@@ -123,7 +122,7 @@ class FileCacheTensorClient(BaseTensorClient):
 
         if "modification_date" not in local_definition.metadata:
             raise ValueError(
-                f"There is no modification date on the local definition metadata"
+                "There is no modification date on the local definition metadata"
             )
 
         if not force:
@@ -312,7 +311,7 @@ class FileCacheTensorClient(BaseTensorClient):
 
     def drop(
         self, path: Union[str, TensorDefinition], **kwargs
-    ) -> List[AbstractWritableDataStore]:
+    ) -> list[AbstractWritableDataStore]:
         return self._exec_callable(
             "drop",
             path=path,
@@ -338,7 +337,7 @@ class FileCacheTensorClient(BaseTensorClient):
 
     @validate_call
     def delete_tensors(
-        self, paths: List[str], only_data: bool = False, only_local: bool = True
+        self, paths: list[str], only_data: bool = False, only_local: bool = True
     ):
         for path in paths:
             try:

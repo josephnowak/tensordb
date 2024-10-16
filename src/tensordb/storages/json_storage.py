@@ -1,5 +1,3 @@
-from typing import Dict
-
 import orjson
 import xarray as xr
 from pydantic.v1.utils import deep_update
@@ -18,20 +16,20 @@ class JsonStorage(BaseStorage):
     def to_json_file_name(cls, path):
         return path.replace("\\", "/").replace("/", cls.default_character)
 
-    def store(self, new_data: Dict, path: str = None, **kwargs):
+    def store(self, new_data: dict, path: str = None, **kwargs):
         path = self.data_names if path is None else path
         new_name = self.to_json_file_name(path)
         self.base_map[new_name] = orjson.dumps(
             new_data, option=orjson.OPT_SERIALIZE_NUMPY
         )
 
-    def append(self, new_data: Dict, path: str = None, **kwargs):
-        raise NotImplemented("Use upsert")
+    def append(self, new_data: dict, path: str = None, **kwargs):
+        raise NotImplementedError("Use upsert")
 
-    def update(self, new_data: Dict, path: str = None, **kwargs):
-        raise NotImplemented("Use upsert")
+    def update(self, new_data: dict, path: str = None, **kwargs):
+        raise NotImplementedError("Use upsert")
 
-    def upsert(self, new_data: Dict, path: str = None, **kwargs):
+    def upsert(self, new_data: dict, path: str = None, **kwargs):
         path = self.data_names if path is None else path
         new_name = self.to_json_file_name(path)
         try:
@@ -41,7 +39,7 @@ class JsonStorage(BaseStorage):
         d = deep_update(d, new_data)
         self.store(path=path, new_data=d)
 
-    def read(self, path: str = None) -> Dict:
+    def read(self, path: str = None) -> dict:
         path = self.data_names if path is None else path
         new_name = self.to_json_file_name(path)
         try:

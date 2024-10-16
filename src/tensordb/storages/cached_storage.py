@@ -1,4 +1,4 @@
-from typing import Dict, Any, List, Literal
+from typing import Any, Literal
 
 import xarray as xr
 
@@ -41,7 +41,7 @@ class CachedStorage:
         storage: BaseStorage,
         max_cached_in_dim: int,
         dim: str,
-        sort_dims: List[str] = None,
+        sort_dims: list[str] = None,
         merge_cache: bool = False,
         update_logic: Literal["keep_last", "combine_first"] = "combine_first",
     ):
@@ -64,7 +64,7 @@ class CachedStorage:
         self._cached_count = 0
 
     def add_operation(
-        self, type_operation: str, new_data: xr.DataArray, parameters: Dict[str, Any]
+        self, type_operation: str, new_data: xr.DataArray, parameters: dict[str, Any]
     ):
         self._cached_count += new_data.sizes[self.dim]
         if type_operation == "append" and self._cache["store"]["new_data"]:

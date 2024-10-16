@@ -1,0 +1,82 @@
+[tool.pdm]
+
+[project]
+name = "TensorDB"
+version = "0.32.0"
+description = "Database based in a file system storage combined with Xarray and Zarr"
+keywords = ["Database Files Xarray Handler Zarr Store Read Write Append Update Upsert Backup Delete S3"]
+readme = "README.md"
+authors = [
+    { name = "Joseph Nowak", email = "josephgonowak97@gmail.com" },
+]
+classifiers = [
+    "Development Status :: 1 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: General",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.9",
+]
+dependencies = [
+    "dask[complete]>=2024.0.0",
+    "loguru>=0.7.0",
+    "more-itertools>=10.0.0",
+    "numbagg>=0.8.0",
+    "numpy>=1.26.0",
+    "orjson>=3.0.0",
+    "pandas>=2.0.0",
+    "pydantic>=2.0.0",
+    "xarray[accel]>=2023.0.0",
+    "zarr>=2.0.0",
+]
+requires-python = ">=3.11"
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "pytest",
+    "pytest-cov",
+    "pytest-env",
+    "pytest-xdist",
+    "sphinx",
+]
+
+[tool.ruff]
+
+[tool.ruff.lint]
+# E402: module level import not at top of file
+# E501: line too long - let black worry about that
+# E731: do not assign a lambda expression, use a def
+extend-safe-fixes = [
+    "TID252", # absolute imports
+]
+ignore = [
+    "E402",
+    "E501",
+    "E731",
+    "UP007",
+    "UP038"
+]
+extend-select = [
+    "B", # flake8-bugbear
+    "F", # Pyflakes
+    "E", # Pycodestyle
+    "W",
+    "TID", # flake8-tidy-imports (absolute imports)
+    "I", # isort
+    "UP", # Pyupgrade
+]
+
+[tool.ruff.lint.per-file-ignores]
+# don't enforce absolute imports
+
+[tool.ruff.lint.isort]
+known-first-party = ["tensordb"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+# Disallow all relative imports.
+ban-relative-imports = "all"

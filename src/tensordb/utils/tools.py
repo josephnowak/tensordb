@@ -1,6 +1,6 @@
 import itertools as it
-from typing import Callable, Union, Dict, Any, List, Hashable
-from typing import Generator, Iterable
+from collections.abc import Callable, Generator, Hashable, Iterable
+from typing import Any, Union
 
 import more_itertools as mit
 import numpy as np
@@ -10,7 +10,7 @@ from dask import array as da
 
 def groupby_chunks(
     iterable: Iterable,
-    group_chunk_size: Dict,
+    group_chunk_size: dict,
     group_func: Callable,
     sort_func: Callable = None,
 ) -> Generator:
@@ -59,7 +59,7 @@ def groupby_chunks(
 
 def iter_by_group_chunks(
     iterable: Iterable,
-    group_chunk_size: Dict,
+    group_chunk_size: dict,
     group_func: Callable,
 ) -> Generator:
     for name, group in it.groupby(sorted(iterable, key=group_func), group_func):
@@ -88,13 +88,13 @@ def empty_xarray(dims, coords, chunks, dtype):
 
 def xarray_from_func(
     func: Callable,
-    dims: List[Hashable],
-    coords: Dict[Hashable, Union[List, np.ndarray]],
-    chunks: Union[List[Union[int, None]], Dict[Hashable, int]],
-    dtypes: Union[List[Any], Any],
-    data_names: Union[List[Hashable], str] = None,
-    args: List[Any] = None,
-    kwargs: Dict[str, Any] = None,
+    dims: list[Hashable],
+    coords: dict[Hashable, Union[list, np.ndarray]],
+    chunks: Union[list[Union[int, None]], dict[Hashable, int]],
+    dtypes: Union[list[Any], Any],
+    data_names: Union[list[Hashable], str] = None,
+    args: list[Any] = None,
+    kwargs: dict[str, Any] = None,
 ) -> Union[xr.DataArray, xr.Dataset]:
     """
     Equivalent of dask fromfunction but it sends the xarray coords of every chunk instead of the positions
@@ -143,7 +143,8 @@ def xarray_from_func(
     if isinstance(chunks, dict):
         chunks = [chunks[dim] for dim in dims]
     chunks = [
-        len(coords[dim]) if chunk is None else chunk for chunk, dim in zip(chunks, dims)
+        len(coords[dim]) if chunk is None else chunk
+        for chunk, dim in zip(chunks, dims, strict=False)
     ]
     kwargs = {} if kwargs is None else kwargs
     args = [] if args is None else args
@@ -159,7 +160,7 @@ def xarray_from_func(
         arr = xr.Dataset(
             {
                 name: empty_xarray(dims, coords, chunks, dtype)
-                for name, dtype in zip(data_names, dtypes)
+                for name, dtype in zip(data_names, dtypes, strict=True)
             },
             coords=coords,
         )

@@ -1,17 +1,15 @@
 from functools import reduce
-from typing import List
 
 import more_itertools as mit
 
 from tensordb.tensor_definition import TensorDefinition
 
-
 # TODO: Update to python 3.9 or 3.10 to start using graphlib instead of use this function
 
 
 def get_tensor_dag(
-    tensors: List[TensorDefinition], check_dependencies: bool
-) -> List[List[TensorDefinition]]:
+    tensors: list[TensorDefinition], check_dependencies: bool
+) -> list[list[TensorDefinition]]:
     tensor_search = {tensor.path: tensor for tensor in tensors}
     # Create the dag based on the dependencies, so the node used as Key depends on the Nodes in the values
     # It's like there is an array from every node in the values to the Key node
@@ -49,8 +47,8 @@ def get_tensor_dag(
 
 
 def add_dependencies(
-    tensors: List[TensorDefinition], total_tensors: List[TensorDefinition]
-) -> List[TensorDefinition]:
+    tensors: list[TensorDefinition], total_tensors: list[TensorDefinition]
+) -> list[TensorDefinition]:
     total_tensors_search = {tensor.path: tensor for tensor in total_tensors}
     total_paths = set(tensor.path for tensor in tensors)
     for path, tensor in total_tensors_search.items():
