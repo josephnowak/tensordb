@@ -25,8 +25,8 @@ jobs:
           version: "0.4.22"
       - name: Install dependencies
         run: |
-          uv pip install ruff pytest pytest-cov pytest-xdist
-          uv pip install .
+          uv pip install ruff pytest pytest-cov pytest-xdist --system
+          uv pip install . --system
       - name: Lint with ruff
         run: |
           ruff check
