@@ -525,6 +525,10 @@ def test_rolling_overlap(window, apply_ffill):
 
 
 @pytest.mark.parametrize(
+    "method",
+    ["ffill", None],
+)
+@pytest.mark.parametrize(
     "slices",
     [{"a": [0, 3, 4], "b": [1, 3]}, {}, {"a": [0, 1], "b": [0]}],
 )
@@ -547,9 +551,9 @@ def test_rolling_overlap(window, apply_ffill):
 )
 @pytest.mark.parametrize(
     "chunks",
-    [{"a": 3, "b": 2}, {"a": 2, "b": 3}, {"a": 1, "b": 1}, {"a": 2}],
+    [{"a": 3, "b": 2}, {"a": 2, "b": 3}, {"a": 1, "b": 1}, {"a": 2}, {}],
 )
-def test_reindex_with_pad(slices, coords, chunks):
+def test_reindex_with_pad(method, slices, coords, chunks):
     arr = xr.DataArray(
         np.arange(5 * 7).reshape((5, 7)).astype(float),
         dims=["a", "b"],
@@ -558,15 +562,20 @@ def test_reindex_with_pad(slices, coords, chunks):
             "b": list(range(7)),
         },
     ).chunk(chunks)
+    if coords == {}:
+        coords = arr.coords
+        arr = arr.isel(a=slice(0, 0), b=slice(0, 0))
     arr = arr.isel(**slices)
-    expected = arr.reindex(coords, fill_value=-1.0)
+    expected = arr.reindex(coords, fill_value=-1.0, method=method)
 
     result = Algorithms.reindex_with_pad(
         data=arr,
         coords=coords,
         fill_value=-1.0,
         preferred_chunks=chunks,
+        method=method,
     )
+
     assert result.chunksizes == expected.chunk(chunks).chunksizes
     assert result.equals(expected)
 

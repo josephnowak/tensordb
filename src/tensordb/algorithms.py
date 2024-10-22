@@ -827,6 +827,7 @@ class Algorithms:
         coords,
         preferred_chunks: dict[str, int],
         fill_value: Any,
+        method: str = None,
         apply_chunk: bool = True,
     ) -> xr.Dataset | xr.DataArray:
         """
@@ -856,6 +857,8 @@ class Algorithms:
             to be preserved unless the apply_chunk is set to True (default)
         :param fill_value:
             Used in the reindex method
+        :param method
+            Used in the reindex method
         :param apply_chunk, default True
             If true then the chunk method is going to be applied after calling the reindex
             method of Xarray (which is called after padding the data).
@@ -865,80 +868,60 @@ class Algorithms:
         :return:
             A chunked reindexed data
         """
-        data = data.copy()
-        coords = {k: np.array(v) for k, v in coords.items()}
+        if method == "bfill":
+            raise NotImplementedError(
+                "The bfill method is not implemented for the moment"
+            )
 
-        pad_width = {
-            dim: (0, preferred_chunks[dim] - size)
-            for dim, size in data.sizes.items()
-            # Only add artificial data if the chunk is bigger than the size of the data
-            if preferred_chunks.get(dim, 0) > size
-        }
-        # If it is not necessary to pad additional data then just use
-        # reindex directly
-        if (
-            len(pad_width) == 0
-            or any(len(coord) == 0 for coord in coords)
-            or any(v == 0 for v in data.sizes.values())
-        ):
-            data = data.reindex(coords, fill_value=fill_value)
+        reindex_data = data.copy()
+        reindex_mapped_pad_coords = {}
+        reindex_mapped_coords = {}
+        inv_autoincrement_map = {}
+
+        for dim, coord in coords.items():
+            coord = np.array(coord)
+            pad_size = preferred_chunks.get(dim, 0) - data.sizes[dim]
+            reindex_mapped_coords[dim] = coord
+            if pad_size <= 0:
+                continue
+            data_coord = data.coords[dim].to_numpy()
+            total_coord = np.union1d(np.array(coord), data_coord)
+
+            auto_map = {c: i for i, c in enumerate(total_coord)}
+            mapped_data_coord = np.array([auto_map[c] for c in data_coord])
+            reindex_mapped_coords[dim] = np.array([auto_map[c] for c in coord])
+            reindex_mapped_pad_coords[dim] = np.concatenate(
+                (
+                    mapped_data_coord,
+                    list(range(len(total_coord), len(total_coord) + pad_size)),
+                ),
+            )
+
+            reindex_data.coords[dim] = mapped_data_coord
+            inv_autoincrement_map[dim] = {v: k for k, v in auto_map.items()}
+
+        if not reindex_mapped_pad_coords:
+            data = data.reindex(coords, fill_value=fill_value, method=method)
             if apply_chunk:
                 data = data.chunk(preferred_chunks)
             return data
 
-        # Create an autoincrement index per dim using ints to be able to map the coords
-        autoincrement_map = {}
-        for dim, coord in coords.items():
-            autoincrement_map[dim] = {}
-            extra_coord = np.array(data.coords[dim][~data.coords[dim].isin(coord)])
-            for v in np.concatenate((coord, extra_coord)):
-                if v not in autoincrement_map[dim]:
-                    autoincrement_map[dim][v] = len(autoincrement_map[dim])
-
-        inv_autoincrement_map = {
-            dim: {v: k for k, v in map_coord.items()}
-            for dim, map_coord in autoincrement_map.items()
-        }
-
-        # Add artificial data at the end of every dim if necessary to complete
-        # the chunk size.
-        padded_data = data.pad(
-            pad_width,
-            mode="edge",
+        reindex_data = reindex_data.reindex(reindex_mapped_pad_coords, method="ffill")
+        reindex_data = reindex_data.chunk(
+            {dim: -1 for dim in reindex_mapped_pad_coords.keys()}
         )
-        # Create a single chunk on the dims that has artificial data
-        padded_data = padded_data.chunk({dim: -1 for dim in pad_width.keys()})
-
-        # Using the autoincrement index we can assign a unique coord value
-        # to the artificial data created by the pad method
-        for dim in padded_data.dims:
-            mapped_coord = [autoincrement_map[dim][v] for v in data.coords[dim].values]
-            # Unique elements for the artificial data
-            mapped_coord += [
-                len(autoincrement_map[dim]) + i
-                for i, v in enumerate(
-                    padded_data.coords[dim][len(mapped_coord) :].values
-                )
-            ]
-            padded_data.coords[dim] = mapped_coord
-
-        # Reindex the padded data using the mapped version of the coords
-        # this is going to drop all the artificial data automatically
-        # and should also generate a better chunking
-        padded_reindex = padded_data.reindex(
-            {
-                dim: [autoincrement_map[dim][v] for v in coord]
-                for dim, coord in coords.items()
-            },
-            fill_value=fill_value,
+        reindex_data = reindex_data.reindex(
+            reindex_mapped_coords, method=method, fill_value=fill_value
         )
+
+        for dim in reindex_mapped_pad_coords.keys():
+            reindex_data.coords[dim] = np.array(
+                [
+                    inv_autoincrement_map[dim][c]
+                    for c in reindex_data.coords[dim].to_numpy()
+                ]
+            )
 
         if apply_chunk:
-            padded_reindex = padded_reindex.chunk(preferred_chunks)
-
-        # Revert the mapping
-        for dim in padded_reindex.dims:
-            padded_reindex.coords[dim] = [
-                inv_autoincrement_map[dim][v] for v in padded_reindex.coords[dim].values
-            ]
-        return padded_reindex
+            reindex_data = reindex_data.chunk(preferred_chunks)
+        return reindex_data
