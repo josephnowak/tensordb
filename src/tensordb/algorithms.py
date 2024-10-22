@@ -831,16 +831,10 @@ class Algorithms:
         apply_chunk: bool = True,
     ) -> xr.Dataset | xr.DataArray:
         """
-        The reindex with pad was created as an alternative to the standard
-        reindex method of Xarray but with the option of specify the expected chunks.
-
-        This is very useful in scenarios where a small dataset must be aligned
-        with a bigger one. When only reindex is used the number of chunks in the smaller
-        one are preserved and this creates a lot of them, and with this operation
-        some dummy data is added with the pad method to the small data to convert it
-        into a single chunk of a specific size before using reindex and this reduces
-        the size of the graph which can become a big bottleneck.
-
+        This function is going to pad artificial data on the dimensions whose
+        size is smaller than the preferred chunk before reindexing
+        to reduce the amount of chunks, to achieve that it generates an
+        autoincrement index that replace the coord
         Note: If it is not necessary to pad data then the algorithm is going to
         use reindex directly and then chunk the data.
 
@@ -877,12 +871,13 @@ class Algorithms:
         reindex_mapped_pad_coords = {}
         reindex_mapped_coords = {}
         inv_autoincrement_map = {}
+        pad_widths = {}
 
         for dim, coord in coords.items():
             coord = np.array(coord)
-            pad_size = preferred_chunks.get(dim, 0) - data.sizes[dim]
+            pad_width = preferred_chunks.get(dim, 0) - data.sizes[dim]
             reindex_mapped_coords[dim] = coord
-            if pad_size <= 0:
+            if pad_width <= 0:
                 continue
             data_coord = data.coords[dim].to_numpy()
             total_coord = np.union1d(np.array(coord), data_coord)
@@ -893,12 +888,13 @@ class Algorithms:
             reindex_mapped_pad_coords[dim] = np.concatenate(
                 (
                     mapped_data_coord,
-                    list(range(len(total_coord), len(total_coord) + pad_size)),
+                    list(range(len(total_coord), len(total_coord) + pad_width)),
                 ),
             )
 
             reindex_data.coords[dim] = mapped_data_coord
             inv_autoincrement_map[dim] = {v: k for k, v in auto_map.items()}
+            pad_widths[dim] = (0, pad_width)
 
         if not reindex_mapped_pad_coords:
             data = data.reindex(coords, fill_value=fill_value, method=method)
@@ -906,7 +902,9 @@ class Algorithms:
                 data = data.chunk(preferred_chunks)
             return data
 
-        reindex_data = reindex_data.reindex(reindex_mapped_pad_coords, method="ffill")
+        reindex_data = reindex_data.pad(pad_widths, mode="edge")
+        for dim, coord in reindex_mapped_pad_coords.items():
+            reindex_data.coords[dim] = coord
         reindex_data = reindex_data.chunk(
             {dim: -1 for dim in reindex_mapped_pad_coords.keys()}
         )
