@@ -867,6 +867,7 @@ class Algorithms:
                 "The bfill method is not implemented for the moment"
             )
 
+        is_coord_empty = False
         reindex_data = data.copy()
         reindex_mapped_pad_coords = {}
         reindex_mapped_coords = {}
@@ -880,6 +881,7 @@ class Algorithms:
             if pad_width <= 0:
                 continue
             data_coord = data.coords[dim].to_numpy()
+            is_coord_empty |= len(data_coord) == 0
             total_coord = np.union1d(np.array(coord), data_coord)
 
             auto_map = {c: i for i, c in enumerate(total_coord)}
@@ -896,7 +898,7 @@ class Algorithms:
             inv_autoincrement_map[dim] = {v: k for k, v in auto_map.items()}
             pad_widths[dim] = (0, pad_width)
 
-        if not reindex_mapped_pad_coords:
+        if not reindex_mapped_pad_coords or is_coord_empty:
             data = data.reindex(coords, fill_value=fill_value, method=method)
             if apply_chunk:
                 data = data.chunk(preferred_chunks)

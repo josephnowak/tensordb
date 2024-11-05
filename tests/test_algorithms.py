@@ -530,7 +530,7 @@ def test_rolling_overlap(window, apply_ffill):
 )
 @pytest.mark.parametrize(
     "slices",
-    [{"a": [0, 3, 4], "b": [1, 3]}, {}, {"a": [0, 1], "b": [0]}],
+    [{"a": [0, 3, 4], "b": [1, 3]}, {}, {"a": [0, 1], "b": [0]}, {"a": [1], "b": []}],
 )
 @pytest.mark.parametrize(
     "coords",
