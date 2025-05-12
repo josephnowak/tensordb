@@ -155,5 +155,3 @@ tensor_client.read('dummy_tensor_formula')
 3. ☁️ Store tensors using **S3-compatible storage** for scalability.  
 
 ---
-
-This README should now be **more structured**, **easier to read**, and **more engaging**! 🚀 Let me know if you'd like additional refinements! 😊
