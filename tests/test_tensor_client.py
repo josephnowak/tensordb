@@ -30,10 +30,7 @@ class TestTensorClient:
     def test_setup_tests(self, tmpdir):
         path = tmpdir.strpath.replace("\\", "/")
         self.tensor_client = TensorClient(
-            ob_store=obstore.store.LocalStore(
-                path + "/ob_store",
-                mkdir=True
-            ),
+            ob_store=obstore.store.LocalStore(path + "/ob_store", mkdir=True),
             ic_storage=LocalStorageModel(
                 path=path + "/ic_storage",
             ),
