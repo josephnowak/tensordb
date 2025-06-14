@@ -1,6 +1,7 @@
-from collections.abc import MutableMapping
-from typing import Any, Literal, Union
+from concurrent.futures import ThreadPoolExecutor
+from typing import Any, Union
 
+import obstore
 import orjson
 import xarray as xr
 from pydantic import validate_call
@@ -8,9 +9,9 @@ from xarray.backends.common import AbstractWritableDataStore
 
 from tensordb.algorithms import Algorithms
 from tensordb.clients.base import BaseTensorClient
-from tensordb.storages import MAPPING_STORAGES, BaseStorage, JsonStorage, PrefixLock
-from tensordb.storages.mapping import Mapping
+from tensordb.storages import MAPPING_STORAGES, BaseStorage, JsonStorage
 from tensordb.tensor_definition import TensorDefinition
+from tensordb.utils.ic_storage_model import LocalStorageModel, S3StorageModel
 
 
 class TensorClient(BaseTensorClient, Algorithms):
@@ -38,17 +39,8 @@ class TensorClient(BaseTensorClient, Algorithms):
 
     Parameters
     ----------
-    base_map: MutableMapping
+    base_map: FsspecStore
        Mapping storage interface where all the tensors are stored.
-
-    tmp_map: MutableMapping
-        Equivalent to the base_map but for the temporary storage, this is only used when there is the necessity of
-        restore a tensor (insert new data in the middle of a tensor).
-
-    synchronizer: Union[Literal['process', 'thread'], None, PrefixLock] = None
-        Some Storages used to handle the files support a synchronizer, this parameter is used as a default
-        synchronizer option for every one of them.
-        The Mapping class provided by this library offers a lock solution for this purpose.
 
     **kwargs: Dict
         Useful when you want to inherent from this class.
@@ -170,35 +162,27 @@ class TensorClient(BaseTensorClient, Algorithms):
 
     def __init__(
         self,
-        base_map: MutableMapping,
-        tmp_map: MutableMapping = None,
-        synchronizer: Union[Literal["process", "thread"], None, PrefixLock] = None,
-        synchronize_only_write: bool = False,
+        ob_store: obstore.store.ObjectStore,
+        ic_storage: S3StorageModel | LocalStorageModel = None,
         **kwargs,
     ):
-        self.base_map = base_map
-        if not isinstance(base_map, Mapping):
-            self.base_map: Mapping = Mapping(base_map)
+        self.ob_store = ob_store
 
-        self.tmp_map = self.base_map.sub_map("tmp") if tmp_map is None else tmp_map
-        if not isinstance(self.tmp_map, Mapping):
-            self.tmp_map: Mapping = Mapping(tmp_map)
-
-        self.synchronizer = synchronizer
-        # TODO: Drop this parameter once this is fix https://github.com/zarr-developers/zarr-python/issues/1414
-        self.synchronize_only_write = synchronize_only_write
         self._tensors_definition = JsonStorage(
-            base_map=self.base_map.sub_map("_tensors_definition"),
-            tmp_map=self.tmp_map.sub_map("_tensors_definition"),
+            ob_store=ob_store,
+            sub_path="_tensors_definition",
         )
+        self.ic_storage = ic_storage
 
     def add_custom_data(self, path, new_data: dict):
-        self.base_map[path] = orjson.dumps(new_data, option=orjson.OPT_SERIALIZE_NUMPY)
+        self.ob_store.put(
+            path, orjson.dumps(new_data, option=orjson.OPT_SERIALIZE_NUMPY)
+        )
 
     def get_custom_data(self, path, default=None):
         try:
-            return orjson.loads(self.base_map[path])
-        except KeyError:
+            return orjson.loads(self.ob_store.get(path).bytes().to_bytes())
+        except FileNotFoundError:
             return default
 
     @validate_call
@@ -249,8 +233,8 @@ class TensorClient(BaseTensorClient, Algorithms):
         """
         try:
             return TensorDefinition(**self._tensors_definition.read(path))
-        except KeyError as e:
-            raise KeyError(
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
                 f"The tensor {path} has not been created using the create_tensor method"
             ) from e
 
@@ -261,13 +245,18 @@ class TensorClient(BaseTensorClient, Algorithms):
         self.upsert_tensor(tensor_definition)
 
     def get_all_tensors_definition(self) -> list[TensorDefinition]:
-        from concurrent.futures import ThreadPoolExecutor
-
         with ThreadPoolExecutor() as executor:
+            paths = self.ob_store.list(
+                prefix=self._tensors_definition.sub_path,
+            ).collect()
+            paths = [
+                path["path"].replace("\\", "/").replace("_tensors_definition/", "")
+                for path in paths
+            ]
             results = list(
                 executor.map(
                     self.get_tensor_definition,
-                    list(self._tensors_definition.base_map.keys()),
+                    paths,
                 )
             )
         return results
@@ -308,14 +297,11 @@ class TensorClient(BaseTensorClient, Algorithms):
         """
         definition = self.get_tensor_definition(path) if isinstance(path, str) else path
 
-        storage = MAPPING_STORAGES["zarr_storage"]
-
         storage = MAPPING_STORAGES[definition.storage.storage_name]
         storage = storage(
-            base_map=self.base_map.sub_map(definition.path),
-            tmp_map=self.tmp_map.sub_map(definition.path),
-            synchronizer=self.synchronizer,
-            synchronize_only_write=self.synchronize_only_write,
+            ob_store=self.ob_store,
+            sub_path=definition.path,
+            ic_storage=self.ic_storage,
             **definition.storage.model_dump(exclude_unset=True),
         )
         return storage
@@ -432,7 +418,7 @@ class TensorClient(BaseTensorClient, Algorithms):
                 return exist_definition
             self.read(path=path, **kwargs)
             return True
-        except KeyError:
+        except FileNotFoundError:
             return False
 
     def read_from_formula(

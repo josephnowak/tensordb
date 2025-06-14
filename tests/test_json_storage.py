@@ -1,4 +1,4 @@
-import fsspec
+import obstore
 import pytest
 
 from tensordb.storages import JsonStorage
@@ -9,9 +9,8 @@ class TestJsonStorage:
     def setup_tests(self, tmpdir):
         sub_path = tmpdir.strpath
         self.storage = JsonStorage(
-            base_map=fsspec.get_mapper(sub_path + "/json"),
-            tmp_map=fsspec.get_mapper(sub_path + "/tmp"),
-            path="json_storage",
+            obstore.store.LocalStore(sub_path),
+            sub_path="json_storage",
         )
         self.dummy_data = {"a": 0, "1": 2, "c": {"e": 10}}
 

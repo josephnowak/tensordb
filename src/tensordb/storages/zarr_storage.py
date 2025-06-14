@@ -1,19 +1,21 @@
 from collections.abc import Hashable
-from typing import Any, Literal, Union
+from typing import Any, Union
 
+import icechunk as ic
 import numpy as np
+import pandas as pd
 import xarray as xr
-import zarr
+from icechunk.xarray import to_icechunk
 
 from tensordb.algorithms import Algorithms
 from tensordb.storages.base_storage import BaseStorage
-from tensordb.storages.lock import PrefixLock
-from tensordb.storages.mapping import Mapping
+from tensordb.utils.ic_storage_model import LocalStorageModel, S3StorageModel
 
 
 class ZarrStorage(BaseStorage):
     """
-    Storage created for the Zarr files which implement the necessary methods to be used by the TensorClient.
+    Storage created for the Zarr files using Icechunk
+    which implement the necessary methods to be used by the TensorClient.
 
     Parameters
     ----------
@@ -22,12 +24,6 @@ class ZarrStorage(BaseStorage):
         Define the chunks of the Zarr files, read the doc of the Xarray method
         `to_zarr <https://xr.pydata.org/en/stable/generated/xarray.Dataset.to_zarr.html>`_
         in the parameter 'chunks' for more details.
-
-    synchronizer: Union[Literal['process', 'thread', 'distributed'], None, PrefixLock], default None
-        Depending on the option send it will create a zarr.sync.ThreadSynchronizer or a zarr.sync.ProcessSynchronizer
-        for more info read the doc of `Zarr synchronizer <https://zarr.readthedocs.io/en/stable/api/sync.html>`_
-        and the Xarray method `to_zarr <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
-        in the parameter 'synchronizer'.
 
     max_unsort_dims_to_rechunk: int, default 1
         If less or equal dimensions than this number needs to be sorted then create a unique
@@ -40,40 +36,63 @@ class ZarrStorage(BaseStorage):
 
     def __init__(
         self,
-        tmp_map: Mapping,
+        ic_storage: S3StorageModel | LocalStorageModel,
         chunks: dict[str, int] = None,
-        synchronizer: Union[Literal["process", "thread"], PrefixLock] = None,
         unique_coords: dict[str, bool] = None,
         sorted_coords: dict[str, bool] = None,
         encoding: dict[str, Any] = None,
-        synchronize_only_write: bool = False,
         default_unique_coord: bool = True,
         max_unsort_dims_to_rechunk: int = 1,
         **kwargs,
     ):
-        super().__init__(tmp_map=tmp_map, **kwargs)
+        super().__init__(**kwargs)
 
-        lock_path = f"{tmp_map.root}/zarr_process_lock"
-        if self.base_map.sub_path is not None:
-            lock_path = f"{lock_path}/{self.base_map.sub_path}"
-
-        if synchronizer == "process":
-            synchronizer = zarr.ProcessSynchronizer(lock_path)
-        elif synchronizer == "thread":
-            synchronizer = zarr.ThreadSynchronizer()
-        elif synchronizer is not None:
-            synchronizer = synchronizer(path=lock_path)
-
+        self.ic_storage = ic_storage.get_storage(self.sub_path)
         self.chunks = chunks
         if self.chunks is None:
             self.chunks = {}
-        self.synchronizer = synchronizer
         self.unique_coords = unique_coords or {}
         self.sorted_coords = sorted_coords or {}
         self.encoding = encoding
-        self.synchronize_only_write = synchronize_only_write
         self.default_unique_coord = default_unique_coord
         self.max_unsort_dims_to_rechunk = max_unsort_dims_to_rechunk
+
+    def get_writable_session(self) -> ic.Session:
+        repo = ic.Repository.open_or_create(
+            self.ic_storage,
+        )
+        return repo.writable_session("main")
+
+    def get_readonly_session(self) -> ic.Session:
+        repo = ic.Repository.open_or_create(
+            self.ic_storage,
+        )
+        return repo.readonly_session("main")
+
+    @staticmethod
+    def merge_sessions(
+        sessions: list[ic.Session],
+    ) -> ic.Session:
+        """
+        Merge multiple sessions into one, this is useful when you want to store multiple
+        datasets in a single session.
+
+        Parameters
+        ----------
+        sessions: list[ic.Session]
+            List of sessions to merge
+        Returns
+        -------
+        An ic.Session with the merged data
+        """
+        merged_session = None
+        for session in sessions:
+            if session is not None:
+                if merged_session is None:
+                    merged_session = session
+                else:
+                    merged_session.merge(session)
+        return merged_session
 
     def _keep_unique_coords(self, new_data):
         new_data = new_data.sel(
@@ -358,7 +377,8 @@ class ZarrStorage(BaseStorage):
 
     @staticmethod
     def clear_encoding(dataset):
-        # TODO: Once https://github.com/pydata/xarray/issues/4380 is fixed delete the temporal solution of encoding
+        # TODO: Once https://github.com/pydata/xarray/issues/6323
+        #  is fixed delete the temporal solution of encoding
         for arr in dataset.values():
             arr.encoding.clear()
             for dim in arr.dims:
@@ -367,10 +387,8 @@ class ZarrStorage(BaseStorage):
     def store(
         self,
         new_data: Union[xr.DataArray, xr.Dataset],
-        compute: bool = True,
-        rewrite: bool = False,
-        on_tmp: bool = False,
-    ) -> Union[xr.backends.ZarrStore, xr.Dataset, xr.DataArray]:
+        commit: bool = True,
+    ) -> ic.Session:
         """
         Store the data, the dtype and all the details will depend on what you pass in the new_data
         parameter, internally this method calls the method
@@ -381,26 +399,14 @@ class ZarrStorage(BaseStorage):
         ----------
 
         new_data: Union[xr.DataArray, xr.Dataset]
-            This is the data that want to be stored
+            This is the data that wants to be stored
 
-        compute: bool, default True
-            Same meaning that in xarray
-
-        rewrite: bool, default False
-            If it is True, it allows to overwrite the tensor using its own data, this can be inefficient due that
-            first it has to store the tensor on a temporal location to then write it on the original and delete
-            the temporal.
-            The compute option is always set as True if the rewrite option is active
-
-        on_tmp: bool, default False
-            If this option is enable then the data is only stored on the temporal folder and
-            the stored data is returned, this can be useful for operations like dropna which raise
-            the computations automatically
+        commit: bool, default True
+            If True then the session is committed, otherwise it is not committed
 
         Returns
         -------
-        An xr.backends.ZarrStore produced by the method
-        `to_zarr <https://xarray.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_
+        An ic.Session
 
         """
         new_data = self._keep_unique_coords(new_data)
@@ -408,45 +414,27 @@ class ZarrStorage(BaseStorage):
         new_data = self._transform_to_dataset(new_data)
 
         self.clear_encoding(new_data)
-
-        if rewrite or on_tmp:
-            compute = True
-            new_data.to_zarr(
-                self.tmp_map,
-                mode="w",
-                compute=compute,
-                consolidated=True,
-                encoding=self.encoding,
-            )
-            new_data = xr.open_zarr(
-                self.tmp_map,
-                consolidated=True,
-            )
-            if on_tmp:
-                return new_data[self.data_names]
-
-        self.delete_tensor()
-
-        delayed_write = new_data.to_zarr(
-            self.base_map,
+        session = self.get_writable_session()
+        to_icechunk(
+            new_data,
+            session,
             mode="w",
-            compute=compute,
-            consolidated=True,
-            group=self.group,
             encoding=self.encoding,
         )
 
-        if rewrite:
-            self.tmp_map.rmdir()
+        if commit:
+            session.commit(
+                message=f"Stored on {pd.Timestamp.now()}",
+            )
 
-        return delayed_write
+        return session
 
     def append(
         self,
         new_data: Union[xr.DataArray, xr.Dataset],
-        compute: bool = True,
+        commit: bool = True,
         fill_value: Any = np.nan,
-    ) -> list[xr.backends.ZarrStore]:
+    ) -> ic.Session | None:
         """
         Append data at the end of a Zarr file (in case that the file does not exist it will call the store method),
         internally it calls the method
@@ -459,8 +447,8 @@ class ZarrStorage(BaseStorage):
         new_data: Union[xr.DataArray, xr.Dataset]
             This is the data that want to be appended at the end
 
-        compute: bool, default True
-            Same meaning that in xarray
+        commit: bool, default True
+            If True then the session is committed, otherwise it is not committed
 
         fill_value: Any, default np.nan
             The append method can create many empty cells (equivalent to a pandas/xarray concat) so this parameter
@@ -469,55 +457,51 @@ class ZarrStorage(BaseStorage):
         Returns
         -------
 
-        A list of xr.backends.ZarrStore produced by the to_zarr method executed in every dimension
+        An icechunk Session
 
         """
 
         if not self.exist():
-            return [self.store(new_data=new_data, compute=compute)]
+            return self.store(new_data=new_data, commit=commit)
 
         complete_data, data_to_append, rewrite = self.append_preview(
             new_data=new_data, fill_value=fill_value
         )
 
         if rewrite:
-            return [self.store(new_data=complete_data, compute=compute, rewrite=True)]
+            return self.store(new_data=complete_data, commit=commit)
 
-        # TODO: For some reason there is an error if more than one dim is tried to be append
-        #   without a synchronizer even if they are executed one after the other, or apparently
-        #   I'm not using properly the bind function of Dask, so for now set to compute as True
-        #   if there is two or more dims to append
-        if len(data_to_append) > 1 and self.synchronizer is None:
-            compute = True
-
+        session = self.get_writable_session()
         dims = complete_data[list(complete_data.keys())[0]].dims
-        delayed_appends = []
+        modified = False
         for dim in dims:
             if dim not in data_to_append:
                 continue
 
-            delayed_appends.append(
-                data_to_append[dim].to_zarr(
-                    self.base_map,
-                    append_dim=dim,
-                    compute=compute,
-                    synchronizer=self.synchronizer,
-                    consolidated=True,
-                    group=self.group,
-                    # TODO: Send an MR to Xarray solving the incorrect detection of chunks
-                    safe_chunks=False,
-                )
+            modified = True
+            to_icechunk(
+                data_to_append[dim],
+                session,
+                append_dim=dim,
+                safe_chunks=False,
             )
 
-        return delayed_appends
+        if not modified:
+            return None
+
+        if commit:
+            session.commit(
+                message=f"Appended on {pd.Timestamp.now()}",
+            )
+        return session
 
     def update(
         self,
         new_data: Union[xr.DataArray, xr.Dataset],
-        compute: bool = True,
+        commit: bool = True,
         complete_update_dims: Union[list[str], str] = None,
         fill_value: Any = np.nan,
-    ) -> Union[xr.backends.ZarrStore, None]:
+    ) -> None | ic.Session:
         """
         Replace data on an existing Zarr files based on the new_data, internally calls the method
         `to_zarr <https://xr.pydata.org/en/stable/generated/xr.Dataset.to_zarr.html>`_ using the
@@ -537,8 +521,8 @@ class ZarrStorage(BaseStorage):
             complete_update_dims are used to reindex new_data and put NaN whenever there are coords of the original
             array that are not in the coords of new_data.
 
-        compute: bool, default True
-            Same meaning that in xarray
+        commit: bool, default True
+            If True then the session is committed, otherwise it is not committed
 
         fill_value: Any, default np.nan
 
@@ -557,24 +541,26 @@ class ZarrStorage(BaseStorage):
         if not regions:
             return None
 
-        delayed_write = update_data.to_zarr(
-            self.base_map,
-            group=self.group,
-            compute=compute,
-            synchronizer=self.synchronizer,
+        session = self.get_writable_session()
+        to_icechunk(
+            update_data,
+            session,
             region=regions,
-            # This option is safe based on this https://github.com/pydata/xarray/issues/9072
             safe_chunks=False,
         )
-        return delayed_write
+        if commit:
+            session.commit(
+                message=f"Appended on {pd.Timestamp.now()}",
+            )
+        return session
 
     def upsert(
         self,
         new_data: Union[xr.DataArray, xr.Dataset],
-        compute: bool = True,
+        commit: bool = True,
         complete_update_dims: Union[list[str], str] = None,
         fill_value: Any = np.nan,
-    ) -> list[xr.backends.ZarrStore]:
+    ) -> ic.Session | None:
         """
         Calls the update and then the append method, if the tensor do not exist then it calls the store method
 
@@ -584,20 +570,23 @@ class ZarrStorage(BaseStorage):
 
         """
         if not self.exist():
-            return [self.store(new_data, compute=compute)]
+            return self.store(new_data, commit=commit)
 
-        delayed_writes = [
+        sessions = [
             self.update(
-                new_data, compute=compute, complete_update_dims=complete_update_dims
-            )
+                new_data, commit=False, complete_update_dims=complete_update_dims
+            ),
+            self.append(new_data, commit=False, fill_value=fill_value),
         ]
-        delayed_writes.extend(
-            self.append(new_data, compute=compute, fill_value=fill_value)
-        )
-        delayed_writes = [write for write in delayed_writes if write is not None]
-        return delayed_writes
 
-    def drop(self, coords: dict, compute: bool = True) -> xr.backends.ZarrStore:
+        merged_session = self.merge_sessions(sessions)
+        if commit:
+            merged_session.commit(
+                message=f"Upserted on {pd.Timestamp.now()}",
+            )
+        return merged_session
+
+    def drop(self, coords: dict, commit: bool = True) -> ic.Session:
         """
         Drop coords of the tensor, this will rewrite the hole tensor using the rewrite option of store
 
@@ -607,7 +596,7 @@ class ZarrStorage(BaseStorage):
         coords: Dict
             Coords that are going to be deleted from the tensor
 
-        compute: bool, default True
+        commit: bool, default True
             Same meaning that in xarray
 
         Returns
@@ -617,7 +606,7 @@ class ZarrStorage(BaseStorage):
         """
         new_data = self.read()
         new_data = new_data.drop_sel(coords)
-        return self.store(new_data=new_data, compute=compute, rewrite=True)
+        return self.store(new_data=new_data, commit=commit)
 
     def read(self) -> Union[xr.DataArray, xr.Dataset]:
         """
@@ -634,18 +623,17 @@ class ZarrStorage(BaseStorage):
         with some names or a name
         """
         try:
+            session = self.get_readonly_session()
             dataset = xr.open_zarr(
-                self.base_map,
-                consolidated=True,
-                synchronizer=None if self.synchronize_only_write else self.synchronizer,
-                group=self.group,
+                session.store,
+                consolidated=False,
             )
             dataset = dataset[self.data_names]
             return dataset
-        except KeyError as e:
-            raise KeyError(
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
                 f"The data_names {self.data_names} does not exist on the tensor "
-                f"located at: {self.base_map.full_path(None)} or the tensor has not been stored yet"
+                f"located at: {self.ob_store.prefix} or the tensor has not been stored yet"
             ) from e
 
     def exist(self) -> bool:
@@ -663,5 +651,5 @@ class ZarrStorage(BaseStorage):
         try:
             self.read()
             return True
-        except KeyError:
+        except (KeyError, FileNotFoundError):
             return False

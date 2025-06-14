@@ -1,10 +1,10 @@
-import dask
-import fsspec
 import numpy as np
+import obstore
 import pytest
 import xarray as xr
 
 from tensordb.storages import ZarrStorage
+from tensordb.utils.ic_storage_model import LocalStorageModel
 
 # TODO: Add more tests for the dataset cases
 
@@ -12,42 +12,38 @@ from tensordb.storages import ZarrStorage
 class TestZarrStorage:
     @pytest.fixture(autouse=True)
     def setup_tests(self, tmpdir):
-        sub_path = tmpdir.strpath
+        sub_path = tmpdir.strpath.replace("\\", "/")
         self.storage = ZarrStorage(
-            base_map=fsspec.get_mapper(sub_path + "/zarr_storage"),
-            tmp_map=fsspec.get_mapper(sub_path + "/tmp/zarr_storage"),
+            ob_store=obstore.store.LocalStore(sub_path),
+            ic_storage=LocalStorageModel(path=sub_path),
             data_names="data_test",
             chunks={"index": 3, "columns": 2},
-            # synchronizer='process',
-            synchronize_only_write=True,
+            sub_path="zarr_storage",
         )
         self.storage_dataset = ZarrStorage(
-            base_map=fsspec.get_mapper(sub_path + "/zarr_dataset"),
-            tmp_map=fsspec.get_mapper(sub_path + "/tmp/zarr_dataset"),
+            ob_store=obstore.store.LocalStore(sub_path),
+            ic_storage=LocalStorageModel(path=sub_path),
             data_names=["a", "b", "c"],
             chunks={"index": 3, "columns": 2},
-            synchronizer="process",
-            synchronize_only_write=True,
+            sub_path="zarr_dataset",
         )
         self.storage_sorted_unique = ZarrStorage(
-            base_map=fsspec.get_mapper(sub_path + "/zarr_sorted_unique"),
-            tmp_map=fsspec.get_mapper(sub_path + "/tmp/zarr_sorted_unique"),
+            ob_store=obstore.store.LocalStore(sub_path),
+            ic_storage=LocalStorageModel(path=sub_path),
             data_names="data_test",
             chunks={"index": 3, "columns": 2},
             unique_coords={"index": True, "columns": True},
             sorted_coords={"index": False, "columns": False},
-            # synchronizer='thread',
-            synchronize_only_write=True,
+            sub_path="zarr_sorted_unique",
         )
         self.storage_dataset_sorted_unique = ZarrStorage(
-            base_map=fsspec.get_mapper(sub_path + "/zarr_dataset_sorted_unique"),
-            tmp_map=fsspec.get_mapper(sub_path + "/tmp/zarr_dataset_sorted_unique"),
+            ob_store=obstore.store.LocalStore(sub_path, mkdir=True),
+            ic_storage=LocalStorageModel(path=sub_path),
             data_names=["a", "b", "c"],
             chunks={"index": 3, "columns": 2},
             unique_coords={"index": True, "columns": True},
             sorted_coords={"index": False, "columns": False},
-            # synchronizer='process',
-            synchronize_only_write=True,
+            sub_path="zarr_dataset_sorted_unique",
         )
         self.arr = xr.DataArray(
             data=np.array(
@@ -139,10 +135,7 @@ class TestZarrStorage:
     @pytest.mark.parametrize("keep_order", [True, False])
     @pytest.mark.parametrize("as_dask", [True, False])
     @pytest.mark.parametrize("only_diagonal_data", [True, False])
-    @pytest.mark.parametrize("compute", [True, False])
-    def test_append_diagonal(
-        self, keep_order: bool, as_dask: bool, only_diagonal_data, compute
-    ):
+    def test_append_diagonal(self, keep_order: bool, as_dask: bool, only_diagonal_data):
         storage = self.storage_sorted_unique if keep_order else self.storage
         arr = self.arr
         if as_dask:
@@ -156,16 +149,13 @@ class TestZarrStorage:
             coords={"index": [5, 6, 7, 8], "columns": [5, 6, 7, 8]},
         )
 
-        delayed = []
         if only_diagonal_data:
             for i in range(4):
-                delayed.append(
-                    storage.append(data.isel(index=[i], columns=[i]), compute=compute)
-                )
+                storage.append(data.isel(index=[i], columns=[i]))
             diagonal = data.where(data.isin([0, 5, 10, 15]))
             expected = xr.concat([self.arr, diagonal], dim="index")
         else:
-            delayed.append(storage.append(data, compute=compute))
+            storage.append(data)
             expected = xr.concat([self.arr, data], dim="index")
 
         if keep_order:
@@ -173,9 +163,6 @@ class TestZarrStorage:
                 index=np.sort(expected.coords["index"])[::-1],
                 columns=np.sort(expected.coords["columns"])[::-1],
             )
-
-        if not compute:
-            dask.compute(delayed)
 
         assert expected.equals(storage.read())
         storage.delete_tensor()

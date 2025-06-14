@@ -22,7 +22,7 @@ from tensordb.utils.method_inspector import get_parameters
 from tensordb.utils.tools import extract_paths_from_formula, groupby_chunks
 
 
-class BaseTensorClient(Algorithms):
+class BaseTensorClient(Algorithms, abc.ABC):
     internal_actions = ["store", "update", "append", "upsert", "drop"]
 
     def add_custom_data(self, path, new_data: dict):
@@ -75,7 +75,7 @@ class BaseTensorClient(Algorithms):
         for path in paths:
             try:
                 self.delete_tensor(path, only_data=only_data)
-            except KeyError:
+            except FileNotFoundError:
                 pass
 
     @abc.abstractmethod

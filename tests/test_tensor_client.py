@@ -1,14 +1,12 @@
-import os
-
 import dask.threaded
-import fsspec
 import numpy as np
+import obstore
 import pytest
 import xarray as xr
-import zarr
 
-from tensordb import FileCacheTensorClient, TensorClient
+from tensordb import TensorClient
 from tensordb.tensor_definition import TensorDefinition
+from tensordb.utils.ic_storage_model import LocalStorageModel
 
 # TODO: Add more tests that validate the internal behaviour of the storage settings
 # TODO: Fix the use of fsspec cached protocol when there are multiple threads or process reading the same file
@@ -34,22 +32,11 @@ def create_dummy_array(n_rows, n_cols, coords=None, dtype=None) -> xr.DataArray:
 class TestTensorClient:
     @pytest.fixture(autouse=True)
     def test_setup_tests(self, tmpdir):
-        path = tmpdir.strpath
-        os.makedirs(path + "/lock")
-        self.local_tensor_client = TensorClient(
-            base_map=fsspec.get_mapper(path + "/local"),
-            tmp_map=fsspec.get_mapper(f"{path}/tmp"),
+        path = tmpdir.strpath.replace("\\", "/")
+        self.tensor_client = TensorClient(
+            ob_store=obstore.store.LocalStore(path),
+            ic_storage=LocalStorageModel(path=path),
             # synchronizer='thread',
-        )
-        self.tensor_client = FileCacheTensorClient(
-            local_client=self.local_tensor_client,
-            remote_client=TensorClient(
-                base_map=fsspec.get_mapper(path + "/remote"),
-                tmp_map=fsspec.get_mapper(f"{path}/tmp"),
-                # synchronizer='thread',
-            ),
-            checksum_path="checksum",
-            tensor_lock=zarr.ProcessSynchronizer(path + "/lock"),
         )
         self.arr = xr.DataArray(
             data=np.array(
@@ -112,27 +99,25 @@ class TestTensorClient:
         path = "create_tensor1"
         definition = TensorDefinition(path=path)
         d = definition.model_dump() if as_dict else definition
-        self.local_tensor_client.create_tensor(d)
-        assert definition == self.local_tensor_client.get_tensor_definition(path)
+        self.tensor_client.create_tensor(d)
+        assert definition == self.tensor_client.get_tensor_definition(path)
 
         definition = TensorDefinition(path=path, definition={"a": {"c": 1}})
         d = definition.model_dump() if as_dict else definition
-        self.local_tensor_client.create_tensor(d)
-        assert definition == self.local_tensor_client.get_tensor_definition(path)
+        self.tensor_client.create_tensor(d)
+        assert definition == self.tensor_client.get_tensor_definition(path)
 
-    @pytest.mark.parametrize("use_local", [True, False])
-    def test_store(self, use_local):
-        tensor_client = self.local_tensor_client if use_local else self.tensor_client
+    def test_store(self):
         for path, data in [
             ("data_one", self.arr),
             ("data_two", self.arr2),
             ("data_three", self.arr3),
         ]:
-            assert tensor_client.read(path=path).equals(data)
+            assert self.tensor_client.read(path=path).equals(data)
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_update(self, use_local):
-        tensor_client = self.local_tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client if use_local else self.tensor_client
         tensor_client.update(new_data=self.arr2, path="data_one")
         assert tensor_client.read(path="data_one").equals(self.arr2)
 
@@ -145,7 +130,7 @@ class TestTensorClient:
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_upsert(self, use_local):
-        tensor_client = self.local_tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client if use_local else self.tensor_client
         tensor_client.create_tensor({"path": "data_upsert"})
         # Test creating from strach the tensor, this should call the store method
         tensor_client.upsert(new_data=self.arr2, path="data_upsert")
@@ -157,14 +142,14 @@ class TestTensorClient:
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_drop(self, use_local):
-        tensor_client = self.local_tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client if use_local else self.tensor_client
         coords = {"index": [0, 3], "columns": [1, 2]}
         tensor_client.drop(path="data_one", coords=coords)
         tensor_client.read("data_one").equals(self.arr.drop_sel(coords))
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_append(self, use_local):
-        tensor_client = self.local_tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client if use_local else self.tensor_client
         arr = create_dummy_array(10, 5, dtype=int)
         arr = arr.sel(
             index=(
@@ -182,13 +167,13 @@ class TestTensorClient:
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_delete_tensor(self, use_local):
-        tensor_client = self.local_tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client if use_local else self.tensor_client
         tensor_client.delete_tensor("data_one")
         assert not tensor_client.exist("data_one")
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_read_from_formula(self, use_local):
-        tensor_client = self.local_tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client if use_local else self.tensor_client
         definition = TensorDefinition(
             path="data_four",
             definition={
@@ -225,7 +210,7 @@ class TestTensorClient:
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_read_data_transformation(self, use_local):
-        tensor_client = self.local_tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client if use_local else self.tensor_client
         definition = TensorDefinition(
             path="data_four",
             definition={
@@ -244,7 +229,7 @@ class TestTensorClient:
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_data_transformation_parameters_priority(self, use_local):
-        tensor_client = self.local_tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client if use_local else self.tensor_client
         definition = TensorDefinition(
             path="data_four",
             definition={
@@ -280,7 +265,7 @@ class TestTensorClient:
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_specifics_definition(self, use_local):
-        tensor_client = self.local_tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client if use_local else self.tensor_client
         definition = TensorDefinition(
             path="specific_definition",
             definition={
@@ -306,7 +291,7 @@ class TestTensorClient:
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_different_client(self, use_local):
-        tensor_client = self.local_tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client if use_local else self.tensor_client
         definition = TensorDefinition(
             path="different_client",
             storage={"storage_name": "json_storage"},
