@@ -1,10 +1,11 @@
-import fsspec
 import numpy as np
+import obstore
 import pytest
 import xarray as xr
 
 from tensordb.storages import ZarrStorage
 from tensordb.storages.cached_storage import CachedStorage
+from tensordb.utils.ic_storage_model import LocalStorageModel
 
 # TODO: Add more tests for the update cases
 
@@ -12,11 +13,11 @@ from tensordb.storages.cached_storage import CachedStorage
 class TestCachedTensor:
     @pytest.fixture(autouse=True)
     def setup_tests(self, tmpdir):
-        sub_path = tmpdir.strpath
+        path = tmpdir.strpath
         storage = ZarrStorage(
-            base_map=fsspec.get_mapper(sub_path + "/store"),
-            tmp_map=fsspec.get_mapper(sub_path + "/tmp"),
-            path="zarr_cache",
+            ob_store=obstore.store.LocalStore(path),
+            ic_storage=LocalStorageModel(path=path),
+            sub_path="zarr_cache/store",
             dataset_names="cached_test",
             chunks={"index": 3, "columns": 2},
         )

@@ -519,7 +519,7 @@ def test_rolling_overlap(window, apply_ffill):
             expected = expected.ffill("a")
 
         if window_margin == 2 and window == 2:
-            assert ~expected.equals(rolling_arr)
+            assert not expected.equals(rolling_arr)
         else:
             assert expected.equals(rolling_arr)
 

@@ -10,17 +10,15 @@ class JsonStorage(BaseStorage):
     This class was created with the idea of simplify how the tensor client store the definitions.
     """
 
-    default_character = "/"
-
-    @classmethod
-    def to_json_file_name(cls, path):
-        return path.replace("\\", "/").replace("/", cls.default_character)
+    def to_json_file_name(self, path):
+        path = f"{self.sub_path}/{path}"
+        return path.replace("\\", "/")
 
     def store(self, new_data: dict, path: str = None, **kwargs):
         path = self.data_names if path is None else path
         new_name = self.to_json_file_name(path)
-        self.base_map[new_name] = orjson.dumps(
-            new_data, option=orjson.OPT_SERIALIZE_NUMPY
+        self.ob_store.put(
+            new_name, orjson.dumps(new_data, option=orjson.OPT_SERIALIZE_NUMPY)
         )
 
     def append(self, new_data: dict, path: str = None, **kwargs):
@@ -33,8 +31,8 @@ class JsonStorage(BaseStorage):
         path = self.data_names if path is None else path
         new_name = self.to_json_file_name(path)
         try:
-            d = orjson.loads(self.base_map[new_name])
-        except KeyError:
+            d = orjson.loads(self.ob_store.get(new_name).bytes().to_bytes())
+        except FileNotFoundError:
             d = {}
         d = deep_update(d, new_data)
         self.store(path=path, new_data=d)
@@ -43,7 +41,7 @@ class JsonStorage(BaseStorage):
         path = self.data_names if path is None else path
         new_name = self.to_json_file_name(path)
         try:
-            return orjson.loads(self.base_map[new_name])
+            return orjson.loads(self.ob_store.get(new_name).bytes().to_bytes())
         except orjson.JSONDecodeError:
             # This error can be raised if there are multiple writes and reads in parallel
             return {}
@@ -51,7 +49,11 @@ class JsonStorage(BaseStorage):
     def exist(self, path: str = None, **kwargs):
         path = self.data_names if path is None else path
         new_name = self.to_json_file_name(path)
-        return new_name in self.base_map
+        try:
+            self.ob_store.head(new_name)
+            return True
+        except FileNotFoundError:
+            return False
 
     def drop(self, coords, **kwargs) -> xr.backends.common.AbstractWritableDataStore:
         raise NotImplementedError
@@ -59,8 +61,4 @@ class JsonStorage(BaseStorage):
     def delete_file(self, path: str = None, **kwargs):
         path = self.data_names if path is None else path
         new_name = self.to_json_file_name(path)
-        del self.base_map[new_name]
-
-    @classmethod
-    def get_original_path(cls, path):
-        return path.replace(cls.default_character, "/")
+        self.ob_store.delete([new_name])

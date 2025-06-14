@@ -1,13 +1,11 @@
-from abc import abstractmethod
-from collections.abc import MutableMapping
+from abc import ABC, abstractmethod
 from typing import Union
 
 import xarray as xr
+from obstore.store import ObjectStore
 
-from tensordb.storages.mapping import Mapping
 
-
-class BaseStorage:
+class BaseStorage(ABC):
     """
     Obligatory interface used for the Storage classes created, this defines the abstract methods for every Storage
     and allow their use with TensorClient.
@@ -32,19 +30,14 @@ class BaseStorage:
 
     def __init__(
         self,
-        base_map: Union[Mapping, MutableMapping],
-        tmp_map: Union[Mapping, MutableMapping],
-        data_names: Union[str, list[str]] = "data",
+        ob_store: ObjectStore,
+        sub_path: str,
+        data_names: str | list[str] = "data",
         **kwargs,
     ):
-        if not isinstance(base_map, Mapping):
-            base_map = Mapping(base_map)
-        if not isinstance(tmp_map, Mapping):
-            tmp_map = Mapping(tmp_map)
-        self.base_map = base_map
-        self.tmp_map = tmp_map
+        self.ob_store = ob_store
+        self.sub_path = sub_path
         self.data_names = data_names
-        self.group = None
 
     def get_data_names_list(self) -> list[str]:
         return (
@@ -60,7 +53,9 @@ class BaseStorage:
 
         """
         try:
-            self.base_map.rmdir()
+            paths = self.ob_store.list(self.sub_path).collect()
+            paths = [path["path"] for path in paths]
+            self.ob_store.delete(paths)
         except FileNotFoundError:
             pass
 

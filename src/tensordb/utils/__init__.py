@@ -1,4 +1,5 @@
 from tensordb.utils.dag import get_leaf_tasks, get_limit_dependencies, get_tensor_dag
+from tensordb.utils.ic_storage_model import LocalStorageModel, S3StorageModel
 from tensordb.utils.tools import (
     empty_xarray,
     extract_paths_from_formula,
@@ -16,4 +17,6 @@ __all__ = (
     "extract_paths_from_formula",
     "iter_by_group_chunks",
     "groupby_chunks",
+    "LocalStorageModel",
+    "S3StorageModel",
 )

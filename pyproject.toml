@@ -1,40 +1,33 @@
-[tool.pdm]
-
 [project]
 name = "tensordb"
-version = "0.32.4"
+version = "0.40.0"
 description = "Database based in a file system storage combined with Xarray and Zarr"
 keywords = ["Database Files Xarray Handler Zarr Store Read Write Append Update Upsert Backup Delete S3"]
 readme = "README.md"
 authors = [
     { name = "Joseph Nowak", email = "josephgonowak97@gmail.com" },
 ]
-classifiers = [
-    "Development Status :: 1 - Beta",
-    "Intended Audience :: Developers",
-    "Intended Audience :: General",
-    "Intended Audience :: Science/Research",
-    "Natural Language :: English",
-    "Programming Language :: Python :: 3.9",
-]
 dependencies = [
-    "dask[complete]>=2024.0.0",
+    "dask[complete]>=2025.5.1",
     "loguru>=0.7.0",
     "more-itertools>=10.0.0",
-    "numbagg>=0.8.0",
-    "numpy>=1.26.0",
+    "numbagg>=0.9.0",
     "orjson>=3.0.0",
     "pandas>=2.0.0",
     "pydantic>=2.0.0",
-    "xarray[accel]>=2023.0.0",
-    "zarr>=2.0.0",
-    "numba>=0.60.0"
+    "xarray[accel]>=2025.6.1",
+    "icechunk>=0.2.16",
+    "numba>=0.61.0",
+    "obstore>=0.6.0",
 ]
 requires-python = ">=3.11"
 
+[tool.hatch.metadata]
+allow-direct-references = true
+
 [build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project.optional-dependencies]
 dev = [
