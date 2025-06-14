@@ -8,10 +8,6 @@ from tensordb import TensorClient
 from tensordb.tensor_definition import TensorDefinition
 from tensordb.utils.ic_storage_model import LocalStorageModel
 
-# TODO: Add more tests that validate the internal behaviour of the storage settings
-# TODO: Fix the use of fsspec cached protocol when there are multiple threads or process reading the same file
-#  It can produce unexpected errors during the read of the files
-
 
 def create_dummy_array(n_rows, n_cols, coords=None, dtype=None) -> xr.DataArray:
     coords = coords
