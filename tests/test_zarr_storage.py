@@ -14,8 +14,8 @@ class TestZarrStorage:
     def setup_tests(self, tmpdir):
         sub_path = tmpdir.strpath.replace("\\", "/")
         self.storage = ZarrStorage(
-            ob_store=obstore.store.LocalStore(sub_path),
-            ic_storage=LocalStorageModel(path=sub_path),
+            ob_store=obstore.store.LocalStore(sub_path + "/metadata", mkdir=True),
+            ic_storage=LocalStorageModel(path=sub_path + "/icechunk"),
             data_names="data_test",
             chunks={"index": 3, "columns": 2},
             sub_path="zarr_storage",
@@ -101,7 +101,6 @@ class TestZarrStorage:
             )
         else:
             assert storage.read().equals(self.arr2)
-        storage.delete_tensor()
 
     @pytest.mark.parametrize("keep_order", [True, False])
     @pytest.mark.parametrize("as_dask", [True, False])
@@ -129,8 +128,6 @@ class TestZarrStorage:
             )
         else:
             assert storage.read().equals(total_data)
-
-        storage.delete_tensor()
 
     @pytest.mark.parametrize("keep_order", [True, False])
     @pytest.mark.parametrize("as_dask", [True, False])
@@ -165,7 +162,6 @@ class TestZarrStorage:
             )
 
         assert expected.equals(storage.read())
-        storage.delete_tensor()
 
     @pytest.mark.parametrize("as_dask", [True, False])
     @pytest.mark.parametrize("index", [[0, 2, 4], [2, 4], [1, 4], [4, 0, 2]])
@@ -378,6 +374,22 @@ class TestZarrStorage:
 
         assert data_to_append["index"]["data_test"].equals(expected[2:, :2])
         assert data_to_append["columns"]["data_test"].equals(expected[:, 2:])
+
+    def test_delete_tensor(self):
+        storage = self.storage
+        arr = xr.DataArray(
+            [[1.0, 5], [4, 2]],
+            dims=["index", "columns"],
+            coords={"index": np.array([2, 3], "datetime64[ns]"), "columns": [2, 4]},
+        )
+        storage.store(arr)
+        assert storage.read().equals(arr)
+        storage.delete_tensor()
+        with pytest.raises(FileNotFoundError):
+            storage.read()
+
+        storage.store(arr)
+        assert storage.read().equals(arr)
 
 
 if __name__ == "__main__":
