@@ -48,6 +48,8 @@ class ZarrStorage(BaseStorage):
         super().__init__(**kwargs)
 
         self.ic_storage = ic_storage.get_storage(self.sub_path)
+        self.ob_store = ic_storage.get_obstore(self.sub_path)
+        self.sub_path = None
         self.chunks = chunks
         if self.chunks is None:
             self.chunks = {}
@@ -637,7 +639,7 @@ class ZarrStorage(BaseStorage):
         except FileNotFoundError as e:
             raise FileNotFoundError(
                 f"The data_names {self.data_names} does not exist on the tensor "
-                f"located at: {self.ob_store.prefix} or the tensor has not been stored yet"
+                f"located on {self.ic_storage} or the tensor has not been stored yet"
             ) from e
 
     def exist(self) -> bool:
