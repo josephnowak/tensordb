@@ -578,8 +578,12 @@ class ZarrStorage(BaseStorage):
             ),
             self.append(new_data, commit=False, fill_value=fill_value),
         ]
-
         merged_session = self.merge_sessions(sessions)
+
+        if merged_session is None:
+            # No data was modified, so we return None
+            return None
+
         if commit:
             merged_session.commit(
                 message=f"Upserted on {pd.Timestamp.now()}",
