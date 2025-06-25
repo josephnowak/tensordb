@@ -473,28 +473,25 @@ class ZarrStorage(BaseStorage):
         if rewrite:
             return self.store(new_data=complete_data, commit=commit)
 
-        session = self.get_writable_session()
         dims = complete_data[list(complete_data.keys())[0]].dims
-        modified = False
+        session = None
         for dim in dims:
             if dim not in data_to_append:
                 continue
 
-            modified = True
+            # TODO: Create a single session for all the appends
+            #   once this is fixed https://github.com/earth-mover/icechunk/issues/1006
+            session = self.get_writable_session()
             to_icechunk(
                 data_to_append[dim],
                 session,
                 append_dim=dim,
-                safe_chunks=False,
             )
+            if commit:
+                session.commit(
+                    message=f"Appended on {pd.Timestamp.now()}",
+                )
 
-        if not modified:
-            return None
-
-        if commit:
-            session.commit(
-                message=f"Appended on {pd.Timestamp.now()}",
-            )
         return session
 
     def update(
