@@ -10,7 +10,7 @@ class DAGOrder(BaseModel):
     tensor execution.
     """
 
-    depends: Optional[list[str]] = Field(
+    depends: list[str] | None = Field(
         default=[],
         title="Depends",
         description="""
@@ -62,7 +62,7 @@ class MethodDescriptor(BaseModel):
         Name of the method that want to be used, it must match with the methods of storage or the tensor_client
         """,
     )
-    parameters: Optional[dict[str, Any]] = Field(
+    parameters: dict[str, Any] | None = Field(
         title="Parameters",
         default={},
         description="""
@@ -70,7 +70,7 @@ class MethodDescriptor(BaseModel):
         during the call of the method
         """,
     )
-    result_name: Optional[str] = Field(
+    result_name: str | None = Field(
         None,
         title="Result Name",
         description="""
@@ -85,14 +85,14 @@ class Definition(BaseModel):
     because you can create a pipeline that transform or read your data from other sources.
     """
 
-    data_transformation: Optional[list[MethodDescriptor]] = Field(
+    data_transformation: list[MethodDescriptor] | None = Field(
         title="Data Transformation",
         default=None,
         description="""
         Every element of the list must contain a MethodDescriptor object which specify the method that must be executed.
         """,
     )
-    substitute_method: Optional[str] = Field(
+    substitute_method: str | None = Field(
         title="Substitute Method",
         default=None,
         description="""
@@ -116,14 +116,14 @@ class TensorDefinition(BaseModel):
         """,
     )
 
-    definition: Optional[dict[str, Definition]] = Field(
+    definition: dict[str, Definition] | None = Field(
         title="Definition",
         default={},
         description="""
         The key indicate to which method must be applied the definition (read the doc of Definition)
         """,
     )
-    dag: Optional[DAGOrder] = Field(
+    dag: DAGOrder | None = Field(
         default=DAGOrder(),
         title="DAG",
         description="""
@@ -131,14 +131,14 @@ class TensorDefinition(BaseModel):
         multiple tensors that has dependencies
         """,
     )
-    storage: Optional[StorageDefinition] = Field(
+    storage: StorageDefinition | None = Field(
         title="Storage",
         default=StorageDefinition(),
         description="""
         Useful to send parameters to the Storage constructor or to change the default data storage
         """,
     )
-    metadata: Optional[dict] = Field(
+    metadata: dict | None = Field(
         title="Metadata",
         default={},
         description="""
