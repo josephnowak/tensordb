@@ -41,7 +41,7 @@ class StorageDefinition(BaseModel):
     Definition of the storage of the tensor
     """
 
-    storage_name: Optional[Literal["json_storage", "zarr_storage"]] = Field(
+    storage_name: Literal["json_storage", "zarr_storage"] | None = Field(
         title="Storage Name",
         default="zarr_storage",
         description="""
