@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import Any, Literal, Union
+from typing import Any, Literal
 
 import bottleneck as bn
 import dask
@@ -139,7 +139,7 @@ class Algorithms:
     @classmethod
     def map_blocks_along_axis(
         cls,
-        new_data: Union[xr.DataArray, xr.Dataset],
+        new_data: xr.DataArray | xr.Dataset,
         func,
         dim: str,
         dtype,
@@ -169,10 +169,10 @@ class Algorithms:
     @classmethod
     def ffill(
         cls,
-        new_data: Union[xr.DataArray, xr.Dataset],
+        new_data: xr.DataArray | xr.Dataset,
         dim: str,
         limit: int = None,
-        until_last_valid: Union[xr.DataArray, bool] = False,
+        until_last_valid: xr.DataArray | bool = False,
     ) -> xr.DataArray:
         result = new_data.ffill(dim=dim, limit=limit)
 
@@ -187,13 +187,13 @@ class Algorithms:
     @classmethod
     def rank(
         cls,
-        new_data: Union[xr.DataArray, xr.Dataset],
+        new_data: xr.DataArray | xr.Dataset,
         dim: str,
         method: Literal["average", "min", "max", "dense", "ordinal"] = "ordinal",
         ascending=True,
         nan_policy: Literal["omit", "propagate", "error"] = "omit",
         use_bottleneck: bool = False,
-    ) -> Union[xr.DataArray, xr.Dataset]:
+    ) -> xr.DataArray | xr.Dataset:
         """
         This is an implementation of scipy rankdata on xarray, with the possibility to avoid the rank of the nans.
 
@@ -229,7 +229,7 @@ class Algorithms:
         new_data: xr.DataArray,
         tie_dim: str,
         dim: str,
-    ) -> Union[xr.DataArray, xr.Dataset]:
+    ) -> xr.DataArray | xr.Dataset:
         """
         Multi rank implemented using the lexsort of numpy, the nan are keep.
 
@@ -253,7 +253,7 @@ class Algorithms:
 
     @classmethod
     def shift_on_valid(
-        cls, new_data: Union[xr.DataArray, xr.Dataset], dim: str, shift: int
+        cls, new_data: xr.DataArray | xr.Dataset, dim: str, shift: int
     ):
         if isinstance(new_data, xr.Dataset):
             return new_data.map(
@@ -279,7 +279,7 @@ class Algorithms:
     @classmethod
     def rolling_along_axis(
         cls,
-        new_data: Union[xr.DataArray, xr.Dataset],
+        new_data: xr.DataArray | xr.Dataset,
         dim: str,
         window: int,
         operator: str,
@@ -320,7 +320,7 @@ class Algorithms:
     @classmethod
     def replace(
         cls,
-        new_data: Union[xr.DataArray, xr.Dataset],
+        new_data: xr.DataArray | xr.Dataset,
         to_replace: dict,
         dtype: Any = None,
         default_replace=None,
@@ -355,7 +355,7 @@ class Algorithms:
     @classmethod
     def vindex(
         cls,
-        new_data: Union[xr.DataArray, xr.Dataset],
+        new_data: xr.DataArray | xr.Dataset,
         coords: dict,
     ):
         """
@@ -395,14 +395,14 @@ class Algorithms:
     @classmethod
     def apply_on_groups(
         cls,
-        new_data: Union[xr.DataArray, xr.Dataset],
-        groups: Union[dict, xr.DataArray],
+        new_data: xr.DataArray | xr.Dataset,
+        groups: dict | xr.DataArray,
         dim: str,
-        func: Union[str, Callable],
+        func: str | Callable,
         keep_shape: bool = False,
         unique_groups: np.ndarray = None,
         kwargs: dict[str, Any] = None,
-        template: Union[xr.DataArray, xr.Dataset, str] = None,
+        template: xr.DataArray | xr.Dataset | str = None,
     ):
         """
         This method was created as a replacement of the groupby of Xarray when the group is only
@@ -554,7 +554,7 @@ class Algorithms:
     @classmethod
     def merge_duplicates_coord(
         cls,
-        new_data: Union[xr.DataArray, xr.Dataset],
+        new_data: xr.DataArray | xr.Dataset,
         dim: str,
         func: str,
         kwargs: dict[str, Any] = None,
@@ -583,7 +583,7 @@ class Algorithms:
     @classmethod
     def dropna(
         cls,
-        new_data: Union[xr.DataArray, xr.Dataset],
+        new_data: xr.DataArray | xr.Dataset,
         dims: list[str],
         how: Literal["all"] = "all",
         client: Client = None,
@@ -598,7 +598,7 @@ class Algorithms:
     @classmethod
     def drop_unmarked(
         cls,
-        new_data: Union[xr.DataArray, xr.Dataset],
+        new_data: xr.DataArray | xr.Dataset,
         dims: list[str],
         how: Literal["all"] = "all",
         client: Client = None,
@@ -619,8 +619,8 @@ class Algorithms:
     @classmethod
     def append_previous(
         cls,
-        old_data: Union[xr.DataArray, xr.Dataset],
-        new_data: Union[xr.DataArray, xr.Dataset],
+        old_data: xr.DataArray | xr.Dataset,
+        new_data: xr.DataArray | xr.Dataset,
         dim: str,
     ):
         """
@@ -640,9 +640,9 @@ class Algorithms:
     @classmethod
     def cumulative_on_sort(
         cls,
-        new_data: Union[xr.DataArray, xr.Dataset],
+        new_data: xr.DataArray | xr.Dataset,
         dim: str,
-        func: Union[str, Callable],
+        func: str | Callable,
         ascending=False,
         keep_nan=True,
     ):
@@ -668,7 +668,7 @@ class Algorithms:
     @classmethod
     def bitmask_topk(
         cls,
-        new_data: Union[xr.DataArray, xr.Dataset],
+        new_data: xr.DataArray | xr.Dataset,
         dim: str,
         top_size,
         tie_breaker_dim: str = None,
@@ -759,7 +759,7 @@ class Algorithms:
     @classmethod
     def rolling_overlap(
         cls,
-        new_data: Union[xr.DataArray, xr.Dataset],
+        new_data: xr.DataArray | xr.Dataset,
         func: Callable,
         dim: str,
         window: int,

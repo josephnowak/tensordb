@@ -1,6 +1,6 @@
 import itertools as it
 from collections.abc import Callable, Generator, Hashable, Iterable
-from typing import Any, Union
+from typing import Any
 
 import more_itertools as mit
 import numpy as np
@@ -89,13 +89,13 @@ def empty_xarray(dims, coords, chunks, dtype):
 def xarray_from_func(
     func: Callable,
     dims: list[Hashable],
-    coords: dict[Hashable, Union[list, np.ndarray]],
-    chunks: Union[list[Union[int, None]], dict[Hashable, int]],
-    dtypes: Union[list[Any], Any],
-    data_names: Union[list[Hashable], str] = None,
+    coords: dict[Hashable, list | np.ndarray],
+    chunks: list[int | None] | dict[Hashable, int],
+    dtypes: list[Any] | Any,
+    data_names: list[Hashable] | str = None,
     args: list[Any] = None,
     kwargs: dict[str, Any] = None,
-) -> Union[xr.DataArray, xr.Dataset]:
+) -> xr.DataArray | xr.Dataset:
     """
     Equivalent of dask fromfunction but it sends the xarray coords of every chunk instead of the positions
 

@@ -1,5 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Union
+from typing import Any
 
 import obstore
 import orjson
@@ -282,7 +282,7 @@ class TensorClient(BaseTensorClient, Algorithms):
             self._tensors_definition.delete_file(path)
 
     @validate_call
-    def get_storage(self, path: Union[str, TensorDefinition]) -> BaseStorage:
+    def get_storage(self, path: str | TensorDefinition) -> BaseStorage:
         """
         Get the storage of the tensor, by default it try to read the stored definition of the tensor.
 
@@ -307,8 +307,8 @@ class TensorClient(BaseTensorClient, Algorithms):
         return storage
 
     def read(
-        self, path: Union[str, TensorDefinition, xr.DataArray, xr.Dataset], **kwargs
-    ) -> Union[xr.DataArray, xr.Dataset]:
+        self, path: str | TensorDefinition | xr.DataArray | xr.Dataset, **kwargs
+    ) -> xr.DataArray | xr.Dataset:
         """
         Calls :meth:`TensorClient.storage_method_caller` with read as method_name (has the same parameters).
 
@@ -325,7 +325,7 @@ class TensorClient(BaseTensorClient, Algorithms):
         )
 
     def append(
-        self, path: Union[str, TensorDefinition], **kwargs
+        self, path: str | TensorDefinition, **kwargs
     ) -> list[AbstractWritableDataStore]:
         """
         Calls :meth:`TensorClient.storage_method_caller` with append as method_name (has the same parameters).
@@ -341,7 +341,7 @@ class TensorClient(BaseTensorClient, Algorithms):
         )
 
     def update(
-        self, path: Union[str, TensorDefinition], **kwargs
+        self, path: str | TensorDefinition, **kwargs
     ) -> AbstractWritableDataStore:
         """
         Calls :meth:`TensorClient.storage_method_caller` with update as method_name (has the same parameters).
@@ -357,7 +357,7 @@ class TensorClient(BaseTensorClient, Algorithms):
         )
 
     def store(
-        self, path: Union[str, TensorDefinition], **kwargs
+        self, path: str | TensorDefinition, **kwargs
     ) -> AbstractWritableDataStore:
         """
         Calls :meth:`TensorClient.storage_method_caller` with store as method_name (has the same parameters).
@@ -373,7 +373,7 @@ class TensorClient(BaseTensorClient, Algorithms):
         )
 
     def upsert(
-        self, path: Union[str, TensorDefinition], **kwargs
+        self, path: str | TensorDefinition, **kwargs
     ) -> list[AbstractWritableDataStore]:
         """
         Calls :meth:`TensorClient.storage_method_caller` with upsert as method_name (has the same parameters).
@@ -389,7 +389,7 @@ class TensorClient(BaseTensorClient, Algorithms):
         )
 
     def drop(
-        self, path: Union[str, TensorDefinition], **kwargs
+        self, path: str | TensorDefinition, **kwargs
     ) -> list[AbstractWritableDataStore]:
         """
         Calls :meth:`TensorClient.storage_method_caller` with drop as method_name (has the same parameters).
@@ -428,7 +428,7 @@ class TensorClient(BaseTensorClient, Algorithms):
         original_path: str = None,
         storage: BaseStorage = None,
         **kwargs: dict[str, Any],
-    ) -> Union[xr.DataArray, xr.Dataset]:
+    ) -> xr.DataArray | xr.Dataset:
         """
         This is one of the most important methods of the `TensorClient` class, basically it allows defining
         formulas that use the tensors stored with a simple strings, so you can create new tensors from these formulas
