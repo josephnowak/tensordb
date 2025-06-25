@@ -1,5 +1,5 @@
 from collections.abc import Hashable
-from typing import Any, Union
+from typing import Any
 
 import icechunk as ic
 import numpy as np
@@ -388,7 +388,7 @@ class ZarrStorage(BaseStorage):
 
     def store(
         self,
-        new_data: Union[xr.DataArray, xr.Dataset],
+        new_data: xr.DataArray | xr.Dataset,
         commit: bool = True,
     ) -> ic.Session:
         """
@@ -433,7 +433,7 @@ class ZarrStorage(BaseStorage):
 
     def append(
         self,
-        new_data: Union[xr.DataArray, xr.Dataset],
+        new_data: xr.DataArray | xr.Dataset,
         commit: bool = True,
         fill_value: Any = np.nan,
     ) -> ic.Session | None:
@@ -473,35 +473,32 @@ class ZarrStorage(BaseStorage):
         if rewrite:
             return self.store(new_data=complete_data, commit=commit)
 
-        session = self.get_writable_session()
         dims = complete_data[list(complete_data.keys())[0]].dims
-        modified = False
+        session = None
         for dim in dims:
             if dim not in data_to_append:
                 continue
 
-            modified = True
+            # TODO: Create a single session for all the appends
+            #   once this is fixed https://github.com/earth-mover/icechunk/issues/1006
+            session = self.get_writable_session()
             to_icechunk(
                 data_to_append[dim],
                 session,
                 append_dim=dim,
-                safe_chunks=False,
             )
+            if commit:
+                session.commit(
+                    message=f"Appended on {pd.Timestamp.now()}",
+                )
 
-        if not modified:
-            return None
-
-        if commit:
-            session.commit(
-                message=f"Appended on {pd.Timestamp.now()}",
-            )
         return session
 
     def update(
         self,
-        new_data: Union[xr.DataArray, xr.Dataset],
+        new_data: xr.DataArray | xr.Dataset,
         commit: bool = True,
-        complete_update_dims: Union[list[str], str] = None,
+        complete_update_dims: list[str] | str = None,
         fill_value: Any = np.nan,
     ) -> None | ic.Session:
         """
@@ -558,9 +555,9 @@ class ZarrStorage(BaseStorage):
 
     def upsert(
         self,
-        new_data: Union[xr.DataArray, xr.Dataset],
+        new_data: xr.DataArray | xr.Dataset,
         commit: bool = True,
-        complete_update_dims: Union[list[str], str] = None,
+        complete_update_dims: list[str] | str = None,
         fill_value: Any = np.nan,
     ) -> ic.Session | None:
         """
@@ -614,7 +611,7 @@ class ZarrStorage(BaseStorage):
         new_data = new_data.drop_sel(coords)
         return self.store(new_data=new_data, commit=commit)
 
-    def read(self) -> Union[xr.DataArray, xr.Dataset]:
+    def read(self) -> xr.DataArray | xr.Dataset:
         """
         Read a tensor stored, internally it uses
         `open_zarr method <https://xr.pydata.org/en/stable/generated/xr.open_zarr.html>`_.

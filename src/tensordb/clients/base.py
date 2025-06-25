@@ -1,6 +1,6 @@
 import abc
 from collections.abc import Callable
-from typing import Any, Literal, Union
+from typing import Any, Literal
 
 import dask
 import dask.array as da
@@ -79,7 +79,7 @@ class BaseTensorClient(Algorithms, abc.ABC):
                 pass
 
     @abc.abstractmethod
-    def get_storage(self, path: Union[str, TensorDefinition]) -> BaseStorage:
+    def get_storage(self, path: str | TensorDefinition) -> BaseStorage:
         pass
 
     @staticmethod
@@ -148,7 +148,7 @@ class BaseTensorClient(Algorithms, abc.ABC):
 
     def exec_on_dag_order(
         self,
-        method: Union[str, Callable],
+        method: str | Callable,
         kwargs_groups: dict[str, dict[str, Any]] = None,
         tensors_path: list[str] = None,
         parallelization_kwargs: dict[str, Any] = None,
@@ -248,7 +248,7 @@ class BaseTensorClient(Algorithms, abc.ABC):
 
     def get_dag_for_dask(
         self,
-        method: Union[str, Callable],
+        method: str | Callable,
         kwargs_groups: dict[str, dict[str, Any]] = None,
         tensors: list[TensorDefinition] = None,
         max_parallelization_per_group: dict[str, int] = None,
@@ -337,7 +337,7 @@ class BaseTensorClient(Algorithms, abc.ABC):
     @validate_call
     def storage_method_caller(
         self,
-        path: Union[str, TensorDefinition],
+        path: str | TensorDefinition,
         method_name: str,
         parameters: dict[str, Any],
     ) -> Any:
@@ -412,37 +412,37 @@ class BaseTensorClient(Algorithms, abc.ABC):
 
     @abc.abstractmethod
     def read(
-        self, path: Union[str, TensorDefinition, xr.DataArray, xr.Dataset], **kwargs
-    ) -> Union[xr.DataArray, xr.Dataset]:
+        self, path: str | TensorDefinition | xr.DataArray | xr.Dataset, **kwargs
+    ) -> xr.DataArray | xr.Dataset:
         raise ValueError
 
     @abc.abstractmethod
     def append(
-        self, path: Union[str, TensorDefinition], **kwargs
+        self, path: str | TensorDefinition, **kwargs
     ) -> list[AbstractWritableDataStore]:
         pass
 
     @abc.abstractmethod
     def update(
-        self, path: Union[str, TensorDefinition], **kwargs
+        self, path: str | TensorDefinition, **kwargs
     ) -> AbstractWritableDataStore:
         pass
 
     @abc.abstractmethod
     def store(
-        self, path: Union[str, TensorDefinition], **kwargs
+        self, path: str | TensorDefinition, **kwargs
     ) -> AbstractWritableDataStore:
         pass
 
     @abc.abstractmethod
     def upsert(
-        self, path: Union[str, TensorDefinition], **kwargs
+        self, path: str | TensorDefinition, **kwargs
     ) -> list[AbstractWritableDataStore]:
         pass
 
     @abc.abstractmethod
     def drop(
-        self, path: Union[str, TensorDefinition], **kwargs
+        self, path: str | TensorDefinition, **kwargs
     ) -> list[AbstractWritableDataStore]:
         pass
 
@@ -504,7 +504,7 @@ class BaseTensorClient(Algorithms, abc.ABC):
         original_path: str = None,
         storage: BaseStorage = None,
         **kwargs: dict[str, Any],
-    ) -> Union[xr.DataArray, xr.Dataset]:
+    ) -> xr.DataArray | xr.Dataset:
         data_fields = {}
         for path in extract_paths_from_formula(formula):
             if original_path is not None and original_path == path:

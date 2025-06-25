@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Union
 
 import xarray as xr
 from obstore.store import ObjectStore
@@ -61,7 +60,7 @@ class BaseStorage(ABC):
 
     @abstractmethod
     def append(
-        self, new_data: Union[xr.DataArray, xr.Dataset], **kwargs
+        self, new_data: xr.DataArray | xr.Dataset, **kwargs
     ) -> list[xr.backends.common.AbstractWritableDataStore]:
         """
         This abstractmethod must be overwritten to append new_data to an existing file, the way that it append the data
@@ -85,7 +84,7 @@ class BaseStorage(ABC):
 
     @abstractmethod
     def update(
-        self, new_data: Union[xr.DataArray, xr.Dataset], **kwargs
+        self, new_data: xr.DataArray | xr.Dataset, **kwargs
     ) -> xr.backends.common.AbstractWritableDataStore:
         """
         This abstractmethod must be overwritten to update new_data to an existing file, so it must not insert any new
@@ -109,7 +108,7 @@ class BaseStorage(ABC):
 
     @abstractmethod
     def store(
-        self, new_data: Union[xr.DataArray, xr.Dataset], **kwargs
+        self, new_data: xr.DataArray | xr.Dataset, **kwargs
     ) -> xr.backends.common.AbstractWritableDataStore:
         """
         This abstractmethod must be overwritten to store new_data to an existing file, so it must create
@@ -131,7 +130,7 @@ class BaseStorage(ABC):
 
     @abstractmethod
     def upsert(
-        self, new_data: Union[xr.DataArray, xr.Dataset], **kwargs
+        self, new_data: xr.DataArray | xr.Dataset, **kwargs
     ) -> list[xr.backends.common.AbstractWritableDataStore]:
         """
         This abstractmethod must be overwritten to update and append new_data to an existing file,
@@ -163,7 +162,7 @@ class BaseStorage(ABC):
         pass
 
     @abstractmethod
-    def read(self, **kwargs) -> Union[xr.DataArray, xr.Dataset]:
+    def read(self, **kwargs) -> xr.DataArray | xr.Dataset:
         """
         This abstractmethod must be overwritten to read an existing file. Reference :meth:`ZarrStorage.read`
 
