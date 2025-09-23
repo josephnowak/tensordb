@@ -479,18 +479,19 @@ class ZarrStorage(BaseStorage):
             if dim not in data_to_append:
                 continue
 
-            # TODO: Create a single session for all the appends
-            #   once this is fixed https://github.com/earth-mover/icechunk/issues/1006
+            # https://github.com/earth-mover/icechunk/issues/1006,
+            #   for the moment icechunk does not allow to append multiple dims
+            #   without commiting first, so the commit is mandatory on the
+            #   append method
             session = self.get_writable_session()
             to_icechunk(
                 data_to_append[dim],
                 session,
                 append_dim=dim,
             )
-            if commit:
-                session.commit(
-                    message=f"Appended on {pd.Timestamp.now()}",
-                )
+            session.commit(
+                message=f"Appended on {pd.Timestamp.now()}",
+            )
 
         return session
 
@@ -571,23 +572,11 @@ class ZarrStorage(BaseStorage):
         if not self.exist():
             return self.store(new_data, commit=commit)
 
-        sessions = [
-            self.update(
-                new_data, commit=False, complete_update_dims=complete_update_dims
-            ),
-            self.append(new_data, commit=False, fill_value=fill_value),
-        ]
-        merged_session = self.merge_sessions(sessions)
-
-        if merged_session is None:
-            # No data was modified, so we return None
-            return None
-
-        if commit:
-            merged_session.commit(
-                message=f"Upserted on {pd.Timestamp.now()}",
-            )
-        return merged_session
+        # Icechunk does not support multiple distributed writes without commiting first
+        self.update(
+            new_data, commit=True, complete_update_dims=complete_update_dims
+        )
+        return self.append(new_data, commit=True, fill_value=fill_value)
 
     def drop(self, coords: dict, commit: bool = True) -> ic.Session:
         """
