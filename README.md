@@ -106,6 +106,9 @@ tensor_client.store(path='dummy_tensor', new_data=dummy_tensor)
 # Reading the dummy tensor
 tensor_client.read(path='dummy_tensor')
 
+# Reading with deterministic dask names (the pre-0.41 behaviour)
+tensor_client.read(path='dummy_tensor', random_names=False)
+
 # Creating a tensor from a formula
 tensor_client.create_tensor(
     definition=tensordb.tensor_definition.TensorDefinition(
