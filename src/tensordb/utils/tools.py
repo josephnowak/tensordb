@@ -43,7 +43,7 @@ def groupby_chunks(
     iterable: Iterable,
     group_chunk_size: dict,
     group_func: Callable,
-    sort_func: Callable = None,
+    sort_func: Callable | None = None,
 ) -> Generator:
     """
     This function apply a groupby over the iterable, and then it chunks the groups to iterate over them in order
@@ -123,9 +123,9 @@ def xarray_from_func(
     coords: dict[Hashable, list | np.ndarray],
     chunks: list[int | None] | dict[Hashable, int],
     dtypes: list[Any] | Any,
-    data_names: list[Hashable] | str = None,
-    args: list[Any] = None,
-    kwargs: dict[str, Any] = None,
+    data_names: list[Hashable] | str | None = None,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
 ) -> xr.DataArray | xr.Dataset:
     """
     Equivalent of dask fromfunction but it sends the xarray coords of every chunk instead of the positions

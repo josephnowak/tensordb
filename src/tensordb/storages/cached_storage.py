@@ -41,7 +41,7 @@ class CachedStorage:
         storage: BaseStorage,
         max_cached_in_dim: int,
         dim: str,
-        sort_dims: list[str] = None,
+        sort_dims: list[str] | None = None,
         merge_cache: bool = False,
         update_logic: Literal["keep_last", "combine_first"] = "combine_first",
     ):
@@ -122,10 +122,7 @@ class CachedStorage:
             operation = self._cache[type_operation]
             if isinstance(operation["new_data"], list):
                 continue
-            try:
-                getattr(self.storage, type_operation)(**operation)
-            except Exception as e:
-                raise e
+            getattr(self.storage, type_operation)(**operation)
 
         self._clean_cache()
 

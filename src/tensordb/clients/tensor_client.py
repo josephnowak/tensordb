@@ -1,5 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any
+from typing import Any, ClassVar
 
 import obstore
 import orjson
@@ -158,7 +158,13 @@ class TensorClient(BaseTensorClient, Algorithms):
 
     # TODO: Add more examples to the documentation
 
-    internal_actions = ["store", "update", "append", "upsert", "drop"]
+    internal_actions: ClassVar[list[str]] = [
+        "store",
+        "update",
+        "append",
+        "upsert",
+        "drop",
+    ]
 
     def __init__(
         self,
@@ -425,8 +431,8 @@ class TensorClient(BaseTensorClient, Algorithms):
         self,
         formula: str,
         use_exec: bool = False,
-        original_path: str = None,
-        storage: BaseStorage = None,
+        original_path: str | None = None,
+        storage: BaseStorage | None = None,
         **kwargs: dict[str, Any],
     ) -> xr.DataArray | xr.Dataset:
         """

@@ -53,7 +53,6 @@ ignore = [
     "E501",
     "E731",
     "UP007",
-    "UP038"
 ]
 extend-select = [
     "B", # flake8-bugbear
