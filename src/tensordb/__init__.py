@@ -6,13 +6,13 @@ from tensordb.utils.ic_storage_model import LocalStorageModel, S3StorageModel
 from tensordb.utils.tools import extract_paths_from_formula
 
 __all__ = (
-    "tensor_definition",
-    "utils",
     "Algorithms",
-    "TensorClient",
     "BaseTensorClient",
-    "TensorDefinition",
-    "extract_paths_from_formula",
     "LocalStorageModel",
     "S3StorageModel",
+    "TensorClient",
+    "TensorDefinition",
+    "extract_paths_from_formula",
+    "tensor_definition",
+    "utils",
 )

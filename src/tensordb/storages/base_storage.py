@@ -80,7 +80,6 @@ class BaseStorage(ABC):
         A list of xr.backends.common.AbstractWritableDataStore produced by Xarray
 
         """
-        pass
 
     @abstractmethod
     def update(
@@ -104,7 +103,6 @@ class BaseStorage(ABC):
         An xr.backends.common.AbstractWritableDataStore produced by Xarray
 
         """
-        pass
 
     @abstractmethod
     def store(
@@ -126,7 +124,6 @@ class BaseStorage(ABC):
         -------
         An xr.backends.common.AbstractWritableDataStore produced by Xarray
         """
-        pass
 
     @abstractmethod
     def upsert(
@@ -148,7 +145,6 @@ class BaseStorage(ABC):
         -------
         A list of xr.backends.common.AbstractWritableDataStore produced by Xarray
         """
-        pass
 
     @abstractmethod
     def drop(self, coords, **kwargs) -> xr.backends.common.AbstractWritableDataStore:
@@ -159,7 +155,6 @@ class BaseStorage(ABC):
         ----------
             coords: Dict[
         """
-        pass
 
     @abstractmethod
     def read(self, **kwargs) -> xr.DataArray | xr.Dataset:
@@ -176,7 +171,6 @@ class BaseStorage(ABC):
         An xr.DataArray or an xr.Dataset
 
         """
-        pass
 
     @abstractmethod
     def exist(self, **kwargs) -> bool:
@@ -195,4 +189,3 @@ class BaseStorage(ABC):
         True if the tensor exist, False if it not exist
 
         """
-        pass

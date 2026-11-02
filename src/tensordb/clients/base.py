@@ -311,7 +311,7 @@ class BaseTensorClient(Algorithms, abc.ABC):
         parameters: dict[str, Any],
         debug: bool = False,
     ):
-        parameters = {**{"new_data": None}, **parameters}
+        parameters = {"new_data": None, **parameters}
         for descriptor in data_transformation:
             func = getattr(storage, descriptor.method_name, None)
             if func is None:

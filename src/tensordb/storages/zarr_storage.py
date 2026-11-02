@@ -279,7 +279,7 @@ class ZarrStorage(BaseStorage):
             # Rechunk the data_to_append in the dim order based on the chunks of the complete_data
             # after slicing it, this is to avoid calculating the correct chunks by hand.
             data_to_append = {
-                dim: data_to_append[dim].chunk(
+                dim: data.chunk(
                     complete_data.isel(**slices_to_append[dim]).chunksizes
                 )
                 for dim, data in data_to_append.items()

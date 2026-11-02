@@ -252,9 +252,7 @@ class Algorithms:
         )
 
     @classmethod
-    def shift_on_valid(
-        cls, new_data: xr.DataArray | xr.Dataset, dim: str, shift: int
-    ):
+    def shift_on_valid(cls, new_data: xr.DataArray | xr.Dataset, dim: str, shift: int):
         if isinstance(new_data, xr.Dataset):
             return new_data.map(
                 cls.shift_on_valid,
@@ -908,13 +906,13 @@ class Algorithms:
         for dim, coord in reindex_mapped_pad_coords.items():
             reindex_data.coords[dim] = coord
         reindex_data = reindex_data.chunk(
-            {dim: -1 for dim in reindex_mapped_pad_coords.keys()}
+            {dim: -1 for dim in reindex_mapped_pad_coords}
         )
         reindex_data = reindex_data.reindex(
             reindex_mapped_coords, method=method, fill_value=fill_value
         )
 
-        for dim in reindex_mapped_pad_coords.keys():
+        for dim in reindex_mapped_pad_coords:
             reindex_data.coords[dim] = np.array(
                 [
                     inv_autoincrement_map[dim][c]

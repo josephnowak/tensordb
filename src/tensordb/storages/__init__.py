@@ -5,9 +5,9 @@ from tensordb.storages.variables import MAPPING_STORAGES
 from tensordb.storages.zarr_storage import ZarrStorage
 
 __all__ = (
+    "MAPPING_STORAGES",
     "BaseStorage",
     "CachedStorage",
     "JsonStorage",
-    "MAPPING_STORAGES",
     "ZarrStorage",
 )
