@@ -20,7 +20,7 @@ def get_tensor_dag(
     dag.update({item: set() for item in extra_items_in_deps})
     # Group the tensors based in the execution order created by the dag
     while True:
-        ordered = set(item for item, dependencies in dag.items() if not dependencies)
+        ordered = {item for item, dependencies in dag.items() if not dependencies}
         if not ordered:
             break
 
@@ -50,7 +50,7 @@ def add_dependencies(
     tensors: list[TensorDefinition], total_tensors: list[TensorDefinition]
 ) -> list[TensorDefinition]:
     total_tensors_search = {tensor.path: tensor for tensor in total_tensors}
-    total_paths = set(tensor.path for tensor in tensors)
+    total_paths = {tensor.path for tensor in tensors}
     for path, tensor in total_tensors_search.items():
         if path not in total_paths:
             continue
@@ -60,7 +60,7 @@ def add_dependencies(
 
 def get_leaf_tasks(tensors, new_dependencies=None):
     # Add the non blocking tasks to a final task
-    final_tasks = set(tensor.path for tensor in tensors)
+    final_tasks = {tensor.path for tensor in tensors}
     final_tasks -= set().union(
         *[
             set(tensor.dag.depends) | new_dependencies.get(tensor.path, set())

@@ -30,7 +30,7 @@ class NumpyAlgorithms:
         window,
         min_periods,
         operator,
-        fill_method: Literal["ffill", None],
+        fill_method: Literal["ffill"] | None,
         inplace=False,
     ):
         min_periods = window if min_periods is None else min_periods
@@ -144,7 +144,7 @@ class Algorithms:
         dim: str,
         dtype,
         drop_dim: bool = False,
-        kwargs: dict = None,
+        kwargs: dict | None = None,
     ) -> xr.DataArray:
         kwargs = kwargs or {}
         template = new_data.chunk({dim: -1})
@@ -171,7 +171,7 @@ class Algorithms:
         cls,
         new_data: xr.DataArray | xr.Dataset,
         dim: str,
-        limit: int = None,
+        limit: int | None = None,
         until_last_valid: xr.DataArray | bool = False,
     ) -> xr.DataArray:
         result = new_data.ffill(dim=dim, limit=limit)
@@ -214,13 +214,13 @@ class Algorithms:
             func=NumpyAlgorithms.rank,
             dtype=np.float64,
             dim=dim,
-            kwargs=dict(
-                axis=new_data.dims.index(dim),
-                method=method,
-                ascending=ascending,
-                nan_policy=nan_policy,
-                use_bottleneck=use_bottleneck,
-            ),
+            kwargs={
+                "axis": new_data.dims.index(dim),
+                "method": method,
+                "ascending": ascending,
+                "nan_policy": nan_policy,
+                "use_bottleneck": use_bottleneck,
+            },
         )
 
     @classmethod
@@ -252,9 +252,7 @@ class Algorithms:
         )
 
     @classmethod
-    def shift_on_valid(
-        cls, new_data: xr.DataArray | xr.Dataset, dim: str, shift: int
-    ):
+    def shift_on_valid(cls, new_data: xr.DataArray | xr.Dataset, dim: str, shift: int):
         if isinstance(new_data, xr.Dataset):
             return new_data.map(
                 cls.shift_on_valid,
@@ -283,9 +281,9 @@ class Algorithms:
         dim: str,
         window: int,
         operator: str,
-        min_periods: int = None,
+        min_periods: int | None = None,
         drop_nan: bool = True,
-        fill_method: str = None,
+        fill_method: str | None = None,
     ):
         if isinstance(new_data, xr.Dataset):
             return new_data.map(
@@ -334,7 +332,7 @@ class Algorithms:
             )
 
         dtype = dtype if dtype else new_data.dtype
-        sorted_key_groups = np.array(sorted(list(to_replace.keys())))
+        sorted_key_groups = np.array(sorted(to_replace))
         group_values = np.array([to_replace[v] for v in sorted_key_groups])
 
         return xr.DataArray(
@@ -400,9 +398,9 @@ class Algorithms:
         dim: str,
         func: str | Callable,
         keep_shape: bool = False,
-        unique_groups: np.ndarray = None,
-        kwargs: dict[str, Any] = None,
-        template: xr.DataArray | xr.Dataset | str = None,
+        unique_groups: np.ndarray | None = None,
+        kwargs: dict[str, Any] | None = None,
+        template: xr.DataArray | xr.Dataset | str | None = None,
     ):
         """
         This method was created as a replacement of the groupby of Xarray when the group is only
@@ -447,7 +445,7 @@ class Algorithms:
             Any extra parameter to send to the function
 
         """
-        kwargs = kwargs or dict()
+        kwargs = kwargs or {}
 
         if isinstance(groups, dict):
             groups = xr.DataArray(
@@ -557,7 +555,7 @@ class Algorithms:
         new_data: xr.DataArray | xr.Dataset,
         dim: str,
         func: str,
-        kwargs: dict[str, Any] = None,
+        kwargs: dict[str, Any] | None = None,
     ):
         """
         Group and merge duplicates coord base on a function, this can be a sum or a max. Read numpy-groupies
@@ -586,7 +584,7 @@ class Algorithms:
         new_data: xr.DataArray | xr.Dataset,
         dims: list[str],
         how: Literal["all"] = "all",
-        client: Client = None,
+        client: Client | None = None,
     ):
         """
         Equivalent of xarray dropna but for multiple dimension and restricted to the all option
@@ -601,7 +599,7 @@ class Algorithms:
         new_data: xr.DataArray | xr.Dataset,
         dims: list[str],
         how: Literal["all"] = "all",
-        client: Client = None,
+        client: Client | None = None,
     ):
         """
         Equivalent of xarray dropna but for boolean and for multiple dimension and restricted to the all option
@@ -657,12 +655,12 @@ class Algorithms:
             dtype=new_data.dtype,
             dim=dim,
             func=NumpyAlgorithms.cumulative_on_sort,
-            kwargs=dict(
-                axis=new_data.dims.index(dim),
-                cum_func=func,
-                keep_nan=keep_nan,
-                ascending=ascending,
-            ),
+            kwargs={
+                "axis": new_data.dims.index(dim),
+                "cum_func": func,
+                "keep_nan": keep_nan,
+                "ascending": ascending,
+            },
         )
 
     @classmethod
@@ -671,7 +669,7 @@ class Algorithms:
         new_data: xr.DataArray | xr.Dataset,
         dim: str,
         top_size,
-        tie_breaker_dim: str = None,
+        tie_breaker_dim: str | None = None,
     ):
         """
         Create a bitmask where the True values means that the cell is on the top N on the dim.
@@ -706,7 +704,7 @@ class Algorithms:
                     (f"f{i}", new_data.dtype)
                     for i in range(new_data.sizes[tie_breaker_dim])
                 ],
-                kwargs=dict(axis=new_data.dims.index(tie_breaker_dim)),
+                kwargs={"axis": new_data.dims.index(tie_breaker_dim)},
                 drop_dim=True,
             )
 
@@ -764,7 +762,7 @@ class Algorithms:
         dim: str,
         window: int,
         window_margin: int,
-        min_periods: int = None,
+        min_periods: int | None = None,
         apply_ffill: bool = True,
         validate_window_size: bool = True,
     ):
@@ -827,7 +825,7 @@ class Algorithms:
         coords,
         preferred_chunks: dict[str, int],
         fill_value: Any,
-        method: str = None,
+        method: str | None = None,
         apply_chunk: bool = True,
     ) -> xr.Dataset | xr.DataArray:
         """
@@ -908,13 +906,13 @@ class Algorithms:
         for dim, coord in reindex_mapped_pad_coords.items():
             reindex_data.coords[dim] = coord
         reindex_data = reindex_data.chunk(
-            {dim: -1 for dim in reindex_mapped_pad_coords.keys()}
+            {dim: -1 for dim in reindex_mapped_pad_coords}
         )
         reindex_data = reindex_data.reindex(
             reindex_mapped_coords, method=method, fill_value=fill_value
         )
 
-        for dim in reindex_mapped_pad_coords.keys():
+        for dim in reindex_mapped_pad_coords:
             reindex_data.coords[dim] = np.array(
                 [
                     inv_autoincrement_map[dim][c]

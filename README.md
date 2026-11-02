@@ -82,60 +82,58 @@ import fsspec
 import xarray as xr
 
 tensor_client = tensordb.TensorClient(
-    base_map=fsspec.get_mapper('tensordb_path'),
+    base_map=fsspec.get_mapper("tensordb_path"),
 )
 
 # Creating a tensor definition
 tensor_client.create_tensor(
     definition=tensordb.tensor_definition.TensorDefinition(
-        path='dummy_tensor',
-        definition={}
+        path="dummy_tensor", definition={}
     )
 )
 
 # Dummy data for example
 dummy_tensor = xr.DataArray(
-    0.,
-    coords={'index': list(range(3)), 'columns': list(range(3))},
-    dims=['index', 'columns']
+    0.0,
+    coords={"index": list(range(3)), "columns": list(range(3))},
+    dims=["index", "columns"],
 )
 
 # Storing the dummy tensor
-tensor_client.store(path='dummy_tensor', new_data=dummy_tensor)
+tensor_client.store(path="dummy_tensor", new_data=dummy_tensor)
 
 # Reading the dummy tensor
-tensor_client.read(path='dummy_tensor')
+tensor_client.read(path="dummy_tensor")
+
+# Reading with deterministic dask names (the pre-0.41 behaviour)
+tensor_client.read(path="dummy_tensor", random_names=False)
 
 # Creating a tensor from a formula
 tensor_client.create_tensor(
     definition=tensordb.tensor_definition.TensorDefinition(
-        path='dummy_tensor_formula',
+        path="dummy_tensor_formula",
         definition={
-            'store': {
-                'data_transformation': [{'method_name': 'read_from_formula'}],
+            "store": {
+                "data_transformation": [{"method_name": "read_from_formula"}],
             },
-            'read_from_formula': {
-                'formula': '`dummy_tensor` + 1'
-            }
-        }
+            "read_from_formula": {"formula": "`dummy_tensor` + 1"},
+        },
     )
 )
 
 # Storing the tensor from formula
-tensor_client.store(path='dummy_tensor_formula')
+tensor_client.store(path="dummy_tensor_formula")
 
 # Reading the tensor from formula
-tensor_client.read('dummy_tensor_formula')
+tensor_client.read("dummy_tensor_formula")
 
 # Appending a new row & column
 new_data = xr.DataArray(
-    2.,
-    coords={'index': [3], 'columns': list(range(4))},
-    dims=['index', 'columns']
+    2.0, coords={"index": [3], "columns": list(range(4))}, dims=["index", "columns"]
 )
 
-tensor_client.append('dummy_tensor_formula', new_data=new_data)
-tensor_client.read('dummy_tensor_formula')
+tensor_client.append("dummy_tensor_formula", new_data=new_data)
+tensor_client.read("dummy_tensor_formula")
 ```
 
 ---

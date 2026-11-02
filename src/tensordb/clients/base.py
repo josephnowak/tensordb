@@ -1,6 +1,6 @@
 import abc
 from collections.abc import Callable
-from typing import Any, Literal
+from typing import Any, ClassVar, Literal
 
 import dask
 import dask.array as da
@@ -23,7 +23,13 @@ from tensordb.utils.tools import extract_paths_from_formula, groupby_chunks
 
 
 class BaseTensorClient(Algorithms, abc.ABC):
-    internal_actions = ["store", "update", "append", "upsert", "drop"]
+    internal_actions: ClassVar[list[str]] = [
+        "store",
+        "update",
+        "append",
+        "upsert",
+        "drop",
+    ]
 
     def add_custom_data(self, path, new_data: dict):
         pass
@@ -92,15 +98,15 @@ class BaseTensorClient(Algorithms, abc.ABC):
             return func(**params)
         except Exception as e:
             e.args = (f"Tensor path: {params['path']}", *e.args)
-            raise e
+            raise
 
     @staticmethod
     def exec_on_parallel(
         method: Callable,
         paths_kwargs: dict[str, dict[str, Any]],
-        max_parallelization: int = None,
-        client: Client = None,
-        compute_kwargs: dict[str, Any] = None,
+        max_parallelization: int | None = None,
+        client: Client | None = None,
+        compute_kwargs: dict[str, Any] | None = None,
     ):
         """
         This method was designed to execute multiple methods of the client on parallel
@@ -149,12 +155,12 @@ class BaseTensorClient(Algorithms, abc.ABC):
     def exec_on_dag_order(
         self,
         method: str | Callable,
-        kwargs_groups: dict[str, dict[str, Any]] = None,
-        tensors_path: list[str] = None,
-        parallelization_kwargs: dict[str, Any] = None,
-        max_parallelization_per_group: dict[str, int] = None,
+        kwargs_groups: dict[str, dict[str, Any]] | None = None,
+        tensors_path: list[str] | None = None,
+        parallelization_kwargs: dict[str, Any] | None = None,
+        max_parallelization_per_group: dict[str, int] | None = None,
         autofill_dependencies: bool = False,
-        only_on_groups: set = None,
+        only_on_groups: set | None = None,
         check_dependencies: bool = True,
         omit_first_n_levels: int = 0,
     ):
@@ -249,10 +255,10 @@ class BaseTensorClient(Algorithms, abc.ABC):
     def get_dag_for_dask(
         self,
         method: str | Callable,
-        kwargs_groups: dict[str, dict[str, Any]] = None,
-        tensors: list[TensorDefinition] = None,
-        max_parallelization_per_group: dict[str, int] = None,
-        map_paths: dict[str, str] = None,
+        kwargs_groups: dict[str, dict[str, Any]] | None = None,
+        tensors: list[TensorDefinition] | None = None,
+        max_parallelization_per_group: dict[str, int] | None = None,
+        map_paths: dict[str, str] | None = None,
         task_prefix: str = "task-",
         final_task_name: str = "WAIT",
     ) -> HighLevelGraph:
@@ -311,7 +317,7 @@ class BaseTensorClient(Algorithms, abc.ABC):
         parameters: dict[str, Any],
         debug: bool = False,
     ):
-        parameters = {**{"new_data": None}, **parameters}
+        parameters = {"new_data": None, **parameters}
         for descriptor in data_transformation:
             func = getattr(storage, descriptor.method_name, None)
             if func is None:
@@ -501,8 +507,8 @@ class BaseTensorClient(Algorithms, abc.ABC):
         self,
         formula: str,
         use_exec: bool = False,
-        original_path: str = None,
-        storage: BaseStorage = None,
+        original_path: str | None = None,
+        storage: BaseStorage | None = None,
         **kwargs: dict[str, Any],
     ) -> xr.DataArray | xr.Dataset:
         data_fields = {}
@@ -516,7 +522,7 @@ class BaseTensorClient(Algorithms, abc.ABC):
             else:
                 data_fields[path] = self.read(path)
 
-        for path, _ in data_fields.items():
+        for path in data_fields:
             formula = formula.replace(f"`{path}`", f"data_fields['{path}']")
 
         formula_globals = {
@@ -530,7 +536,7 @@ class BaseTensorClient(Algorithms, abc.ABC):
         kwargs.update({"data_fields": data_fields})
 
         if use_exec:
-            exec(formula, formula_globals, kwargs)
+            exec(formula, formula_globals, kwargs)  # noqa: S102
             return kwargs["new_data"]
 
         formula = formula.replace("\n", "")

@@ -10,9 +10,7 @@ from tensordb.utils.ic_storage_model import LocalStorageModel
 
 
 def create_dummy_array(n_rows, n_cols, coords=None, dtype=None) -> xr.DataArray:
-    coords = coords
     if coords is None:
-        dtype = dtype
         if dtype is None:
             dtype = "<U15"
         coords = {
@@ -115,7 +113,7 @@ class TestTensorClient:
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_update(self, use_local):
-        tensor_client = self.tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client
         tensor_client.update(new_data=self.arr2, path="data_one")
         assert tensor_client.read(path="data_one").equals(self.arr2)
 
@@ -128,7 +126,7 @@ class TestTensorClient:
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_upsert(self, use_local):
-        tensor_client = self.tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client
         tensor_client.create_tensor({"path": "data_upsert"})
         # Test creating from strach the tensor, this should call the store method
         tensor_client.upsert(new_data=self.arr2, path="data_upsert")
@@ -140,14 +138,14 @@ class TestTensorClient:
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_drop(self, use_local):
-        tensor_client = self.tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client
         coords = {"index": [0, 3], "columns": [1, 2]}
         tensor_client.drop(path="data_one", coords=coords)
         tensor_client.read("data_one").equals(self.arr.drop_sel(coords))
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_append(self, use_local):
-        tensor_client = self.tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client
         arr = create_dummy_array(10, 5, dtype=int)
         arr = arr.sel(
             index=(
@@ -165,13 +163,13 @@ class TestTensorClient:
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_delete_tensor(self, use_local):
-        tensor_client = self.tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client
         tensor_client.delete_tensor("data_one")
         assert not tensor_client.exist("data_one")
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_read_from_formula(self, use_local):
-        tensor_client = self.tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client
         definition = TensorDefinition(
             path="data_four",
             definition={
@@ -208,7 +206,7 @@ class TestTensorClient:
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_read_data_transformation(self, use_local):
-        tensor_client = self.tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client
         definition = TensorDefinition(
             path="data_four",
             definition={
@@ -227,7 +225,7 @@ class TestTensorClient:
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_data_transformation_parameters_priority(self, use_local):
-        tensor_client = self.tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client
         definition = TensorDefinition(
             path="data_four",
             definition={
@@ -263,7 +261,7 @@ class TestTensorClient:
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_specifics_definition(self, use_local):
-        tensor_client = self.tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client
         definition = TensorDefinition(
             path="specific_definition",
             definition={
@@ -289,7 +287,7 @@ class TestTensorClient:
 
     @pytest.mark.parametrize("use_local", [True, False])
     def test_different_client(self, use_local):
-        tensor_client = self.tensor_client if use_local else self.tensor_client
+        tensor_client = self.tensor_client
         definition = TensorDefinition(
             path="different_client",
             storage={"storage_name": "json_storage"},

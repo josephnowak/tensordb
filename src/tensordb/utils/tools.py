@@ -1,4 +1,5 @@
 import itertools as it
+import uuid
 from collections.abc import Callable, Generator, Hashable, Iterable
 from typing import Any
 
@@ -8,11 +9,41 @@ import xarray as xr
 from dask import array as da
 
 
+def chunk_with_random_names(
+    data: xr.DataArray | xr.Dataset, name_prefix: str
+) -> xr.DataArray | xr.Dataset:
+    """
+    Chunk variables opened with ``chunks=None`` using the zarr chunks, with a random
+    token in each dask graph name, so reads of the same data never share keys.
+    The chunk sizes are the ones that ``open_zarr`` uses by default
+    (``encoding["preferred_chunks"]``).
+    """
+    token = uuid.uuid4().hex
+
+    def chunk_variable(array: xr.DataArray, variable: Hashable) -> xr.DataArray:
+        preferred = array.encoding.get("preferred_chunks", {})
+        chunks = {
+            dim: preferred.get(dim, size)
+            for dim, size in zip(array.dims, array.shape, strict=True)
+        }
+        # The variable name goes into the token: keys do not include it otherwise,
+        # so variables with the same shape would share graph keys.
+        return array.chunk(chunks, name_prefix=name_prefix, token=f"{token}-{variable}")
+
+    if isinstance(data, xr.DataArray):
+        return chunk_variable(data, data.name)
+    return xr.Dataset(
+        {name: chunk_variable(data[name], name) for name in data.data_vars},
+        coords=data.coords,
+        attrs=data.attrs,
+    )
+
+
 def groupby_chunks(
     iterable: Iterable,
     group_chunk_size: dict,
     group_func: Callable,
-    sort_func: Callable = None,
+    sort_func: Callable | None = None,
 ) -> Generator:
     """
     This function apply a groupby over the iterable, and then it chunks the groups to iterate over them in order
@@ -92,9 +123,9 @@ def xarray_from_func(
     coords: dict[Hashable, list | np.ndarray],
     chunks: list[int | None] | dict[Hashable, int],
     dtypes: list[Any] | Any,
-    data_names: list[Hashable] | str = None,
-    args: list[Any] = None,
-    kwargs: dict[str, Any] = None,
+    data_names: list[Hashable] | str | None = None,
+    args: list[Any] | None = None,
+    kwargs: dict[str, Any] | None = None,
 ) -> xr.DataArray | xr.Dataset:
     """
     Equivalent of dask fromfunction but it sends the xarray coords of every chunk instead of the positions

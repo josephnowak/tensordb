@@ -87,7 +87,9 @@ class TestZarrStorage:
         self.arr4 = self.arr.astype(float) + 5
         self.arr5 = self.arr.astype(np.uint) + 3
 
-        self.dataset = xr.Dataset(data_vars=dict(a=self.arr, b=self.arr4, c=self.arr5))
+        self.dataset = xr.Dataset(
+            data_vars={"a": self.arr, "b": self.arr4, "c": self.arr5}
+        )
 
     @pytest.mark.parametrize("keep_order", [True, False])
     def test_store_data(self, keep_order: bool):

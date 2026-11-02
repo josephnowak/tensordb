@@ -10,6 +10,7 @@ from icechunk.xarray import to_icechunk
 from tensordb.algorithms import Algorithms
 from tensordb.storages.base_storage import BaseStorage
 from tensordb.utils.ic_storage_model import LocalStorageModel, S3StorageModel
+from tensordb.utils.tools import chunk_with_random_names
 
 
 class ZarrStorage(BaseStorage):
@@ -37,10 +38,10 @@ class ZarrStorage(BaseStorage):
     def __init__(
         self,
         ic_storage: S3StorageModel | LocalStorageModel,
-        chunks: dict[str, int] = None,
-        unique_coords: dict[str, bool] = None,
-        sorted_coords: dict[str, bool] = None,
-        encoding: dict[str, Any] = None,
+        chunks: dict[str, int] | None = None,
+        unique_coords: dict[str, bool] | None = None,
+        sorted_coords: dict[str, bool] | None = None,
+        encoding: dict[str, Any] | None = None,
         default_unique_coord: bool = True,
         max_unsort_dims_to_rechunk: int = 1,
         **kwargs,
@@ -49,6 +50,7 @@ class ZarrStorage(BaseStorage):
 
         self.ic_storage = ic_storage.get_storage(self.sub_path)
         self.ob_store = ic_storage.get_obstore(self.sub_path)
+        self.tensor_path = self.sub_path
         self.sub_path = None
         self.chunks = chunks
         if self.chunks is None:
@@ -154,7 +156,7 @@ class ZarrStorage(BaseStorage):
             ]
         else:
             if isinstance(new_data, xr.DataArray) and isinstance(self.data_names, list):
-                raise ValueError(
+                raise TypeError(
                     f"The number of data vars is {len(self.data_names)} which indicate "
                     f"that the tensor is a dataset and the new_data received is a xr.DataArray"
                 )
@@ -199,7 +201,7 @@ class ZarrStorage(BaseStorage):
         self.clear_encoding(new_data)
 
         # Force to always use the same dimension order
-        dims = act_data[list(act_data.keys())[0]].dims
+        dims = act_data[next(iter(act_data))].dims
 
         # Decide if the data needs to be restored due to insertions in the middle
         rewrite = False
@@ -213,9 +215,7 @@ class ZarrStorage(BaseStorage):
         # to the act_data, and it is also used to calculate the proper chunks for the data_to_append
         complete_data = act_data
 
-        preferred_chunks = act_data[list(act_data.keys())[0]].encoding[
-            "preferred_chunks"
-        ]
+        preferred_chunks = act_data[next(iter(act_data))].encoding["preferred_chunks"]
 
         for dim in dims:
             new_coord = new_data.indexes[dim]
@@ -277,9 +277,7 @@ class ZarrStorage(BaseStorage):
             # Rechunk the data_to_append in the dim order based on the chunks of the complete_data
             # after slicing it, this is to avoid calculating the correct chunks by hand.
             data_to_append = {
-                dim: data_to_append[dim].chunk(
-                    complete_data.isel(**slices_to_append[dim]).chunksizes
-                )
+                dim: data.chunk(complete_data.isel(**slices_to_append[dim]).chunksizes)
                 for dim, data in data_to_append.items()
             }
 
@@ -313,7 +311,7 @@ class ZarrStorage(BaseStorage):
         self.clear_encoding(new_data)
 
         # Force to always use the same dimension order
-        dims = act_data[list(act_data.keys())[0]].dims
+        dims = act_data[next(iter(act_data))].dims
 
         act_coords = {k: coord for k, coord in act_data.coords.items()}
 
@@ -473,7 +471,7 @@ class ZarrStorage(BaseStorage):
         if rewrite:
             return self.store(new_data=complete_data, commit=commit)
 
-        dims = complete_data[list(complete_data.keys())[0]].dims
+        dims = complete_data[next(iter(complete_data))].dims
         session = None
         for dim in dims:
             if dim not in data_to_append:
@@ -499,7 +497,7 @@ class ZarrStorage(BaseStorage):
         self,
         new_data: xr.DataArray | xr.Dataset,
         commit: bool = True,
-        complete_update_dims: list[str] | str = None,
+        complete_update_dims: list[str] | str | None = None,
         fill_value: Any = np.nan,
     ) -> None | ic.Session:
         """
@@ -558,7 +556,7 @@ class ZarrStorage(BaseStorage):
         self,
         new_data: xr.DataArray | xr.Dataset,
         commit: bool = True,
-        complete_update_dims: list[str] | str = None,
+        complete_update_dims: list[str] | str | None = None,
         fill_value: Any = np.nan,
     ) -> ic.Session | None:
         """
@@ -573,9 +571,7 @@ class ZarrStorage(BaseStorage):
             return self.store(new_data, commit=commit)
 
         # Icechunk does not support multiple distributed writes without commiting first
-        self.update(
-            new_data, commit=True, complete_update_dims=complete_update_dims
-        )
+        self.update(new_data, commit=True, complete_update_dims=complete_update_dims)
         return self.append(new_data, commit=True, fill_value=fill_value)
 
     def drop(self, coords: dict, commit: bool = True) -> ic.Session:
@@ -600,13 +596,21 @@ class ZarrStorage(BaseStorage):
         new_data = new_data.drop_sel(coords)
         return self.store(new_data=new_data, commit=commit)
 
-    def read(self) -> xr.DataArray | xr.Dataset:
+    def read(self, random_names: bool = True) -> xr.DataArray | xr.Dataset:
         """
         Read a tensor stored, internally it uses
         `open_zarr method <https://xr.pydata.org/en/stable/generated/xr.open_zarr.html>`_.
 
         Parameters
         ----------
+        random_names : bool, default True
+            If True, every call gives each variable a dask graph name that is unique
+            to that call (a random token is added to the name). Reads of the same tensor
+            then never share graph keys, so concurrent computations that read the same
+            tensor cannot collide in the scheduler (dask#9888). The data, dtype, dims and
+            chunks are the same as with ``random_names=False``.
+            If False, the data is opened with ``open_zarr`` directly. Its graph names are
+            deterministic, so the same tensor read twice shares keys.
 
         Returns
         -------
@@ -616,12 +620,23 @@ class ZarrStorage(BaseStorage):
         """
         try:
             session = self.get_readonly_session()
+            if not random_names:
+                dataset = xr.open_zarr(
+                    session.store,
+                    consolidated=False,
+                )
+                dataset = dataset[self.data_names]
+                return dataset
+
             dataset = xr.open_zarr(
                 session.store,
                 consolidated=False,
+                chunks=None,
             )
             dataset = dataset[self.data_names]
-            return dataset
+            return chunk_with_random_names(
+                dataset, name_prefix=f"{self.tensor_path}-zarr-"
+            )
         except FileNotFoundError as e:
             raise FileNotFoundError(
                 f"The data_names {self.data_names} does not exist on the tensor "

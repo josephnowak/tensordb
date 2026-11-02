@@ -1,6 +1,6 @@
 [project]
 name = "tensordb"
-version = "0.40.3"
+version = "0.41.0"
 description = "Database based in a file system storage combined with Xarray and Zarr"
 keywords = ["Database Files Xarray Handler Zarr Store Read Write Append Update Upsert Backup Delete S3"]
 readme = "README.md"
@@ -16,11 +16,11 @@ dependencies = [
     "pandas>=2.0.0",
     "pydantic>=2.0.0",
     "xarray[accel]>=2025.6.1",
-    "icechunk>=0.2.16",
+    "icechunk>=2.2.0",
     "numba>=0.61.0",
     "obstore>=0.6.0",
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 
 [tool.hatch.metadata]
 allow-direct-references = true
@@ -53,7 +53,6 @@ ignore = [
     "E501",
     "E731",
     "UP007",
-    "UP038"
 ]
 extend-select = [
     "B", # flake8-bugbear
